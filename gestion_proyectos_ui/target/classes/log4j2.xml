@@ -1,0 +1,17 @@
+<Configuration>
+<!-- ESCRITORES DE LOGS  -->
+	<Appenders>
+	
+		<File name="FileLogger" fileName="logs/appGastos.log" append="true">
+			<PatternLayout pattern="[%d{YYYY - MM - DD HH:mm:ss}] [%-5level] by %logger msg: %n [ %msg ] %n" /> <!-- FORMATO EN EL QUE SE ESCRIBE EN EL FICHERO-->
+		</File>	
+	</Appenders>
+
+<!-- REGLAS DE QUE SE ESCRIBEN  -->
+	<Loggers>
+		<Root level="DEBUG">
+			<AppenderRef ref="FileLogger"/>
+		</Root>
+	
+	</Loggers>
+</Configuration>
