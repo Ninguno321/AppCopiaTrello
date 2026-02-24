@@ -9,7 +9,7 @@
            xmlns:fx="http://javafx.com/fxml"
            prefWidth="900.0"
            prefHeight="600.0"
-           stylesheets="@/umu/pds/gestion_proyectos_ui/estilos/app2.css"
+           stylesheets="@/umu/pds/gestion_proyectos_ui/estilos/app-base.css"
            styleClass="root">
 
     <VBox alignment="CENTER" spacing="30">

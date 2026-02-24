@@ -1,0 +1,132 @@
+@font-face {
+font-family: "Inter";
+src: url("fonts/Inter-Regular.ttf");
+}
+
+
+
+/* Root background */
+
+.root {
+-fx-background-color: #F0F4F8;
+-fx-font-family: "Inter";
+}
+
+
+
+.logo-box {
+-fx-background-color: #6699CC;
+-fx-background-radius: 18;
+-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 20, 0, 0, 4);
+-fx-alignment: center;
+}
+
+
+
+.logo-icon {
+-fx-fill: white;
+-fx-scale-x: 2.2;
+-fx-scale-y: 2.2;
+}
+
+
+
+/* Logo */
+
+.logo-box {
+-fx-background-color: #6699CC;
+-fx-background-radius: 16;
+}
+
+
+
+.logo-icon {
+-fx-text-fill: white;
+-fx-font-size: 28px;
+}
+
+
+
+/* Title */
+
+.title {
+-fx-font-size: 34px;
+-fx-font-weight: bold;
+-fx-text-fill: #1F2D3D;
+}
+
+
+
+.subtitle {
+-fx-font-size: 14px;
+-fx-text-fill: #5A6B7C;
+}
+
+
+
+/* Card */
+
+.card {
+-fx-background-color: white;
+-fx-background-radius: 18;
+-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 25, 0, 0, 6);
+}
+
+
+
+/* Card title */
+
+.card-title {
+-fx-font-size: 18px;
+-fx-font-weight: bold;
+}
+
+
+
+/* Text fields */
+
+.text-field {
+-fx-background-radius: 10;
+-fx-background-color: #F5F7FA;
+-fx-border-color: #D6E0EA;
+-fx-border-radius: 10;
+-fx-padding: 10 12;
+}
+
+
+
+.text-field:focused {
+-fx-border-color: #26D9D9;
+-fx-effect: dropshadow(gaussian, rgba(38,217,217,0.35), 8, 0, 0, 0);
+}
+
+
+
+/* Button */
+
+.primary-button {
+-fx-background-color: #6699CC;
+-fx-text-fill: white;
+-fx-background-radius: 12;
+-fx-padding: 12;
+-fx-font-size: 14px;
+-fx-cursor: hand;
+}
+
+
+
+.primary-button:hover {
+-fx-background-color: #5A8CC2;
+}
+
+.primary-button:pressed {
+-fx-background-color: #4F7EB5;
+}
+
+
+
+/* Footer */
+.footer-text {
+-fx-text-fill: #6B7C8F;
+-fx-font-size: 12px;
+}

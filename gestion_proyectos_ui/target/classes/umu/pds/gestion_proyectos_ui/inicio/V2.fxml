@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<SplitPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           orientation="HORIZONTAL"
+           prefWidth="1200.0"
+           prefHeight="700.0"
+           stylesheets="@/umu/pds/gestion_proyectos_ui/estilos/app2.css"
+           styleClass="root">
+
+    <items>
+
+        <!-- PANEL IZQUIERDO -->
+        <VBox prefWidth="260.0" spacing="15.0" styleClass="card">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <children>
+
+                <Label text="Bandeja de entrada" styleClass="card-title"/>
+
+                <Button text="+ Añade una tarjeta"
+                        maxWidth="Infinity"
+                        styleClass="primary-button"/>
+
+                <Separator/>
+
+                <Label text="Tarea 1" styleClass="subtitle"/>
+                <Label text="Tarea 2" styleClass="subtitle"/>
+                <Label text="Tarea 3" styleClass="subtitle"/>
+
+            </children>
+        </VBox>
+
+        <!-- PANEL DERECHO -->
+        <ScrollPane hbarPolicy="AS_NEEDED"
+                    vbarPolicy="NEVER"
+                    fitToHeight="true"
+                    pannable="true">
+
+            <content>
+
+                <HBox fx:id="boardContainer" spacing="25.0">
+
+                    <padding>
+                        <Insets top="25" right="25" bottom="25" left="25"/>
+                    </padding>
+
+                    <children>
+
+                        <!-- LISTA 1 -->
+                        <VBox prefWidth="260.0"
+                              spacing="15.0"
+                              styleClass="card">
+
+                            <padding>
+                                <Insets top="15" right="15" bottom="15" left="15"/>
+                            </padding>
+
+                            <children>
+                                <Label text="Guía de introducción"
+                                       styleClass="card-title"/>
+
+                                <Button text="+ Añade una tarjeta"
+                                        maxWidth="Infinity"
+                                        styleClass="primary-button"/>
+                            </children>
+
+                        </VBox>
+
+                        <!-- BOTÓN AÑADIR LISTA -->
+                        <VBox prefWidth="260.0"
+                              alignment="CENTER"
+                              spacing="10.0"
+                              styleClass="card">
+
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+
+                            <children>
+                                <Button text="+ Añade otra lista"
+                                        maxWidth="Infinity"
+                                        styleClass="primary-button"/>
+                            </children>
+
+                        </VBox>
+
+                    </children>
+
+                </HBox>
+
+            </content>
+
+        </ScrollPane>
+
+    </items>
+
+</SplitPane>

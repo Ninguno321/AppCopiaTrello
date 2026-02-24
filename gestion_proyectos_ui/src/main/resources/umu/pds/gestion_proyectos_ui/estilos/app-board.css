@@ -1,0 +1,99 @@
+/* ========== BOARD BACKGROUND ========== */
+
+.board-background {
+    -fx-background-color: linear-gradient(to bottom right, #6a11cb, #2575fc);
+}
+
+/* ========== LISTA (COLUMNA) ========== */
+
+.trello-list {
+    -fx-background-color: #101204;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+    -fx-spacing: 10;
+    -fx-min-width: 260;
+    -fx-max-width: 260;
+}
+
+.list-title {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* ========== TARJETAS ========== */
+
+.trello-card {
+    -fx-background-color: #22272B;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+    -fx-cursor: hand;
+}
+
+.trello-card:hover {
+    -fx-background-color: #2C333A;
+}
+
+.card-text {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+}
+
+/* ========== BOTÓN AÑADIR TARJETA ========== */
+
+.add-card-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9FADBC;
+    -fx-alignment: center-left;
+}
+
+.add-card-button:hover {
+    -fx-background-color: rgba(255,255,255,0.08);
+}
+
+/* ========== AÑADIR LISTA ========== */
+
+.add-list {
+    -fx-background-color: rgba(255,255,255,0.2);
+    -fx-background-radius: 12;
+    -fx-padding: 15;
+    -fx-alignment: center;
+    -fx-min-width: 260;
+}
+
+.add-list:hover {
+    -fx-background-color: rgba(255,255,255,0.35);
+}
+
+/* ========== ETIQUETAS DE COLOR ========== */
+
+.label-green  { -fx-background-color: #4BCE97; -fx-background-radius: 6; }
+.label-yellow { -fx-background-color: #F5CD47; -fx-background-radius: 6; }
+.label-orange { -fx-background-color: #FEA362; -fx-background-radius: 6; }
+.label-red    { -fx-background-color: #F87168; -fx-background-radius: 6; }
+.label-purple { -fx-background-color: #9F8FEF; -fx-background-radius: 6; }
+.label-blue   { -fx-background-color: #579DFF; -fx-background-radius: 6; }
+
+/* ========== AVATAR ========== */
+
+.avatar {
+    -fx-background-color: #579DFF;
+    -fx-background-radius: 50;
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-alignment: center;
+    -fx-min-width: 28;
+    -fx-min-height: 28;
+}
+
+/* ========== DRAG & DROP ========== */
+
+.drag-over {
+    -fx-border-color: #26D9D9;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+}
+
+.dragging {
+    -fx-opacity: 0.6;
+}
