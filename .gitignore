@@ -24,6 +24,10 @@ local.properties
 .loadpath
 .recommenders
 
+# Archivo local con secretos
+src/main/resources/application-secrets.properties
+application-secrets.properties
+
 # External tool builders
 .externalToolBuilders/
 
