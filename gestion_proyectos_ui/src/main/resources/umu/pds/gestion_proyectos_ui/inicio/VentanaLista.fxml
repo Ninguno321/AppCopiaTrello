@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxHeight="-1.0" minHeight="-1.0" styleClass="lista-root" stylesheets="@../estilos/theme.css, @../estilos/app-base2.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="umu.pds.gestion_proyectos_ui.inicio.VistaListaController">
+   <children>
+
+      <!-- HEADER -->
+      <HBox fx:id="hbox1" styleClass="lista-header">
+         <children>
+
+            <TextField fx:id="titulo" prefHeight="35.0" prefWidth="263.0" promptText="Introduce el nombre de la lista..." styleClass="lista-titulo" />
+
+            <Button fx:id="boton1" styleClass="menu-boton" text="⋯" />
+
+         </children>
+      </HBox>
+
+
+      <!-- TARJETAS -->
+	<ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" pannable="true" styleClass="lista-scroll" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+         <content>
+            <VBox fx:id="lista" spacing="8" styleClass="tarjetas-box" />
+         </content>
+
+      </ScrollPane>
+
+
+      <!-- FOOTER -->
+      <HBox fx:id="hbox2" styleClass="lista-footer">
+
+         <children>
+
+            <Button fx:id="boton2" onMouseClicked="#crearTarjeta" styleClass="add-icon" text=" + Añade una tarjeta">
+               <font>
+                  <Font size="14.0" />
+               </font></Button>
+
+         </children>
+
+      </HBox>
+
+   </children>
+   <padding>
+      <Insets bottom="50.0" />
+   </padding>
+
+</VBox>

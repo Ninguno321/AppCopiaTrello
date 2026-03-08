@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@../estilos/theme.css, @../estilos/app-board.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaTableroController">
+   <children>
+
+      <HBox spacing="10.0">
+         <children>
+            <TextField promptText="Buscar" />
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </HBox>
+
+      <!-- Contenido scrollable, sin barra nativa -->
+      <ScrollPane fx:id="scrollTablero" fitToHeight="false" hbarPolicy="NEVER" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+         <content>
+			<HBox fx:id="HboxDondeVanLasListas" alignment="TOP_LEFT" spacing="15.0" fillHeight="false">
+               <padding>
+                  <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+               </padding>
+            </HBox>
+         </content>
+      </ScrollPane>
+
+      <!-- Botones fijos -->
+      <HBox alignment="CENTER" prefHeight="33.0" prefWidth="1000.0" spacing="5.0">
+         <children>
+            <VBox prefHeight="45.0" prefWidth="559.0" styleClass="toolbar-box">
+               <children>
+                  <HBox alignment="TOP_CENTER" prefHeight="33.0" prefWidth="492.0">
+                     <children>
+                        <Button mnemonicParsing="false" styleClass="button" text="Bandeja de entrada" />
+                        <Button mnemonicParsing="false" styleClass="button" text="Planificador" />
+                        <Button mnemonicParsing="false" styleClass="button,active" text="Tablero" />
+                        <Button fx:id="botonCreaLista" mnemonicParsing="false" onMouseClicked="#crearLista" styleClass="button" text="Cambiar de tablero" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+         <padding>
+            <Insets bottom="8.0" top="50.0" />
+         </padding>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+      </HBox>
+
+      <!-- Scrollbar manual, debajo de los botones -->
+      <ScrollBar fx:id="scrollBarH" blockIncrement="0.1" max="1.0" min="0.0" orientation="HORIZONTAL" styleClass="lista-scroll" unitIncrement="0.05" value="0.0">
+         <VBox.margin>
+            <Insets />
+         </VBox.margin></ScrollBar>
+
+   </children>
+</VBox>

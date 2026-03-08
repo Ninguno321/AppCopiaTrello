@@ -36,7 +36,7 @@ public class App extends Application
         // Cargar vista
         FXMLLoader loader = new FXMLLoader(
             getClass().getResource(
-            		"/umu/pds/gestion_proyectos_ui/inicio/VentanaInicio.fxml"
+            		"/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
             )
         );
 
@@ -48,8 +48,10 @@ public class App extends Application
         //    Configuracion.getInstancia().getControladorApp()
         //);
 
-        stage.setScene(new Scene(root, 1200, 700));
+        stage.setScene(new Scene(root, 1000, 1000));
         stage.setTitle("Gestión de Proyectos");
+        stage.setFullScreen(true);
+        stage.setFullScreenExitHint("Presiona ESC para salir del modo cine");
         stage.show();
     }
 

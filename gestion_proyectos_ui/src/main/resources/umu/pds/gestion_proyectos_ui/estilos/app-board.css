@@ -1,99 +1,80 @@
-/* ========== BOARD BACKGROUND ========== */
+/* ============================================================
+   APP-BOARD.CSS — Tablero y barra de navegación
+   ============================================================ */
 
-.board-background {
-    -fx-background-color: linear-gradient(to bottom right, #6a11cb, #2575fc);
+/* ===========================
+   TOOLBAR
+   =========================== */
+.toolbar-box {
+    -fx-background-color:  color-toolbar-bg;
+    -fx-background-radius: 30;
+    -fx-padding:           6 16;
 }
 
-/* ========== LISTA (COLUMNA) ========== */
-
-.trello-list {
-    -fx-background-color: #101204;
-    -fx-background-radius: 12;
-    -fx-padding: 12;
-    -fx-spacing: 10;
-    -fx-min-width: 260;
-    -fx-max-width: 260;
+.toolbar-box .button {
+    -fx-background-color:  transparent;
+    -fx-text-fill:         color-text-on-primary;
+    -fx-font-size:         13px;
+    -fx-background-radius: 20;
+    -fx-padding:           6 14;
+    -fx-cursor:            hand;
 }
 
-.list-title {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
+.toolbar-box .button:hover {
+    -fx-background-color: rgba(255,255,255,0.12);
 }
 
-/* ========== TARJETAS ========== */
-
-.trello-card {
-    -fx-background-color: #22272B;
-    -fx-background-radius: 10;
-    -fx-padding: 10;
-    -fx-cursor: hand;
+.toolbar-box .button.active {
+    -fx-background-color: color-toolbar-active;
+    -fx-border-color:     rgba(255,255,255,0.25);
+    -fx-border-radius:    20;
+    -fx-border-width:     1;
 }
 
-.trello-card:hover {
-    -fx-background-color: #2C333A;
+/* ===========================
+   CAMPO DE BÚSQUEDA
+   =========================== */
+.search-field {
+    -fx-background-color:  color-surface;
+    -fx-border-color:      color-border;
+    -fx-border-radius:     20;
+    -fx-background-radius: 20;
+    -fx-padding:           6 14;
+    -fx-text-fill:         color-text-primary;
+    -fx-prompt-text-fill:  color-text-muted;
 }
 
-.card-text {
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
+.search-field:focused {
+    -fx-border-color: color-primary;
 }
 
-/* ========== BOTÓN AÑADIR TARJETA ========== */
-
-.add-card-button {
+/* ===========================
+   SCROLL DEL TABLERO
+   =========================== */
+.lista-scroll {
     -fx-background-color: transparent;
-    -fx-text-fill: #9FADBC;
-    -fx-alignment: center-left;
+    -fx-border-color:     transparent;
 }
 
-.add-card-button:hover {
-    -fx-background-color: rgba(255,255,255,0.08);
+.lista-scroll .viewport {
+    -fx-background-color: transparent;
 }
 
-/* ========== AÑADIR LISTA ========== */
-
-.add-list {
-    -fx-background-color: rgba(255,255,255,0.2);
-    -fx-background-radius: 12;
-    -fx-padding: 15;
-    -fx-alignment: center;
-    -fx-min-width: 260;
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-padding:          0 0 0 4;
 }
 
-.add-list:hover {
-    -fx-background-color: rgba(255,255,255,0.35);
+.scroll-bar .track {
+    -fx-background-color:  color-scrollbar-track;
+    -fx-background-radius: 10;
 }
 
-/* ========== ETIQUETAS DE COLOR ========== */
-
-.label-green  { -fx-background-color: #4BCE97; -fx-background-radius: 6; }
-.label-yellow { -fx-background-color: #F5CD47; -fx-background-radius: 6; }
-.label-orange { -fx-background-color: #FEA362; -fx-background-radius: 6; }
-.label-red    { -fx-background-color: #F87168; -fx-background-radius: 6; }
-.label-purple { -fx-background-color: #9F8FEF; -fx-background-radius: 6; }
-.label-blue   { -fx-background-color: #579DFF; -fx-background-radius: 6; }
-
-/* ========== AVATAR ========== */
-
-.avatar {
-    -fx-background-color: #579DFF;
-    -fx-background-radius: 50;
-    -fx-text-fill: white;
-    -fx-font-size: 11px;
-    -fx-alignment: center;
-    -fx-min-width: 28;
-    -fx-min-height: 28;
+.scroll-bar .thumb {
+    -fx-background-color:  color-scrollbar-thumb;
+    -fx-background-radius: 10;
 }
 
-/* ========== DRAG & DROP ========== */
-
-.drag-over {
-    -fx-border-color: #26D9D9;
-    -fx-border-width: 2;
-    -fx-border-radius: 12;
-}
-
-.dragging {
-    -fx-opacity: 0.6;
+.scroll-bar .thumb:hover {
+    -fx-background-color: color-scrollbar-hover;
 }
