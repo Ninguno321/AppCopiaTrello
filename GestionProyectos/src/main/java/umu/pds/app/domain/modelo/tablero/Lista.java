@@ -22,7 +22,7 @@ public class Lista {
     private String nombre;
     private final List<Tarjeta> tarjetas;
 
-    Lista(ListaId id, String nombre) {
+    public Lista(ListaId id, String nombre) {
         if (id == null) throw new IllegalArgumentException("ListaId no puede ser nulo");
         if (nombre == null || nombre.isBlank()) throw new IllegalArgumentException("La lista debe tener un nombre");
         this.id = id;
@@ -30,21 +30,21 @@ public class Lista {
         this.tarjetas = new ArrayList<>();
     }
 
-    static Lista nueva(String nombre) {
+    public static Lista nueva(String nombre) {
         return new Lista(ListaId.nuevo(), nombre);
     }
 
     // --- Mutaciones package-private (solo el Tablero las invoca) ---
 
-    void agregarTarjeta(Tarjeta tarjeta) {
+    public void agregarTarjeta(Tarjeta tarjeta) {
         tarjetas.add(tarjeta);
     }
 
-    boolean eliminarTarjeta(TarjetaId tarjetaId) {
+    public boolean eliminarTarjeta(TarjetaId tarjetaId) {
         return tarjetas.removeIf(t -> t.getId().equals(tarjetaId));
     }
 
-    Optional<Tarjeta> buscarTarjeta(TarjetaId tarjetaId) {
+    public Optional<Tarjeta> buscarTarjeta(TarjetaId tarjetaId) {
         return tarjetas.stream()
                 .filter(t -> t.getId().equals(tarjetaId))
                 .findFirst();

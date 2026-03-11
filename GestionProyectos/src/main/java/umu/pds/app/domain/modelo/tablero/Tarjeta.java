@@ -17,14 +17,14 @@ public class Tarjeta {
     private Tarea tarea;
     private Checklist checklist;
 
-    Tarjeta(TarjetaId id, String titulo) {
+    public Tarjeta(TarjetaId id, String titulo) {
         if (id == null) throw new IllegalArgumentException("TarjetaId no puede ser nulo");
         if (titulo == null || titulo.isBlank()) throw new IllegalArgumentException("La tarjeta debe tener un título");
         this.id = id;
         this.titulo = titulo;
     }
 
-    static Tarjeta nueva(String titulo) {
+    public static Tarjeta nueva(String titulo) {
         return new Tarjeta(TarjetaId.nuevo(), titulo);
     }
 
