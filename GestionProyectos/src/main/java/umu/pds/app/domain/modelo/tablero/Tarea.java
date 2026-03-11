@@ -1,0 +1,38 @@
+package umu.pds.app.domain.modelo.tablero;
+
+import java.time.LocalDate;
+
+/**
+ * Value Object: inmutable, igualdad por valor de todos sus campos.
+ * Las mutaciones devuelven una nueva instancia.
+ */
+public record Tarea(String titulo, String descripcion, LocalDate fechaLimite, EstadoTarea estado) {
+
+    public Tarea {
+        if (titulo == null || titulo.isBlank())
+            throw new IllegalArgumentException("La tarea debe tener un título");
+        if (estado == null)
+            estado = EstadoTarea.PENDIENTE;
+    }
+
+    public static Tarea nueva(String titulo) {
+        return new Tarea(titulo, null, null, EstadoTarea.PENDIENTE);
+    }
+
+    public Tarea conDescripcion(String descripcion) {
+        return new Tarea(titulo, descripcion, fechaLimite, estado);
+    }
+
+    public Tarea conFechaLimite(LocalDate fecha) {
+        return new Tarea(titulo, descripcion, fecha, estado);
+    }
+
+    public Tarea conEstado(EstadoTarea nuevoEstado) {
+        if (nuevoEstado == null) throw new IllegalArgumentException("El estado no puede ser nulo");
+        return new Tarea(titulo, descripcion, fechaLimite, nuevoEstado);
+    }
+
+    public boolean estaCompletada() {
+        return EstadoTarea.COMPLETADA.equals(estado);
+    }
+}
