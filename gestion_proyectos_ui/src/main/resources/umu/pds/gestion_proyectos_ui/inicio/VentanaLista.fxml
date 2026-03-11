@@ -24,7 +24,7 @@
 
 
       <!-- TARJETAS -->
-	<ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" pannable="true" styleClass="lista-scroll" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+	<ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" pannable="true"  prefWidth="304.0" styleClass="lista-scroll" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
          <content>
             <VBox fx:id="lista" spacing="8" styleClass="tarjetas-box" />
          </content>
@@ -48,7 +48,7 @@
 
    </children>
    <padding>
-      <Insets bottom="50.0" />
+      <Insets bottom="10.0" />
    </padding>
 
 </VBox>
