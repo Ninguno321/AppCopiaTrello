@@ -22,7 +22,7 @@ public class VistaListaController {
     @FXML private ScrollPane scroll;
     @FXML private TextField titulo;
 
-    // Placeholder visual: línea azul que se mueve entre tarjetas
+    // Placeholder visual: línea azul que se mueve entre tarjetas. 
     private HBox placeholder;
 
     public ScrollPane getScroll() {
@@ -43,22 +43,50 @@ public class VistaListaController {
 
     @FXML
     public void initialize() {
+        // Inicializamos el contenedor del placeholder (se configurará dinámicamente al arrastrar)
         placeholder = new HBox();
-        placeholder.setPrefHeight(3);
-        placeholder.setMaxHeight(3);
-        placeholder.setMinHeight(3);
-        placeholder.setStyle("-fx-background-color: #0079BF;");
-        placeholder.setMaxWidth(Double.MAX_VALUE);
 
-        // --- DRAG & DROP (placeholder) ---
+        // --- DRAG & DROP (Placeholder con apariencia de tarjeta) ---
         lista.setOnDragOver(event -> {
             if (event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
 
-                int index = calcularIndice(event.getY());
-                lista.getChildren().remove(placeholder);
-                int clampedIndex = Math.min(index, lista.getChildren().size());
-                lista.getChildren().add(clampedIndex, placeholder);
+                // Obtenemos la tarjeta real que se está arrastrando desde el UserData de la Scene
+                Object dragged = lista.getScene().getUserData();
+
+                if (dragged instanceof HBox tarjetaOriginal) {
+                    // 1. Clonamos dimensiones para que la lista no dé saltos
+                    placeholder.setPrefHeight(tarjetaOriginal.getHeight());
+                    placeholder.setMinHeight(tarjetaOriginal.getHeight());
+                    placeholder.setMaxHeight(tarjetaOriginal.getHeight());
+                    placeholder.setPrefWidth(tarjetaOriginal.getWidth());
+
+                    // 2. Estética: Color de fondo suave, borde punteado y opacidad
+                    placeholder.setStyle(
+                        "-fx-background-color: #ebecf0; " +
+                        "-fx-background-radius: 5; " +
+                        "-fx-border-color: #0079BF; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-style: segments(5, 5); " + // Borde discontinuo
+                        "-fx-border-radius: 5;"
+                    );
+                    placeholder.setOpacity(0.5);
+
+                    // 3. Calculamos la posición y movemos el placeholder si es necesario
+                    int index = calcularIndice(event.getY());
+                    
+                    if (!lista.getChildren().contains(placeholder)) {
+                        lista.getChildren().add(Math.min(index, lista.getChildren().size()), placeholder);
+                    } else {
+                        int currentIndex = lista.getChildren().indexOf(placeholder);
+                        if (currentIndex != index) {
+                            lista.getChildren().remove(placeholder);
+                            // Re-calculamos el índice tras remover para evitar errores de desfase
+                            int newIndex = calcularIndice(event.getY());
+                            lista.getChildren().add(Math.min(newIndex, lista.getChildren().size()), placeholder);
+                        }
+                    }
+                }
             }
             event.consume();
         });
@@ -68,16 +96,21 @@ public class VistaListaController {
             Object dragged = lista.getScene().getUserData();
 
             if (dragged instanceof HBox tarjeta) {
+                // El dropIndex es exactamente donde el usuario ve la "sombra"
                 int dropIndex = lista.getChildren().indexOf(placeholder);
+                
+                // Limpiamos el placeholder
                 lista.getChildren().remove(placeholder);
 
+                // Quitamos la tarjeta de su lista de origen (sea esta u otra)
                 if (tarjeta.getParent() instanceof VBox origen) {
                     origen.getChildren().remove(tarjeta);
                 }
 
+                // Insertamos la tarjeta real en el hueco que dejó el placeholder
                 if (dropIndex < 0) dropIndex = lista.getChildren().size();
-                dropIndex = Math.min(dropIndex, lista.getChildren().size());
-                lista.getChildren().add(dropIndex, tarjeta);
+                lista.getChildren().add(Math.min(dropIndex, lista.getChildren().size()), tarjeta);
+                
                 success = true;
             }
 
@@ -85,9 +118,14 @@ public class VistaListaController {
             event.consume();
         });
 
-        lista.setOnDragExited(event -> lista.getChildren().remove(placeholder));
+        // Si el ratón sale de la lista sin soltar, quitamos la sombra
+        lista.setOnDragExited(event -> {
+            if (!event.isDropCompleted()) {
+                lista.getChildren().remove(placeholder);
+            }
+        });
 
-     // --- TÍTULO: ENTER o TAB para confirmar ---
+        // --- TÍTULO: ENTER o TAB para confirmar ---
         titulo.setOnAction(e -> confirmarTitulo());
 
         // --- TÍTULO: clic fuera (pierde foco) para confirmar ---
@@ -109,9 +147,14 @@ public class VistaListaController {
         int index = 0;
         for (int i = 0; i < lista.getChildren().size(); i++) {
             var child = lista.getChildren().get(i);
+            
+            // Si el hijo es el placeholder, no calculamos sobre él para evitar saltos
             if (child == placeholder) continue;
 
-            double midY = child.getLayoutY() + child.getBoundsInParent().getHeight() / 2.0;
+            double childY = child.getLayoutY();
+            double childHeight = child.getBoundsInParent().getHeight();
+            double midY = childY + childHeight / 2.0;
+
             if (mouseY > midY) {
                 index = i + 1;
             } else {
@@ -120,7 +163,7 @@ public class VistaListaController {
         }
         return index;
     }
-
+    
     @FXML
     void crearTarjeta() {
         try {
