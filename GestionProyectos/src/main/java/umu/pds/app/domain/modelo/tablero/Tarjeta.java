@@ -9,6 +9,7 @@ import java.util.Optional;
  * Entidad. Actúa como contenedor: puede tener una Tarea (VO) y/o un Checklist (Entidad local).
  * Su ciclo de vida está gestionado por el Aggregate Root Tablero.
  */
+
 public class Tarjeta {
 
     private final TarjetaId id;

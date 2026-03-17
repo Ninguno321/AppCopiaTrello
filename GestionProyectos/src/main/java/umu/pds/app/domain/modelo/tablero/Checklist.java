@@ -1,5 +1,7 @@
 package umu.pds.app.domain.modelo.tablero;
 
+import umu.pds.app.domain.exceptions.CheckListException;
+import umu.pds.app.domain.exceptions.CheckListIndiceException;
 import umu.pds.app.domain.modelo.shared.ChecklistId;
 
 import java.util.ArrayList;
@@ -17,23 +19,23 @@ public class Checklist {
     private String nombre;
     private final List<ItemChecklist> items;
 
-    public Checklist(ChecklistId id, String nombre) {
-        if (id == null) throw new IllegalArgumentException("ChecklistId no puede ser nulo");
-        if (nombre == null || nombre.isBlank()) throw new IllegalArgumentException("El checklist debe tener un nombre");
+    public Checklist(ChecklistId id, String nombre) throws CheckListException {
+        if (id == null) throw new CheckListException("ChecklistId no puede ser nulo");
+        if (nombre == null || nombre.isBlank()) throw new CheckListException("El checklist debe tener un nombre");
         this.id = id;
         this.nombre = nombre;
         this.items = new ArrayList<>();
     }
 
-    public static Checklist nuevo(String nombre) {
+    public static Checklist nuevo(String nombre) throws CheckListException {
         return new Checklist(ChecklistId.nuevo(), nombre);
     }
 
     // --- Mutaciones ---
 
-    public void renombrar(String nuevoNombre) {
+    public void renombrar(String nuevoNombre) throws CheckListException {
         if (nuevoNombre == null || nuevoNombre.isBlank())
-            throw new IllegalArgumentException("El nombre no puede estar vacío");
+            throw new CheckListException("El nombre no puede estar vacío");
         this.nombre = nuevoNombre;
     }
 
@@ -41,17 +43,17 @@ public class Checklist {
         items.add(ItemChecklist.nuevo(descripcion));
     }
 
-    public void marcarItem(int indice) {
+    public void marcarItem(int indice) throws CheckListIndiceException {
         validarIndice(indice);
         items.set(indice, items.get(indice).marcarCompletado());
     }
 
-    public void desmarcarItem(int indice) {
+    public void desmarcarItem(int indice) throws CheckListIndiceException {
         validarIndice(indice);
         items.set(indice, items.get(indice).desmarcarCompletado());
     }
 
-    public void eliminarItem(int indice) {
+    public void eliminarItem(int indice) throws CheckListIndiceException {
         validarIndice(indice);
         items.remove(indice);
     }
@@ -97,8 +99,8 @@ public class Checklist {
 
     // --- Privado ---
 
-    private void validarIndice(int indice) {
+    private void validarIndice(int indice) throws CheckListIndiceException {
         if (indice < 0 || indice >= items.size())
-            throw new IllegalArgumentException("Índice de ítem inválido: " + indice);
+            throw new CheckListIndiceException("Índice de ítem inválido: " + indice);
     }
 }
