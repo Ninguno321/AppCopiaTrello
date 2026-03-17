@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Value Object: inmutable, igualdad por valor de todos sus campos.
  * Las mutaciones devuelven una nueva instancia.
- */
+ */														// Fecha Limite tiene que ser VO. Asi podemos comprobar que no sea anterior a la actual
 public record Tarea(String titulo, String descripcion, LocalDate fechaLimite, EstadoTarea estado) {
 
 	public static class TareaException extends RuntimeException {
