@@ -6,9 +6,17 @@ package umu.pds.app.domain.modelo.tablero;
  */
 public record ItemChecklist(String descripcion, boolean completado) {
 
+	
+	public static class ItemChecklistException extends RuntimeException {
+		public ItemChecklistException (String msg) {
+			super (msg);
+		}
+	}
+	
+	
     public ItemChecklist {
         if (descripcion == null || descripcion.isBlank())
-            throw new IllegalArgumentException("El ítem debe tener una descripción");
+            throw new ItemChecklistException("El ítem debe tener una descripción");
     }
 
     public static ItemChecklist nuevo(String descripcion) {

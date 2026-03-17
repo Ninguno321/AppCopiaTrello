@@ -8,9 +8,15 @@ import java.time.LocalDate;
  */
 public record Tarea(String titulo, String descripcion, LocalDate fechaLimite, EstadoTarea estado) {
 
+	public static class TareaException extends RuntimeException {
+		public TareaException (String msg) {
+			super (msg);
+		}
+	}
+	
     public Tarea {
         if (titulo == null || titulo.isBlank())
-            throw new IllegalArgumentException("La tarea debe tener un título");
+            throw new TareaException("La tarea debe tener un título");
         if (estado == null)
             estado = EstadoTarea.PENDIENTE;
     }
@@ -28,7 +34,7 @@ public record Tarea(String titulo, String descripcion, LocalDate fechaLimite, Es
     }
 
     public Tarea conEstado(EstadoTarea nuevoEstado) {
-        if (nuevoEstado == null) throw new IllegalArgumentException("El estado no puede ser nulo");
+        if (nuevoEstado == null) throw new TareaException("El estado no puede ser nulo");
         return new Tarea(titulo, descripcion, fechaLimite, nuevoEstado);
     }
 
