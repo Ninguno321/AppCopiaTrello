@@ -23,7 +23,7 @@
       <!-- Contenido scrollable, sin barra nativa -->
       <ScrollPane fx:id="scrollTablero" fitToHeight="false" hbarPolicy="NEVER" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
          <content>
-			<HBox fx:id="HboxDondeVanLasListas" alignment="TOP_LEFT" spacing="15.0" fillHeight="false">
+			<HBox fx:id="contenedorListas" alignment="TOP_LEFT" spacing="15.0" fillHeight="false">
                <padding>
                   <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
                </padding>
@@ -41,7 +41,7 @@
                         <Button mnemonicParsing="false" styleClass="button" text="Bandeja de entrada" />
                         <Button mnemonicParsing="false" styleClass="button" text="Planificador" />
                         <Button mnemonicParsing="false" styleClass="button,active" text="Tablero" />
-                        <Button fx:id="botonCreaLista" mnemonicParsing="false" onMouseClicked="#crearLista" styleClass="button" text="Cambiar de tablero" />
+                        <Button fx:id="btnCrearLista" mnemonicParsing="false" onMouseClicked="#crearLista" styleClass="button" text="+ Añadir lista" />
                      </children>
                   </HBox>
                </children>

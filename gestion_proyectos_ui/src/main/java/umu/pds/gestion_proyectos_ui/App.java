@@ -9,6 +9,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 /**
  * Hello world!
@@ -33,10 +34,18 @@ public class App extends Application
     	//}
         
         log.debug("Test App");
+        // Registrar fuente Google Sans para que JavaFX CSS la reconozca
+        Font.loadFont(getClass().getResourceAsStream(
+            "/umu/pds/gestion_proyectos_ui/estilos/fonts/GoogleSans-Regular.ttf"), 14);
+        Font.loadFont(getClass().getResourceAsStream(
+            "/umu/pds/gestion_proyectos_ui/estilos/fonts/GoogleSans-Medium.ttf"), 14);
+        Font.loadFont(getClass().getResourceAsStream(
+            "/umu/pds/gestion_proyectos_ui/estilos/fonts/GoogleSans-Bold.ttf"), 14);
+
         // Cargar vista
         FXMLLoader loader = new FXMLLoader(
             getClass().getResource(
-            		"/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
+            		"/umu/pds/gestion_proyectos_ui/inicio/VentanaInicio.fxml"
             )
         );
 

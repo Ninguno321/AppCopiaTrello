@@ -13,6 +13,7 @@ public record FechaLimite(LocalDate date) {
 
 	
 	public static class FechaLimiteException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public FechaLimiteException (String msg) {
 			super (msg);
 		}

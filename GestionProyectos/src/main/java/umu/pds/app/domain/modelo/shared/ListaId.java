@@ -5,6 +5,7 @@ import java.util.UUID;
 public record ListaId(UUID value) {
 
 	public static class ListaIdException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public ListaIdException (String msg) {
 			super (msg);
 		}
