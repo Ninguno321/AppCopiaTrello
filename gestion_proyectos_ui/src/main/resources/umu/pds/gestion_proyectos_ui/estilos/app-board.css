@@ -108,3 +108,56 @@
 .zona-eliminar-hover .zona-eliminar-texto {
     -fx-text-fill: #FF3232;
 }
+
+/* ===========================
+   VISTA TABLA
+   =========================== */
+.tabla-tarjetas {
+    -fx-background-color: color-bg;
+    -fx-border-color: color-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.tabla-tarjetas .column-header-background {
+    -fx-background-color: #27b1bf;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.tabla-tarjetas .column-header,
+.tabla-tarjetas .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent color-bg transparent transparent;
+}
+
+.tabla-tarjetas .column-header .label {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 8 12;
+}
+
+.tabla-tarjetas .table-row-cell {
+    -fx-background-color: color-surface;
+    -fx-border-color: color-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.tabla-tarjetas .table-row-cell:odd {
+    -fx-background-color: derive(color-surface, -3%);
+}
+
+.tabla-tarjetas .table-row-cell:selected {
+    -fx-background-color: rgba(54, 206, 204, 0.15);
+}
+
+.tabla-tarjetas .table-cell {
+    -fx-text-fill: color-text-primary;
+    -fx-font-size: 13px;
+    -fx-padding: 8 12;
+}
+
+.tabla-tarjetas .placeholder .label {
+    -fx-text-fill: color-text-muted;
+    -fx-font-size: 14px;
+}

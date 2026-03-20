@@ -153,10 +153,41 @@ public class VentanaPrincipalController {
     @FXML
     void onTabTabla(ActionEvent event) {
         activarTab(btnTabTabla);
-        // TODO: cargar vista de Tabla en mainContentPane
+        cargarVistaTabla();
     }
 
     // --- Helpers ---
+
+    private void cargarVistaTabla() {
+        if (tableroActual == null) return;
+
+        Task<TableroDto> task = new Task<>() {
+            @Override
+            protected TableroDto call() throws Exception {
+                return apiClient.obtenerTablero(tableroActual.id);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                        "/umu/pds/gestion_proyectos_ui/inicio/VentanaTabla.fxml"
+                ));
+                Node vista = loader.load();
+                VentanaTablaController controller = loader.getController();
+                controller.cargarDatos(task.getValue());
+                mainContentPane.getChildren().setAll(vista);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        task.setOnFailed(e -> {
+            System.err.println("Error al obtener tablero: " + task.getException().getMessage());
+        });
+
+        new Thread(task).start();
+    }
 
     private void cargarVistaTablero() {
         if (tableroActual == null) return;
