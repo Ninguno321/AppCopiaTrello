@@ -1,16 +1,22 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.Node;
+import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class VentanaPrincipalController {
 
@@ -32,7 +38,10 @@ public class VentanaPrincipalController {
     @FXML private StackPane mainContentPane;
 
     private List<Button> tabButtons;
+    private final List<Button> sidebarButtons = new ArrayList<>();
     private TableroDto tableroActual;
+    private String emailActual;
+    private final TableroApiClient apiClient = new TableroApiClient();
 
     @FXML
     public void initialize() {
@@ -45,6 +54,7 @@ public class VentanaPrincipalController {
      */
     public void setTablero(TableroDto tablero) {
         this.tableroActual = tablero;
+        this.emailActual = tablero.emailPropietario;
         lblTableroActual.setText(tablero.nombre);
         agregarBotonSidebar(tablero);
         cargarVistaTablero();
@@ -57,15 +67,61 @@ public class VentanaPrincipalController {
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.getStyleClass().add("sidebar-item");
         btn.setOnAction(e -> {
+            tableroActual = tablero;
             lblTableroActual.setText(tablero.nombre);
+            activarSidebarButton(btn);
             cargarVistaTablero();
         });
+        sidebarButtons.add(btn);
         sidebarTableros.getChildren().add(btn);
+        activarSidebarButton(btn);
+    }
+
+    private void activarSidebarButton(Button activo) {
+        for (Button btn : sidebarButtons) {
+            btn.getStyleClass().remove("active");
+        }
+        if (!activo.getStyleClass().contains("active")) {
+            activo.getStyleClass().add("active");
+        }
     }
 
     @FXML
     void onCrearTablero(ActionEvent event) {
-        // TODO: abrir diálogo de creación de tablero
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Nuevo tablero");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Nombre del tablero:");
+
+        Optional<String> resultado = dialog.showAndWait();
+        resultado.ifPresent(nombre -> {
+            if (nombre.isBlank()) return;
+
+            Task<TableroDto> task = new Task<>() {
+                @Override
+                protected TableroDto call() throws Exception {
+                    return apiClient.crearTablero(nombre, emailActual);
+                }
+            };
+
+            task.setOnSucceeded(e -> {
+                TableroDto nuevoTablero = task.getValue();
+                agregarBotonSidebar(nuevoTablero);
+                tableroActual = nuevoTablero;
+                lblTableroActual.setText(nuevoTablero.nombre);
+                cargarVistaTablero();
+            });
+
+            task.setOnFailed(e -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(null);
+                alert.setContentText("Error al crear tablero: " + task.getException().getMessage());
+                alert.showAndWait();
+            });
+
+            new Thread(task).start();
+        });
     }
 
     @FXML
@@ -104,18 +160,35 @@ public class VentanaPrincipalController {
 
     private void cargarVistaTablero() {
         if (tableroActual == null) return;
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
-            ));
-            Node vista = loader.load();
-            VentanaTableroController controller = loader.getController();
-            controller.setTableroId(tableroActual.id);
-            mainContentPane.getChildren().setAll(vista);
-            activarTab(btnTabTablero);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        // Obtener datos actualizados del backend en hilo de fondo
+        Task<TableroDto> task = new Task<>() {
+            @Override
+            protected TableroDto call() throws Exception {
+                return apiClient.obtenerTablero(tableroActual.id);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                        "/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
+                ));
+                Node vista = loader.load();
+                VentanaTableroController controller = loader.getController();
+                controller.cargarDatos(task.getValue());
+                mainContentPane.getChildren().setAll(vista);
+                activarTab(btnTabTablero);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        task.setOnFailed(e -> {
+            System.err.println("Error al obtener tablero: " + task.getException().getMessage());
+        });
+
+        new Thread(task).start();
     }
 
     private void activarTab(Button tabActivo) {

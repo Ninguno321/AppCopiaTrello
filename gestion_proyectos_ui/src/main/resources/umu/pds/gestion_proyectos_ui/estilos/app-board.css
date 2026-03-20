@@ -6,44 +6,44 @@
    TOOLBAR
    =========================== */
 .toolbar-box {
-    -fx-background-color:  #176585;
+    -fx-background-color: #176585;
     -fx-background-radius: 30;
-    -fx-padding:           6 16;
+    -fx-padding: 6 16;
 }
 
 .toolbar-box .button {
-    -fx-background-color:  transparent;
-    -fx-text-fill:         #FFFFFF;
-    -fx-font-size:         13px;
-    -fx-font-weight:       bold;
+    -fx-background-color: transparent;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
     -fx-background-radius: 20;
-    -fx-padding:           6 14;
-    -fx-cursor:            hand;
+    -fx-padding: 6 14;
+    -fx-cursor: hand;
 }
 
 .toolbar-box .button:hover {
-    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-background-color: rgba(255, 255, 255, 0.15);
 }
 
 .toolbar-box .button.active {
     -fx-background-color: #36cecc;
-    -fx-text-fill:        #176585;
-    -fx-border-color:     transparent;
-    -fx-border-radius:    20;
-    -fx-border-width:     1;
+    -fx-text-fill: #176585;
+    -fx-border-color: transparent;
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
 }
 
 /* ===========================
    CAMPO DE BÚSQUEDA
    =========================== */
 .search-field {
-    -fx-background-color:  color-surface;
-    -fx-border-color:      color-border;
-    -fx-border-radius:     20;
+    -fx-background-color: color-surface;
+    -fx-border-color: color-border;
+    -fx-border-radius: 20;
     -fx-background-radius: 20;
-    -fx-padding:           6 14;
-    -fx-text-fill:         color-text-primary;
-    -fx-prompt-text-fill:  color-text-muted;
+    -fx-padding: 6 14;
+    -fx-text-fill: color-text-primary;
+    -fx-prompt-text-fill: color-text-muted;
 }
 
 .search-field:focused {
@@ -55,7 +55,7 @@
    =========================== */
 .lista-scroll {
     -fx-background-color: transparent;
-    -fx-border-color:     transparent;
+    -fx-border-color: transparent;
 }
 
 .lista-scroll .viewport {
@@ -64,19 +64,47 @@
 
 .scroll-bar {
     -fx-background-color: transparent;
-    -fx-padding:          0 0 0 4;
+    -fx-padding: 0 0 0 4;
 }
 
 .scroll-bar .track {
-    -fx-background-color:  color-scrollbar-track;
+    -fx-background-color: color-scrollbar-track;
     -fx-background-radius: 10;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color:  color-scrollbar-thumb;
+    -fx-background-color: color-scrollbar-thumb;
     -fx-background-radius: 10;
 }
 
 .scroll-bar .thumb:hover {
     -fx-background-color: color-scrollbar-hover;
+}
+
+/* ===========================
+   ZONA DE BORRAR LAS TARJETAS AL ARRASTRAR
+   =========================== */
+.zona-eliminar {
+    -fx-background-color: rgba(255, 80, 80, 0.08);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 80, 80, 0.3);
+    -fx-border-style: segments(6, 4);
+    -fx-border-radius: 12;
+    -fx-border-width: 2;
+}
+
+.zona-eliminar-texto {
+    -fx-text-fill: rgba(255, 80, 80, 0.6);
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.zona-eliminar-hover {
+    -fx-background-color: rgba(255, 50, 50, 0.15);
+    -fx-border-color: #FF3232;
+    -fx-border-style: solid;
+}
+
+.zona-eliminar-hover .zona-eliminar-texto {
+    -fx-text-fill: #FF3232;
 }
