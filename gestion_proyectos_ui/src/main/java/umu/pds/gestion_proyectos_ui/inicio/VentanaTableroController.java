@@ -7,14 +7,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class VentanaTableroController {
 
-    @FXML private HBox HboxDondeVanLasListas;
-    @FXML private Button botonCreaLista;
+    @FXML private HBox contenedorListas;
+    @FXML private Button btnCrearLista;
     @FXML private ScrollPane scrollTablero;
     @FXML private ScrollBar scrollBarH;
 
@@ -37,7 +36,6 @@ public class VentanaTableroController {
         scrollTablero.hvalueProperty().addListener((obs, oldVal, newVal) -> {
             scrollBarH.setValue(newVal.doubleValue());
         });
-
 
         // Drag sobre el contenido → panning
         scrollTablero.getContent().setOnMousePressed(event -> {
@@ -68,42 +66,33 @@ public class VentanaTableroController {
         double viewportWidth = scrollTablero.getViewportBounds().getWidth();
 
         if (contentWidth > 0 && viewportWidth > 0) {
-            // visibleAmount controla el tamaño proporcional del thumb
             double visible = viewportWidth / contentWidth;
             scrollBarH.setVisibleAmount(visible);
         }
 
-        // Solo se muestra si el contenido es más ancho que el viewport
         scrollBarH.setVisible(contentWidth > viewportWidth);
         scrollBarH.setManaged(contentWidth > viewportWidth);
     }
+
     @FXML
     void crearLista(MouseEvent event) {
-
         try {
-
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaLista.fxml")
             );
 
-            // cargar la lista
             VBox nodoLista = loader.load();
 
-            // obtener el controlador de la lista
-            VistaListaController controller = loader.getController();
+            VentanaListaController controller = loader.getController();
 
-            // limitar dinámicamente la altura del scroll interno
             controller.getScroll().maxHeightProperty()
                     .bind(scrollTablero.heightProperty().subtract(220));
 
-            // añadir la lista al tablero
-            HboxDondeVanLasListas.getChildren().add(nodoLista);
+            contenedorListas.getChildren().add(nodoLista);
 
         } catch (Exception e) {
-
             System.err.println("Error al crear lista: " + e.getMessage());
             e.printStackTrace();
-
         }
     }
 }

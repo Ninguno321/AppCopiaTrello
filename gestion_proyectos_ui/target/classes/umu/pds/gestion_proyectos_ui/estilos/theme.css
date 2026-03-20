@@ -5,29 +5,29 @@
 
 .root {
     /* --- Paleta principal --- */
-    color-primary:          #0079BF;   /* Azul Trello */
-    color-primary-hover:    #005F99;
-    color-primary-pressed:  #004C7A;
-    color-accent:           #26D9D9;   /* Cian de énfasis */
+    color-primary:          #27b1bf;   /* Teal medio */
+    color-primary-hover:    #176585;   /* Azul-teal profundo */
+    color-primary-pressed:  #0f4a63;   /* Azul muy profundo */
+    color-accent:           #36cecc;   /* Cian brillante */
 
     /* --- Fondos --- */
-    color-bg:               #F0F4F8;   /* Fondo de la app */
+    color-bg:               #FFFFFF;   /* Blanco puro */
     color-surface:          #FFFFFF;   /* Tarjetas / cards */
-    color-surface-hover:    #F7FAFC;
-    color-lista-bg:         #E2E8F0;   /* Fondo de cada lista */
+    color-surface-hover:    #c2e4cb;   /* Menta suave hover */
+    color-lista-bg:         #c2e4cb;   /* Menta para listas */
     color-tarjeta-bg:       #FFFFFF;   /* Fondo de cada tarjeta */
-    color-toolbar-bg:       #1E3A5F;   /* Barra de navegación */
-    color-toolbar-active:   #2A527A;
+    color-toolbar-bg:       #176585;   /* Azul profundo sidebar */
+    color-toolbar-active:   #36cecc;   /* Cian brillante activo */
 
     /* --- Texto --- */
-    color-text-primary:     #1F2D3D;
-    color-text-secondary:   #5A6B7C;
-    color-text-muted:       #8A99AA;
-    color-text-on-primary:  #FFFFFF;   /* Texto sobre fondo primario */
-    color-text-lista:       #1F2D3D;   /* Título de lista */
+    color-text-primary:     #176585;   /* Azul profundo sobre crema */
+    color-text-secondary:   #27b1bf;   /* Teal secundario */
+    color-text-muted:       #36cecc;   /* Cian apagado */
+    color-text-on-primary:  #FFFFFF;   /* Blanco sobre fondos oscuros */
+    color-text-lista:       #176585;   /* Título de lista */
 
     /* --- Bordes y separadores --- */
-    color-border:           #D6E0EA;
+    color-border:           #c2e4cb;   /* Menta */
     color-border-focus:     color-primary;
 
     /* --- Check de tareas --- */
@@ -35,14 +35,14 @@
     color-check-mark:       #FFFFFF;
 
     /* --- Scrollbar --- */
-    color-scrollbar-track:  #DDE5EE;
-    color-scrollbar-thumb:  #A0B4C8;
-    color-scrollbar-hover:  #7A9AB5;
+    color-scrollbar-track:  #c2e4cb;   /* Menta */
+    color-scrollbar-thumb:  #27b1bf;   /* Teal */
+    color-scrollbar-hover:  #36cecc;   /* Cian hover */
 
     /* --- Drag & drop placeholder --- */
     color-placeholder:      color-primary;
 
     /* --- Tipografía --- */
-    -fx-font-family: "Inter";
+    -fx-font-family: "Google Sans";
     -fx-background-color: color-bg;
 }

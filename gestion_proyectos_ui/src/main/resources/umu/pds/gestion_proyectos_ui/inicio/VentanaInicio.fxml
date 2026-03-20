@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
@@ -25,27 +24,25 @@
             <Label styleClass="subtitle" text="Professional agile project management made simple." wrapText="true" />
 
         </VBox>
-      <ColorPicker fx:id="color" onAction="#cambiarColorGlobal" />
-
         <VBox alignment="TOP_LEFT" maxWidth="420" spacing="15" styleClass="card">
 
             <padding>
                 <Insets bottom="30" left="30" right="30" top="30" />
             </padding>
 
-            <Label styleClass="card-title" text="Create your first board" />
+            <Label styleClass="card-title" text="Crear tablero" />
 
             <VBox spacing="5">
-                <Label text="Board Name" />
-                <TextField promptText="Marketing Strategy..." />
+                <Label text="Nombre del tablero" />
+                <TextField fx:id="txtNombreTablero" promptText="Mi proyecto..." />
             </VBox>
 
             <VBox spacing="5">
-                <Label text="Your Email" />
-                <TextField promptText="name@example.com" />
+                <Label text="Tu correo electrónico" />
+                <TextField fx:id="txtEmail" promptText="nombre@ejemplo.com" />
             </VBox>
 
-            <Button fx:id="boton1" maxWidth="Infinity" onMouseClicked="#crearNuevaLista" styleClass="primary-button" text="Launch Board" />
+            <Button fx:id="btnCrearTablero" maxWidth="Infinity" onAction="#onCrearTablero" styleClass="primary-button" text="Crear tablero" />
 
         </VBox>
 

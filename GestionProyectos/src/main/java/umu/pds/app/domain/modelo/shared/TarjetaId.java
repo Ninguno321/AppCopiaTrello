@@ -5,6 +5,7 @@ import java.util.UUID;
 public record TarjetaId(UUID value) {
 
 	public static class TarjetaIdException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public TarjetaIdException (String msg) {
 			super (msg);
 		}

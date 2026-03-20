@@ -79,3 +79,102 @@
     -fx-text-fill: color-text-muted;
     -fx-font-size: 12px;
 }
+
+/* ============================================================
+   VENTANA PRINCIPAL — Sidebar
+   ============================================================ */
+
+.sidebar {
+    -fx-background-color: color-toolbar-bg;
+}
+
+.sidebar-section-title {
+    -fx-text-fill: color-text-muted;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 4 6 4;
+}
+
+.sidebar-item {
+    -fx-background-color: transparent;
+    -fx-text-fill:        color-text-on-primary;
+    -fx-alignment:        CENTER_LEFT;
+    -fx-background-radius: 8;
+    -fx-padding:          8 12;
+    -fx-font-size:        13px;
+    -fx-cursor:           hand;
+}
+
+.sidebar-item:hover {
+    -fx-background-color: rgba(255,255,255,0.10);
+}
+
+.sidebar-item.active {
+    -fx-background-color: color-toolbar-active;
+}
+
+.sidebar-create {
+    -fx-background-color: transparent;
+    -fx-text-fill:        color-accent;
+    -fx-alignment:        CENTER_LEFT;
+    -fx-background-radius: 8;
+    -fx-padding:          8 12;
+    -fx-font-size:        13px;
+    -fx-cursor:           hand;
+}
+
+.sidebar-create:hover {
+    -fx-background-color: rgba(38,217,217,0.10);
+}
+
+.sidebar-config {
+    -fx-background-color: transparent;
+    -fx-text-fill:        color-text-on-primary;
+    -fx-alignment:        CENTER_LEFT;
+    -fx-background-radius: 8;
+    -fx-padding:          8 12;
+    -fx-font-size:        13px;
+    -fx-cursor:           hand;
+}
+
+.sidebar-config:hover {
+    -fx-background-color: rgba(255,255,255,0.10);
+}
+
+/* ============================================================
+   VENTANA PRINCIPAL — Área de contenido central
+   ============================================================ */
+
+.content-area {
+    -fx-background-color: color-bg;
+}
+
+.content-header {
+    -fx-padding: 0 0 4 0;
+}
+
+.content-title {
+    -fx-font-size:   22px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   color-text-primary;
+}
+
+.btn-automatizaciones {
+    -fx-background-color:  #27b1bf;
+    -fx-text-fill:         #FFFFFF;
+    -fx-border-color:      transparent;
+    -fx-border-radius:     8;
+    -fx-background-radius: 8;
+    -fx-padding:           6 14;
+    -fx-font-size:         13px;
+    -fx-cursor:            hand;
+}
+
+.btn-automatizaciones:hover {
+    -fx-background-color: #176585;
+}
+
+.main-content-pane {
+    -fx-background-color:  color-bg;
+    -fx-background-radius: 12;
+}

@@ -10,7 +10,7 @@
       fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaTarjetaController">
    <children>
       <CheckBox fx:id="check" mnemonicParsing="false" />
-      <Text fx:id="textoTarea" text="Tarjeta de prueba">
+      <Text fx:id="tituloTarjeta" text="Tarjeta de prueba">
          <HBox.margin>
             <Insets left="6.0" />
          </HBox.margin>

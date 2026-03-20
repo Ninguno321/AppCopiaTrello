@@ -8,6 +8,7 @@ public record ItemChecklist(String descripcion, boolean completado) {
 
 	
 	public static class ItemChecklistException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public ItemChecklistException (String msg) {
 			super (msg);
 		}

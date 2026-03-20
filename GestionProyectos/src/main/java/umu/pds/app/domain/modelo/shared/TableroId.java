@@ -5,6 +5,7 @@ import java.util.UUID;
 public record TableroId(UUID value) {
 
 	public static class TableroIdException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public TableroIdException (String msg) {
 			super (msg);
 		}

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public record Tarea(String titulo, String descripcion, LocalDate fechaLimite, EstadoTarea estado) {
 
 	public static class TareaException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public TareaException (String msg) {
 			super (msg);
 		}

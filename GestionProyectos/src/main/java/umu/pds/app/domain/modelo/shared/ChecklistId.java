@@ -7,6 +7,7 @@ public record ChecklistId(UUID value) {
 
 
 	public static class ChecklistIdException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
 		public ChecklistIdException (String msg) {
 			super (msg);
 		}

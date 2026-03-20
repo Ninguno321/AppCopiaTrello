@@ -2,6 +2,9 @@ package umu.pds.app.domain.modelo.tablero;
 
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -9,7 +12,6 @@ import java.util.Optional;
  * Entidad. Actúa como contenedor: puede tener una Tarea (VO) y/o un Checklist (Entidad local).
  * Su ciclo de vida está gestionado por el Aggregate Root Tablero.
  */
-
 public class Tarjeta {
 
     private final TarjetaId id;
@@ -17,12 +19,16 @@ public class Tarjeta {
     private String descripcion;
     private Tarea tarea;
     private Checklist checklist;
+    private final List<Etiqueta> etiquetas;
+    private boolean completada;
 
     public Tarjeta(TarjetaId id, String titulo) {
         if (id == null) throw new IllegalArgumentException("TarjetaId no puede ser nulo");
         if (titulo == null || titulo.isBlank()) throw new IllegalArgumentException("La tarjeta debe tener un título");
         this.id = id;
         this.titulo = titulo;
+        this.etiquetas = new ArrayList<>();
+        this.completada = false;
     }
 
     public static Tarjeta nueva(String titulo) {
@@ -58,10 +64,24 @@ public class Tarjeta {
         this.checklist = null;
     }
 
+    public void asignarEtiqueta(Etiqueta etiqueta) {
+        if (etiqueta == null) throw new IllegalArgumentException("La etiqueta no puede ser nula");
+        if (!etiquetas.contains(etiqueta)) etiquetas.add(etiqueta);
+    }
+
+    public void quitarEtiqueta(Etiqueta etiqueta) {
+        etiquetas.remove(etiqueta);
+    }
+
+    public void marcarCompletada() {
+        this.completada = true;
+    }
+
     // --- Consultas ---
 
     public boolean tieneTarea() { return tarea != null; }
     public boolean tieneChecklist() { return checklist != null; }
+    public boolean estaCompletada() { return completada; }
 
     // --- Getters ---
 
@@ -70,6 +90,7 @@ public class Tarjeta {
     public String getDescripcion() { return descripcion; }
     public Optional<Tarea> getTarea() { return Optional.ofNullable(tarea); }
     public Optional<Checklist> getChecklist() { return Optional.ofNullable(checklist); }
+    public List<Etiqueta> getEtiquetas() { return Collections.unmodifiableList(etiquetas); }
 
     // --- Identidad por ID ---
 
@@ -87,6 +108,6 @@ public class Tarjeta {
 
     @Override
     public String toString() {
-        return "Tarjeta{id=" + id + ", titulo='" + titulo + "'}";
+        return "Tarjeta{id=" + id + ", titulo='" + titulo + "', completada=" + completada + "}";
     }
 }
