@@ -4,6 +4,7 @@ import umu.pds.app.application.ports.input.GestionTableroUseCase;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
+import umu.pds.app.domain.modelo.tablero.Checklist;
 import umu.pds.app.domain.modelo.tablero.Etiqueta;
 import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
@@ -132,6 +133,37 @@ public class TableroService implements GestionTableroUseCase {
                 .buscarTarjeta(tarjetaId)
                 .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada: " + tarjetaId))
                 .quitarEtiqueta(etiqueta);
+        tableroRepository.guardar(tablero);
+    }
+
+    // --- Checklist ---
+
+    @Override
+    public Checklist asignarChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, String nombre) {
+        Tablero tablero = obtenerTablero(tableroId);
+        Checklist checklist = tablero.asignarChecklist(listaId, tarjetaId, nombre);
+        tableroRepository.guardar(tablero);
+        return checklist;
+    }
+
+    @Override
+    public void agregarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, String descripcion) {
+        Tablero tablero = obtenerTablero(tableroId);
+        tablero.agregarItemChecklist(listaId, tarjetaId, descripcion);
+        tableroRepository.guardar(tablero);
+    }
+
+    @Override
+    public void marcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice) {
+        Tablero tablero = obtenerTablero(tableroId);
+        tablero.marcarItemChecklist(listaId, tarjetaId, indice);
+        tableroRepository.guardar(tablero);
+    }
+
+    @Override
+    public void desmarcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice) {
+        Tablero tablero = obtenerTablero(tableroId);
+        tablero.desmarcarItemChecklist(listaId, tarjetaId, indice);
         tableroRepository.guardar(tablero);
     }
 }

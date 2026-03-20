@@ -3,6 +3,7 @@ package umu.pds.app.application.ports.input;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
+import umu.pds.app.domain.modelo.tablero.Checklist;
 import umu.pds.app.domain.modelo.tablero.Etiqueta;
 import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
@@ -49,4 +50,14 @@ public interface GestionTableroUseCase {
     void asignarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta);
 
     void quitarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta);
+
+    // --- Checklist ---
+
+    Checklist asignarChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, String nombre);
+
+    void agregarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, String descripcion);
+
+    void marcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice);
+
+    void desmarcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice);
 }

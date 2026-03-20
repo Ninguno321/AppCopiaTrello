@@ -21,9 +21,13 @@ import umu.pds.app.domain.modelo.tablero.Etiqueta;
 import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
+import umu.pds.app.domain.modelo.tablero.Checklist;
+import umu.pds.app.infrastructure.rest.dto.AgregarChecklistRequest;
+import umu.pds.app.infrastructure.rest.dto.AgregarItemChecklistRequest;
 import umu.pds.app.infrastructure.rest.dto.AgregarListaRequest;
 import umu.pds.app.infrastructure.rest.dto.AgregarTarjetaRequest;
 import umu.pds.app.infrastructure.rest.dto.AsignarEtiquetaRequest;
+import umu.pds.app.infrastructure.rest.dto.ChecklistResponse;
 import umu.pds.app.infrastructure.rest.dto.CrearTableroRequest;
 import umu.pds.app.infrastructure.rest.dto.ListaResponse;
 import umu.pds.app.infrastructure.rest.dto.MoverTarjetaRequest;
@@ -172,6 +176,48 @@ public class TableroController {
                 TarjetaId.de(tarjetaId),
                 Etiqueta.de(request.nombre(), request.color())
         );
+        return ResponseEntity.ok().build();
+    }
+
+    // --- Checklist ---
+
+    @PostMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/checklist")
+    public ResponseEntity<ChecklistResponse> crearChecklist(@PathVariable String id,
+                                                             @PathVariable String listaId,
+                                                             @PathVariable String tarjetaId,
+                                                             @RequestBody AgregarChecklistRequest request) {
+        Checklist checklist = gestionTablero.asignarChecklist(
+                TableroId.de(id), ListaId.de(listaId), TarjetaId.de(tarjetaId), request.nombre());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ChecklistResponse.from(checklist));
+    }
+
+    @PostMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/checklist/items")
+    public ResponseEntity<Void> agregarItemChecklist(@PathVariable String id,
+                                                      @PathVariable String listaId,
+                                                      @PathVariable String tarjetaId,
+                                                      @RequestBody AgregarItemChecklistRequest request) {
+        gestionTablero.agregarItemChecklist(
+                TableroId.de(id), ListaId.de(listaId), TarjetaId.de(tarjetaId), request.descripcion());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/checklist/items/{indice}/marcar")
+    public ResponseEntity<Void> marcarItemChecklist(@PathVariable String id,
+                                                     @PathVariable String listaId,
+                                                     @PathVariable String tarjetaId,
+                                                     @PathVariable int indice) {
+        gestionTablero.marcarItemChecklist(
+                TableroId.de(id), ListaId.de(listaId), TarjetaId.de(tarjetaId), indice);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/checklist/items/{indice}/desmarcar")
+    public ResponseEntity<Void> desmarcarItemChecklist(@PathVariable String id,
+                                                        @PathVariable String listaId,
+                                                        @PathVariable String tarjetaId,
+                                                        @PathVariable int indice) {
+        gestionTablero.desmarcarItemChecklist(
+                TableroId.de(id), ListaId.de(listaId), TarjetaId.de(tarjetaId), indice);
         return ResponseEntity.ok().build();
     }
 

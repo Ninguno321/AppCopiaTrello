@@ -11,7 +11,8 @@ public record TarjetaResponse(
         boolean completada,
         List<EtiquetaResponse> etiquetas,
         boolean tieneTarea,
-        boolean tieneChecklist
+        boolean tieneChecklist,
+        ChecklistResponse checklist
 ) {
     public static TarjetaResponse from(Tarjeta tarjeta) {
         return new TarjetaResponse(
@@ -21,7 +22,8 @@ public record TarjetaResponse(
                 tarjeta.estaCompletada(),
                 tarjeta.getEtiquetas().stream().map(EtiquetaResponse::from).toList(),
                 tarjeta.tieneTarea(),
-                tarjeta.tieneChecklist()
+                tarjeta.tieneChecklist(),
+                tarjeta.getChecklist().map(ChecklistResponse::from).orElse(null)
         );
     }
 }

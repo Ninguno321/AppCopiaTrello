@@ -19,9 +19,9 @@
     		<SVGPath content="M3 3h18v18H3z M3 9h18 M9 9v12" styleClass="logo-icon" />
 		</StackPane>
 
-            <Label styleClass="title" text="NextFlow Board" />
+            <Label styleClass="title" text="Mistableros.com" />
 
-            <Label styleClass="subtitle" text="Professional agile project management made simple." wrapText="true" />
+            <Label styleClass="subtitle" text="Crea tableros y organiza tus tareas" wrapText="true" />
 
         </VBox>
         <VBox alignment="TOP_LEFT" maxWidth="420" spacing="15" styleClass="card">

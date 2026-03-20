@@ -23,10 +23,7 @@
 
          <Label text="Mis tableros" styleClass="sidebar-section-title"/>
 
-         <Button fx:id="btnTablero1" text="Tablero 1" styleClass="sidebar-item"
-                 maxWidth="Infinity" onAction="#onTableroSeleccionado"/>
-         <Button fx:id="btnTablero2" text="Tablero 2" styleClass="sidebar-item"
-                 maxWidth="Infinity" onAction="#onTableroSeleccionado"/>
+         <VBox fx:id="sidebarTableros" spacing="4.0"/>
 
          <Button fx:id="btnCrearTablero" text="+ Crear tablero"
                  styleClass="sidebar-create" maxWidth="Infinity"

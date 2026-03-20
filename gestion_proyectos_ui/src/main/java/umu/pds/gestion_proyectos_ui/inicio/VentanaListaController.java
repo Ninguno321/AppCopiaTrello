@@ -1,13 +1,25 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
+import umu.pds.gestion_proyectos_ui.api.dto.ChecklistDto;
+import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class VentanaListaController {
 
@@ -21,6 +33,16 @@ public class VentanaListaController {
 
     // Placeholder visual: línea azul que se mueve entre tarjetas.
     private HBox placeholder;
+
+    private String tableroId;
+    private String listaId;
+    private final TableroApiClient apiClient = new TableroApiClient();
+
+    public void setDatos(String tableroId, String listaId, String nombre) {
+        this.tableroId = tableroId;
+        this.listaId = listaId;
+        titulo.setText(nombre);
+    }
 
     public ScrollPane getScroll() {
         return scroll;
@@ -104,6 +126,25 @@ public class VentanaListaController {
                 if (dropIndex < 0) dropIndex = contenedorTarjetas.getChildren().size();
                 contenedorTarjetas.getChildren().add(Math.min(dropIndex, contenedorTarjetas.getChildren().size()), tarjeta);
 
+                // Notificar al backend si la tarjeta cambió de lista
+                if (tarjeta.getUserData() instanceof VentanaTarjetaController tc) {
+                    String listaOrigen = tc.getListaId();
+                    if (!Objects.equals(listaOrigen, listaId)) {
+                        tc.setListaId(listaId);
+                        String tId = tc.getTarjetaId();
+                        String tbId = tc.getTableroId();
+                        Task<Void> mover = new Task<>() {
+                            @Override
+                            protected Void call() throws Exception {
+                                apiClient.moverTarjeta(tbId, tId, listaOrigen, listaId);
+                                return null;
+                            }
+                        };
+                        mover.setOnFailed(e -> System.err.println("Error al mover tarjeta: " + mover.getException().getMessage()));
+                        new Thread(mover).start();
+                    }
+                }
+
                 success = true;
             }
 
@@ -159,12 +200,80 @@ public class VentanaListaController {
 
     @FXML
     void crearTarjeta() {
+        // 1. Elegir tipo
+        ChoiceDialog<String> tipoDialog = new ChoiceDialog<>("Tarea simple", "Tarea simple", "Con checklist");
+        tipoDialog.setTitle("Nueva tarjeta");
+        tipoDialog.setHeaderText(null);
+        tipoDialog.setContentText("Tipo de tarjeta:");
+        Optional<String> tipo = tipoDialog.showAndWait();
+        if (tipo.isEmpty()) return;
+
+        // 2. Pedir título
+        TextInputDialog tituloDialog = new TextInputDialog();
+        tituloDialog.setTitle("Nueva tarjeta");
+        tituloDialog.setHeaderText(null);
+        tituloDialog.setContentText("Título de la tarjeta:");
+        Optional<String> tituloOpt = tituloDialog.showAndWait();
+        if (tituloOpt.isEmpty() || tituloOpt.get().isBlank()) return;
+        String tituloTexto = tituloOpt.get();
+
+        boolean esChecklist = "Con checklist".equals(tipo.get());
+
+        // 3. Si es checklist, pedir ítems
+        List<String> items = new ArrayList<>();
+        if (esChecklist) {
+            while (true) {
+                TextInputDialog itemDialog = new TextInputDialog();
+                itemDialog.setTitle("Ítem del checklist");
+                itemDialog.setHeaderText("Deja vacío para terminar");
+                itemDialog.setContentText("Descripción del ítem:");
+                Optional<String> itemOpt = itemDialog.showAndWait();
+                if (itemOpt.isEmpty() || itemOpt.get().isBlank()) break;
+                items.add(itemOpt.get());
+            }
+        }
+
+        // 4. Crear en backend
+        Task<TarjetaDto> task = new Task<>() {
+            @Override
+            protected TarjetaDto call() throws Exception {
+                TarjetaDto tarjeta = apiClient.agregarTarjeta(tableroId, listaId, tituloTexto);
+                if (esChecklist) {
+                    ChecklistDto checklist = apiClient.crearChecklist(tableroId, listaId, tarjeta.id, "Checklist");
+                    for (String desc : items) {
+                        apiClient.agregarItemChecklist(tableroId, listaId, tarjeta.id, desc);
+                    }
+                    // Construir el DTO localmente para mostrarlo sin re-fetch
+                    List<ItemChecklistDto> itemDtos = new ArrayList<>();
+                    for (String desc : items) {
+                        ItemChecklistDto dto = new ItemChecklistDto();
+                        dto.descripcion = desc;
+                        dto.completado = false;
+                        itemDtos.add(dto);
+                    }
+                    checklist.items = itemDtos;
+                    tarjeta.checklist = checklist;
+                    tarjeta.tieneChecklist = true;
+                }
+                return tarjeta;
+            }
+        };
+
+        task.setOnSucceeded(e -> mostrarTarjeta(task.getValue()));
+        task.setOnFailed(e -> System.err.println("Error al crear tarjeta: " + task.getException().getMessage()));
+
+        new Thread(task).start();
+    }
+
+    private void mostrarTarjeta(TarjetaDto tarjeta) {
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaTarjeta.fxml")
             );
-            HBox nuevaTarjeta = loader.load();
-            contenedorTarjetas.getChildren().add(nuevaTarjeta);
+            HBox nodoTarjeta = loader.load();
+            VentanaTarjetaController controller = loader.getController();
+            controller.setDatos(tableroId, listaId, tarjeta);  // también hace nodoTarjeta.setUserData(this)
+            contenedorTarjetas.getChildren().add(nodoTarjeta);
         } catch (Exception e) {
             e.printStackTrace();
         }

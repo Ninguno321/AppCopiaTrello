@@ -2,17 +2,20 @@ package umu.pds.gestion_proyectos_ui.inicio;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.Node;
+import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 
 import java.util.List;
 
 public class VentanaPrincipalController {
 
     // Sidebar
-    @FXML private Button btnTablero1;
-    @FXML private Button btnTablero2;
+    @FXML private VBox sidebarTableros;
     @FXML private Button btnCrearTablero;
     @FXML private Button btnConfiguracion;
 
@@ -29,19 +32,35 @@ public class VentanaPrincipalController {
     @FXML private StackPane mainContentPane;
 
     private List<Button> tabButtons;
+    private TableroDto tableroActual;
 
     @FXML
     public void initialize() {
         tabButtons = List.of(btnTabTablero, btnTabCalendario, btnTabTabla);
     }
 
-    // Sidebar: selección de tablero
+    /**
+     * Recibe el tablero recién creado desde VentanaInicioController
+     * y actualiza la vista con sus datos.
+     */
+    public void setTablero(TableroDto tablero) {
+        this.tableroActual = tablero;
+        lblTableroActual.setText(tablero.nombre);
+        agregarBotonSidebar(tablero);
+        cargarVistaTablero();
+    }
 
-    @FXML
-    void onTableroSeleccionado(ActionEvent event) {
-        Button origen = (Button) event.getSource();
-        lblTableroActual.setText(origen.getText());
-        // TODO: llamar al backend para cargar el tablero seleccionado
+    // --- Sidebar ---
+
+    private void agregarBotonSidebar(TableroDto tablero) {
+        Button btn = new Button(tablero.nombre);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.getStyleClass().add("sidebar-item");
+        btn.setOnAction(e -> {
+            lblTableroActual.setText(tablero.nombre);
+            cargarVistaTablero();
+        });
+        sidebarTableros.getChildren().add(btn);
     }
 
     @FXML
@@ -54,18 +73,19 @@ public class VentanaPrincipalController {
         // TODO: navegar a la pantalla de configuración
     }
 
-    // Cabecera: automatizaciones
+    // --- Cabecera ---
+
     @FXML
     void onAutomatizaciones(ActionEvent event) {
         // TODO: abrir sección de automatizaciones del tablero actual
     }
 
-    // Pestañas de navegación
+    // --- Pestañas de navegación ---
 
     @FXML
     void onTabTablero(ActionEvent event) {
         activarTab(btnTabTablero);
-        // TODO: cargar VentanaTablero.fxml en mainContentPane
+        cargarVistaTablero();
     }
 
     @FXML
@@ -80,7 +100,23 @@ public class VentanaPrincipalController {
         // TODO: cargar vista de Tabla en mainContentPane
     }
 
-    // Helpers
+    // --- Helpers ---
+
+    private void cargarVistaTablero() {
+        if (tableroActual == null) return;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
+            ));
+            Node vista = loader.load();
+            VentanaTableroController controller = loader.getController();
+            controller.setTableroId(tableroActual.id);
+            mainContentPane.getChildren().setAll(vista);
+            activarTab(btnTabTablero);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void activarTab(Button tabActivo) {
         for (Button tab : tabButtons) {

@@ -45,7 +45,7 @@ public class App extends Application
         // Cargar vista
         FXMLLoader loader = new FXMLLoader(
             getClass().getResource(
-            		"/umu/pds/gestion_proyectos_ui/inicio/VentanaPrincipal.fxml"
+            		"/umu/pds/gestion_proyectos_ui/inicio/VentanaInicio.fxml"
             )
         );
 

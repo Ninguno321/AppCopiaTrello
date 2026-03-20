@@ -1,20 +1,127 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.CheckBox;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.SnapshotParameters;
+import javafx.scene.text.Text;
+import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
+import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 
 public class VentanaTarjetaController {
 
-    @FXML
-    private HBox root;
+    @FXML private HBox root;
+    @FXML private CheckBox check;
+    @FXML private Text tituloTarjeta;
+    @FXML private VBox contenedorItems;
+
+    private String tableroId;
+    private String listaId;
+    private TarjetaDto tarjeta;
+
+    private final TableroApiClient apiClient = new TableroApiClient();
+
+    public void setDatos(String tableroId, String listaId, TarjetaDto tarjeta) {
+        this.tableroId = tableroId;
+        this.listaId = listaId;
+        this.tarjeta = tarjeta;
+        tituloTarjeta.setText(tarjeta.titulo);
+        root.setUserData(this);
+
+        // Estado inicial si ya está completada
+        if (tarjeta.completada) {
+            check.setSelected(true);
+            check.setDisable(true);
+            tituloTarjeta.setStyle("-fx-strikethrough: true;");
+        }
+
+        check.setOnAction(e -> onCompletar());
+
+        // Mostrar ítems del checklist si los hay
+        if (tarjeta.tieneChecklist && tarjeta.checklist != null && tarjeta.checklist.items != null) {
+            contenedorItems.setVisible(true);
+            contenedorItems.setManaged(true);
+            for (int i = 0; i < tarjeta.checklist.items.size(); i++) {
+                ItemChecklistDto item = tarjeta.checklist.items.get(i);
+                agregarItemUI(item.descripcion, item.completado, i);
+            }
+        }
+    }
+
+    // --- Getters y setter para drag & drop ---
+
+    public String getTarjetaId() { return tarjeta != null ? tarjeta.id : null; }
+    public String getListaId()   { return listaId; }
+    public String getTableroId() { return tableroId; }
+    public void   setListaId(String listaId) { this.listaId = listaId; }
+
+    // --- Lógica de completar tarjeta ---
+
+    private void onCompletar() {
+        tituloTarjeta.setStyle("-fx-strikethrough: true;");
+        check.setDisable(true);
+
+        Task<Void> t = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                apiClient.completarTarjeta(tableroId, listaId, tarjeta.id);
+                return null;
+            }
+        };
+        t.setOnSucceeded(ev -> {
+            if (root.getParent() instanceof VBox parent) {
+                parent.getChildren().remove(root);
+            }
+        });
+        t.setOnFailed(ev -> {
+            check.setSelected(false);
+            check.setDisable(false);
+            tituloTarjeta.setStyle("");
+            System.err.println("Error al completar tarjeta: " + t.getException().getMessage());
+        });
+        new Thread(t).start();
+    }
+
+    // --- Ítems del checklist ---
+
+    private void agregarItemUI(String descripcion, boolean completado, int indice) {
+        CheckBox itemCheck = new CheckBox(descripcion);
+        itemCheck.setSelected(completado);
+
+        itemCheck.setOnAction(e -> {
+            boolean marcado = itemCheck.isSelected();
+            Task<Void> t = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    if (marcado) {
+                        apiClient.marcarItemChecklist(tableroId, listaId, tarjeta.id, indice);
+                    } else {
+                        apiClient.desmarcarItemChecklist(tableroId, listaId, tarjeta.id, indice);
+                    }
+                    return null;
+                }
+            };
+            t.setOnFailed(ev -> {
+                itemCheck.setSelected(!marcado);
+                System.err.println("Error al actualizar ítem: " + t.getException().getMessage());
+            });
+            new Thread(t).start();
+        });
+
+        contenedorItems.getChildren().add(itemCheck);
+    }
+
+    // --- Drag & drop ---
 
     @FXML
     public void initialize() {
@@ -24,15 +131,11 @@ public class VentanaTarjetaController {
         }
 
         root.setOnDragDetected(event -> {
-            // 1. Tarjeta original se queda semitransparente (fantasma)
             root.setOpacity(0.35);
 
-            // 2. Crear imagen del drag: snapshot rotado + semitransparente
             WritableImage dragImage = crearDragImage();
 
             Dragboard db = root.startDragAndDrop(TransferMode.MOVE);
-
-            // 3. La imagen sigue al ratón con offset centrado en el punto de agarre
             db.setDragView(dragImage, event.getX(), event.getY());
 
             ClipboardContent content = new ClipboardContent();
@@ -53,19 +156,16 @@ public class VentanaTarjetaController {
     }
 
     /**
-     * Genera un WritableImage de la tarjeta inclinada ~6° y con 75% de opacidad.
+     * Genera un WritableImage de la tarjeta inclinada ~6° y con 85% de opacidad.
      */
     private WritableImage crearDragImage() {
-        // Snapshot con fondo transparente
         SnapshotParameters params = new SnapshotParameters();
         params.setFill(Color.TRANSPARENT);
 
-        // Rotar el nodo temporalmente para el snapshot
         root.setRotate(6);
         WritableImage rotatedSnapshot = root.snapshot(params, null);
         root.setRotate(0);
 
-        // Dibujar sobre un Canvas aplicando alpha para la semitransparencia
         double w = rotatedSnapshot.getWidth();
         double h = rotatedSnapshot.getHeight();
 

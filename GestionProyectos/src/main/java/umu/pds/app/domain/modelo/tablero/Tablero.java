@@ -1,5 +1,7 @@
 package umu.pds.app.domain.modelo.tablero;
 
+import umu.pds.app.domain.exceptions.CheckListException;
+import umu.pds.app.domain.exceptions.CheckListIndiceException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
@@ -131,6 +133,49 @@ public class Tablero {
         ));
     }
 
+    // --- Checklist ---
+
+    public Checklist asignarChecklist(ListaId listaId, TarjetaId tarjetaId, String nombre) {
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        try {
+            Checklist checklist = Checklist.nuevo(nombre);
+            tarjeta.asignarChecklist(checklist);
+            historial.add(Traza.nueva("Checklist '" + nombre + "' asignado a tarjeta '" + tarjeta.getTitulo() + "'"));
+            return checklist;
+        } catch (CheckListException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    public void agregarItemChecklist(ListaId listaId, TarjetaId tarjetaId, String descripcion) {
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        Checklist checklist = tarjeta.getChecklist()
+                .orElseThrow(() -> new IllegalStateException("La tarjeta no tiene checklist"));
+        checklist.agregarItem(descripcion);
+    }
+
+    public void marcarItemChecklist(ListaId listaId, TarjetaId tarjetaId, int indice) {
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        Checklist checklist = tarjeta.getChecklist()
+                .orElseThrow(() -> new IllegalStateException("La tarjeta no tiene checklist"));
+        try {
+            checklist.marcarItem(indice);
+        } catch (CheckListIndiceException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    public void desmarcarItemChecklist(ListaId listaId, TarjetaId tarjetaId, int indice) {
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        Checklist checklist = tarjeta.getChecklist()
+                .orElseThrow(() -> new IllegalStateException("La tarjeta no tiene checklist"));
+        try {
+            checklist.desmarcarItem(indice);
+        } catch (CheckListIndiceException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
     // --- Bloqueo ---
 
     public void bloquear() {
@@ -176,6 +221,15 @@ public class Tablero {
     }
     public int totalListas() { 
     	return listas.size(); 
+    }
+
+    // --- Helpers privados ---
+
+    private Tarjeta buscarTarjetaEnLista(ListaId listaId, TarjetaId tarjetaId) {
+        return buscarLista(listaId)
+                .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId))
+                .buscarTarjeta(tarjetaId)
+                .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada: " + tarjetaId));
     }
 
     // --- Identidad por ID (regla de Entidad / Aggregate Root en DDD) ---
