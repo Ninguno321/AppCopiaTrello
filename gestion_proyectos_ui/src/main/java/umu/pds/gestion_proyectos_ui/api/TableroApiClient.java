@@ -45,6 +45,19 @@ public class TableroApiClient {
         throw new RuntimeException("Error al crear tablero (" + response.statusCode() + "): " + response.body());
     }
 
+    public void eliminarTarjeta(String tableroId, String listaId, String tarjetaId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId + "/tarjetas/" + tarjetaId))
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 204) {
+            throw new RuntimeException("Error al eliminar tarjeta (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
     public ListaDto agregarLista(String tableroId, String nombre) throws Exception {
         String body = objectMapper.writeValueAsString(Map.of("nombre", nombre));
 

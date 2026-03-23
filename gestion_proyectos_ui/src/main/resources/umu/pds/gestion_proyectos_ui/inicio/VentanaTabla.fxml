@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="600.0" prefWidth="1000.0"
+      stylesheets="@../estilos/theme.css, @../estilos/app-base.css, @../estilos/app-board.css"
+      xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaTablaController">
+
+   <padding>
+      <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" />
+   </padding>
+
+   <TableView fx:id="tablaTarjetas" VBox.vgrow="ALWAYS" styleClass="tabla-tarjetas">
+      <columns>
+         <TableColumn fx:id="colTitulo" text="Tarjeta" prefWidth="300" />
+         <TableColumn fx:id="colLista" text="Lista" prefWidth="160" />
+         <TableColumn fx:id="colCompletada" text="Completada" prefWidth="110" />
+         <TableColumn fx:id="colTipo" text="Tipo" prefWidth="130" />
+         <TableColumn fx:id="colEtiquetas" text="Etiquetas" prefWidth="200" />
+      </columns>
+   </TableView>
+
+</VBox>

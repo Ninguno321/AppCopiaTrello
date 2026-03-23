@@ -41,11 +41,11 @@ public class VentanaTarjetaController {
         // Estado inicial si ya está completada
         if (tarjeta.completada) {
             check.setSelected(true);
-            check.setDisable(true);
             tituloTarjeta.setStyle("-fx-strikethrough: true;");
+            root.setOpacity(0.5);
         }
 
-        check.setOnAction(e -> onCompletar());
+        check.setOnAction(e -> onToggleCompletada());
 
         // Mostrar ítems del checklist si los hay
         if (tarjeta.tieneChecklist && tarjeta.checklist != null && tarjeta.checklist.items != null) {
@@ -65,31 +65,16 @@ public class VentanaTarjetaController {
     public String getTableroId() { return tableroId; }
     public void   setListaId(String listaId) { this.listaId = listaId; }
 
-    // --- Lógica de completar tarjeta ---
+    // --- Lógica de marcar/desmarcar tarjeta ---
 
-    private void onCompletar() {
-        tituloTarjeta.setStyle("-fx-strikethrough: true;");
-        check.setDisable(true);
-
-        Task<Void> t = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                apiClient.completarTarjeta(tableroId, listaId, tarjeta.id);
-                return null;
-            }
-        };
-        t.setOnSucceeded(ev -> {
-            if (root.getParent() instanceof VBox parent) {
-                parent.getChildren().remove(root);
-            }
-        });
-        t.setOnFailed(ev -> {
-            check.setSelected(false);
-            check.setDisable(false);
+    private void onToggleCompletada() {
+        if (check.isSelected()) {
+            tituloTarjeta.setStyle("-fx-strikethrough: true;");
+            root.setOpacity(0.5);
+        } else {
             tituloTarjeta.setStyle("");
-            System.err.println("Error al completar tarjeta: " + t.getException().getMessage());
-        });
-        new Thread(t).start();
+            root.setOpacity(1.0);
+        }
     }
 
     // --- Ítems del checklist ---

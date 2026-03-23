@@ -265,7 +265,7 @@ public class VentanaListaController {
         new Thread(task).start();
     }
 
-    private void mostrarTarjeta(TarjetaDto tarjeta) {
+    void mostrarTarjeta(TarjetaDto tarjeta) {
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaTarjeta.fxml")
