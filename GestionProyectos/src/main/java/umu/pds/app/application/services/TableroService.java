@@ -4,12 +4,15 @@ import umu.pds.app.application.ports.input.GestionTableroUseCase;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
+import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.tablero.Checklist;
 import umu.pds.app.domain.modelo.tablero.Etiqueta;
 import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
+import umu.pds.app.domain.modelo.usuario.Usuario;
 import umu.pds.app.domain.ports.output.TableroRepository;
+import umu.pds.app.domain.ports.output.UsuarioRepository;
 
 import java.util.List;
 
@@ -20,16 +23,24 @@ import java.util.List;
 public class TableroService implements GestionTableroUseCase {
 
     private final TableroRepository tableroRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public TableroService(TableroRepository tableroRepository) {
+    public TableroService(TableroRepository tableroRepository, UsuarioRepository usuarioRepository) {
         this.tableroRepository = tableroRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     // --- Tablero ---
 
     @Override
     public Tablero crearTablero(String nombre, String email) {
-        Tablero tablero = new Tablero(nombre, email);
+        Usuario propietario = usuarioRepository.buscarPorEmail(email)
+                .orElseGet(() -> {
+                    Usuario nuevo = new Usuario(email);
+                    usuarioRepository.guardar(nuevo);
+                    return nuevo;
+                });
+        Tablero tablero = new Tablero(nombre, propietario);
         tableroRepository.guardar(tablero);
         return tablero;
     }
@@ -71,7 +82,7 @@ public class TableroService implements GestionTableroUseCase {
     @Override
     public Lista agregarLista(TableroId tableroId, String nombre) {
         Tablero tablero = obtenerTablero(tableroId);
-        Lista lista = tablero.agregarLista(nombre);
+        Lista lista = tablero.agregarLista(Lista.nueva(nombre));
         tableroRepository.guardar(tablero);
         return lista;
     }
@@ -88,9 +99,13 @@ public class TableroService implements GestionTableroUseCase {
     @Override
     public Tarjeta agregarTarjeta(TableroId tableroId, ListaId listaId, String titulo) {
         Tablero tablero = obtenerTablero(tableroId);
-        Tarjeta tarjeta = tablero.agregarTarjeta(listaId, titulo);
-        tableroRepository.guardar(tablero);
-        return tarjeta;
+        try {
+            Tarjeta tarjeta = tablero.agregarTarjeta(listaId, Tarjeta.nueva(titulo));
+            tableroRepository.guardar(tablero);
+            return tarjeta;
+        } catch (TableroException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
     }
 
     @Override
@@ -110,29 +125,31 @@ public class TableroService implements GestionTableroUseCase {
     @Override
     public void marcarTarjetaCompletada(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId) {
         Tablero tablero = obtenerTablero(tableroId);
-        tablero.marcarTarjetaCompletada(listaId, tarjetaId);
+        tablero.completarTarjeta(tarjetaId, listaId);
         tableroRepository.guardar(tablero);
     }
 
     @Override
     public void asignarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
-        Tablero tablero = obtenerTablero(tableroId);
-        tablero.buscarLista(listaId)
-                .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId))
-                .buscarTarjeta(tarjetaId)
-                .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada: " + tarjetaId))
-                .asignarEtiqueta(etiqueta);
-        tableroRepository.guardar(tablero);
+        etiquetarTarjeta(tableroId, listaId, tarjetaId, etiqueta);
     }
 
     @Override
     public void quitarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
+        desetiquetarTarjeta(tableroId, listaId, tarjetaId, etiqueta);
+    }
+
+    @Override
+    public void etiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
         Tablero tablero = obtenerTablero(tableroId);
-        tablero.buscarLista(listaId)
-                .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId))
-                .buscarTarjeta(tarjetaId)
-                .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada: " + tarjetaId))
-                .quitarEtiqueta(etiqueta);
+        tablero.etiquetarTarjeta(tarjetaId, listaId, etiqueta);
+        tableroRepository.guardar(tablero);
+    }
+
+    @Override
+    public void desetiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
+        Tablero tablero = obtenerTablero(tableroId);
+        tablero.desetiquetarTarjeta(tarjetaId, listaId, etiqueta);
         tableroRepository.guardar(tablero);
     }
 
