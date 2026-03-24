@@ -525,3 +525,54 @@ desetiquetarTarjeta(TarjetaId, ListaId, Etiqueta)
 4. **Historial**: botón "Ver historial" que abra un `Alert` o panel lateral con la lista de `TrazaResponse`.
 5. **Pantalla de login**: aprovechar que `Usuario` ya existe en dominio y BD; la UI puede solicitar email al arrancar y hacer `GET /tableros?email=...` para cargar los tableros del usuario.
 
+## 2026-03-24 (continuación — tercera sesión)
+
+### Contexto de la sesión
+Sesión enfocada en la estabilización del proyecto. Se completaron los requisitos de pruebas de software (testing), se integró el flujo de login real conectando el frontend con el nuevo backend persistente, y se implementó visual y funcionalmente la asignación de etiquetas a las tarjetas.
+
+---
+
+### 1. Pruebas Unitarias y Cobertura (Testing)
+Se implementaron pruebas unitarias exhaustivas para asegurar la robustez del Bounded Context principal (`Tablero`).
+
+* **Implementación:** Se creó `TableroTest.java` utilizando **JUnit 5**.
+* **Enfoque:** Se combinaron pruebas de **caja negra** (validando especificaciones como no añadir tarjetas a tableros bloqueados) y pruebas de **caja blanca** (buscando ejecutar todos los caminos lógicos).
+* **Cobertura:** Se configuró el plugin **JaCoCo** (`jacoco-maven-plugin` 0.8.12) en el `pom.xml`.
+* **Resultado:** Se generaron 57 tests agrupados mediante `@Nested`, logrando una cobertura completa sobre las reglas de negocio, la gestión de listas, tarjetas, checklists y excepciones (`TableroException`). Se verificó el éxito mediante el reporte HTML generado por Maven (`target/site/jacoco/index.html`).
+
+---
+
+### 2. Integración del Flujo de Login (Frontend - Backend)
+Se abordó la deuda técnica generada al hacer que el `Usuario` fuera obligatorio para la persistencia de un `Tablero`.
+
+* **API Client (`TableroApiClient`):** Se añadió el método `obtenerTablerosPorEmail(String email)` que consume el endpoint `GET /tableros?email=...`.
+* **Login Visual (`VentanaInicio`):** Se refactorizó la interfaz para actuar exclusivamente como pantalla de inicio de sesión. Ahora solo solicita el `email`.
+* **Sincronización:** Al introducir el email, la UI recupera los tableros de ese usuario desde la base de datos H2 y los inyecta en la `VentanaPrincipal` mediante `setDatosUsuario(email, tableros)`.
+* **Resolución de Bugs Críticos:**
+    * **Jackson Mapping:** Se resolvió un error 500 donde los campos del JSON llegaban nulos al backend. Se aplicó explícitamente la anotación `@JsonProperty` en los `record` DTOs (ej: `CrearTableroRequest`) para asegurar la correcta deserialización.
+    * **Entidades Transientes (JPA):** Se solucionó una violación de integridad (`SQL Error: 23502 - EMAIL_PROPIETARIO is null`) en `TableroJpaAdapter`. Al mapear el dominio a JPA, Hibernate no reconocía al usuario instanciado en memoria. Se corrigió inyectando `UsuarioRepositoryJPA` y utilizando `getReferenceById(email)` para asociar el tablero a una entidad gestionada por JPA antes de hacer el `save()`.
+
+---
+
+### 3. Feature: Etiquetas de Colores en la UI
+Se completó la funcionalidad visual para categorizar tarjetas.
+
+* **API Client:** Se añadieron los métodos `etiquetarTarjeta` (POST) y `desetiquetarTarjeta` (DELETE).
+* **DTO:** Se actualizó `TarjetaDto` para incluir `List<EtiquetaDto> etiquetas` y se creó la clase `EtiquetaDto`.
+* **Interfaz de Edición (`VentanaTarjeta`):**
+    * Se añadió un contenedor `FlowPane` para mostrar las etiquetas activas.
+    * Se implementó un botón "+ Etiqueta" que abre un diálogo (`Dialog`) personalizado. Este diálogo incluye un `TextField` para el nombre y un `ColorPicker` nativo de JavaFX para seleccionar el color (convertido a formato HEX).
+* **Visualización (Pastillas):** Las etiquetas se renderizan dinámicamente como `Label`s de JavaFX con CSS inyectado (fondo de color, texto blanco, bordes redondeados).
+* **Interacción:** Al hacer clic sobre una "pastilla" de etiqueta en la tarjeta, se ejecuta el borrado asíncrono en el backend y se elimina visualmente al instante.
+
+---
+
+### Estado de Funcionalidades Pendientes (Actualizado)
+
+| Feature | Descripción | Estado |
+|---|---|---|
+| Login / pantalla de usuario | Flujo de login por email conectado a la persistencia. | **Completado** |
+| Etiquetas con color | Asignar/quitar etiquetas a tarjeta, mostrar pastillas de color. | **Completado** |
+| Tests Unitarios | Pruebas unitarias del dominio con JUnit 5 y JaCoCo. | **Completado** |
+| Bloquear/desbloquear tablero | Botón en cabecera para bloquear la adición de tarjetas. | Pendiente |
+| Historial del tablero | Panel o modal que muestra las `Traza`s. | Pendiente |

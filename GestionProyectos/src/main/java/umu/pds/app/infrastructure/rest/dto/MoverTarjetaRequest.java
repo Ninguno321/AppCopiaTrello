@@ -1,3 +1,9 @@
 package umu.pds.app.infrastructure.rest.dto;
 
-public record MoverTarjetaRequest(String tarjetaId, String listaOrigenId, String listaDestinoId) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record MoverTarjetaRequest(
+        @JsonProperty("tarjetaId")      String tarjetaId,
+        @JsonProperty("listaOrigenId")  String listaOrigenId,
+        @JsonProperty("listaDestinoId") String listaDestinoId
+) {}

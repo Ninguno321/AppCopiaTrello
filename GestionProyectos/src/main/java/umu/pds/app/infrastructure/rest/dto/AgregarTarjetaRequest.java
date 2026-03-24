@@ -1,3 +1,5 @@
 package umu.pds.app.infrastructure.rest.dto;
 
-public record AgregarTarjetaRequest(String titulo) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record AgregarTarjetaRequest(@JsonProperty("titulo") String titulo) {}

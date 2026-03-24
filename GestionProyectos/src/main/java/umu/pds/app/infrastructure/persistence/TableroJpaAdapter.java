@@ -1,7 +1,9 @@
 package umu.pds.app.infrastructure.persistence;
 
 import org.springframework.stereotype.Repository;
+import umu.pds.app.adapters.jpa.entity.UsuarioJpaEntity;
 import umu.pds.app.adapters.jpa.repository.TableroRepositoryJPA;
+import umu.pds.app.adapters.jpa.repository.UsuarioRepositoryJPA;
 import umu.pds.app.adapters.mappers.TableroMapper;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.tablero.Tablero;
@@ -20,16 +22,27 @@ import java.util.stream.Collectors;
 public class TableroJpaAdapter implements TableroRepository {
 
     private final TableroRepositoryJPA repositorioJpa;
+    private final UsuarioRepositoryJPA usuarioRepositorioJpa;
     private final TableroMapper mapper;
 
-    public TableroJpaAdapter(TableroRepositoryJPA repositorioJpa, TableroMapper mapper) {
+    public TableroJpaAdapter(TableroRepositoryJPA repositorioJpa,
+                             UsuarioRepositoryJPA usuarioRepositorioJpa,
+                             TableroMapper mapper) {
         this.repositorioJpa = repositorioJpa;
+        this.usuarioRepositorioJpa = usuarioRepositorioJpa;
         this.mapper = mapper;
     }
 
     @Override
     public void guardar(Tablero tablero) {
-        repositorioJpa.save(mapper.toJpaEntity(tablero));
+        var entity = mapper.toJpaEntity(tablero);
+        // Sustituimos la instancia transiente por la entidad gestionada por JPA,
+        // ya que el mapper crea un new UsuarioJpaEntity() que Hibernate no conoce.
+        String emailPropietario = tablero.getPropietario().getEmail();
+        UsuarioJpaEntity propietarioGestionado = usuarioRepositorioJpa
+                .getReferenceById(emailPropietario);
+        entity.setPropietario(propietarioGestionado);
+        repositorioJpa.save(entity);
     }
 
     @Override

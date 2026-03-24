@@ -1,3 +1,8 @@
 package umu.pds.app.infrastructure.rest.dto;
 
-public record AsignarEtiquetaRequest(String nombre, String color) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record AsignarEtiquetaRequest(
+        @JsonProperty("nombre") String nombre,
+        @JsonProperty("color")  String color
+) {}
