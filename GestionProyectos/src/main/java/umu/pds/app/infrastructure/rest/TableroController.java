@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import umu.pds.app.application.ports.input.GestionTableroUseCase;
+import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
@@ -152,11 +153,11 @@ public class TableroController {
     }
 
     @PostMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/etiquetas")
-    public ResponseEntity<Void> asignarEtiqueta(@PathVariable String id,
-                                                 @PathVariable String listaId,
-                                                 @PathVariable String tarjetaId,
-                                                 @RequestBody AsignarEtiquetaRequest request) {
-        gestionTablero.asignarEtiqueta(
+    public ResponseEntity<Void> etiquetarTarjeta(@PathVariable String id,
+                                                  @PathVariable String listaId,
+                                                  @PathVariable String tarjetaId,
+                                                  @RequestBody AsignarEtiquetaRequest request) {
+        gestionTablero.etiquetarTarjeta(
                 TableroId.de(id),
                 ListaId.de(listaId),
                 TarjetaId.de(tarjetaId),
@@ -166,11 +167,11 @@ public class TableroController {
     }
 
     @DeleteMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/etiquetas")
-    public ResponseEntity<Void> quitarEtiqueta(@PathVariable String id,
-                                                @PathVariable String listaId,
-                                                @PathVariable String tarjetaId,
-                                                @RequestBody AsignarEtiquetaRequest request) {
-        gestionTablero.quitarEtiqueta(
+    public ResponseEntity<Void> desetiquetarTarjeta(@PathVariable String id,
+                                                     @PathVariable String listaId,
+                                                     @PathVariable String tarjetaId,
+                                                     @RequestBody AsignarEtiquetaRequest request) {
+        gestionTablero.desetiquetarTarjeta(
                 TableroId.de(id),
                 ListaId.de(listaId),
                 TarjetaId.de(tarjetaId),
@@ -231,6 +232,13 @@ public class TableroController {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleConflict(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    /** Regla de negocio del dominio violada (p.ej. tablero bloqueado). */
+    @ExceptionHandler(TableroException.class)
+    public ResponseEntity<Map<String, String>> handleTableroException(TableroException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }

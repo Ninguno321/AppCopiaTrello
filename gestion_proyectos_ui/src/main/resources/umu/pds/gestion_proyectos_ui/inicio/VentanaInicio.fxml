@@ -21,7 +21,7 @@
 
             <Label styleClass="title" text="Mistableros.com" />
 
-            <Label styleClass="subtitle" text="Crea tableros y organiza tus tareas" wrapText="true" />
+            <Label styleClass="subtitle" text="Introduce tu correo para acceder a tus tableros" wrapText="true" />
 
         </VBox>
         <VBox alignment="TOP_LEFT" maxWidth="420" spacing="15" styleClass="card">
@@ -30,19 +30,14 @@
                 <Insets bottom="30" left="30" right="30" top="30" />
             </padding>
 
-            <Label styleClass="card-title" text="Crear tablero" />
-
-            <VBox spacing="5">
-                <Label text="Nombre del tablero" />
-                <TextField fx:id="txtNombreTablero" promptText="Mi proyecto..." />
-            </VBox>
+            <Label styleClass="card-title" text="Iniciar sesión" />
 
             <VBox spacing="5">
                 <Label text="Tu correo electrónico" />
                 <TextField fx:id="txtEmail" promptText="nombre@ejemplo.com" />
             </VBox>
 
-            <Button fx:id="btnCrearTablero" maxWidth="Infinity" onAction="#onCrearTablero" styleClass="primary-button" text="Crear tablero" />
+            <Button fx:id="btnEntrar" maxWidth="Infinity" onAction="#onEntrar" styleClass="primary-button" text="Entrar" />
 
         </VBox>
 

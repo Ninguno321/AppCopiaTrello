@@ -2,9 +2,11 @@ package umu.pds.app.domain.modelo.tablero;
 
 import umu.pds.app.domain.exceptions.CheckListException;
 import umu.pds.app.domain.exceptions.CheckListIndiceException;
+import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
+import umu.pds.app.domain.modelo.usuario.Usuario;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,23 +25,23 @@ public class Tablero {
 
     private final TableroId id;
     private String nombre;
-    private final String emailPropietario;
+    private final Usuario propietario;
     private boolean bloqueado;
     private final List<Lista> listas;
     private final List<Tarjeta> tarjetasCompletadas;
     private final List<Traza> historial;
 
-    public Tablero(String nombre, String emailPropietario) {
-        this(TableroId.nuevo(), nombre, emailPropietario);
+    public Tablero(String nombre, Usuario propietario) {
+        this(TableroId.nuevo(), nombre, propietario);
     }
 
-    public Tablero(TableroId id, String nombre, String emailPropietario) {
+    public Tablero(TableroId id, String nombre, Usuario propietario) {
         if (id == null) throw new IllegalArgumentException("TableroId no puede ser nulo");
         if (nombre == null || nombre.isBlank()) throw new IllegalArgumentException("El tablero debe tener un nombre");
-        if (emailPropietario == null || emailPropietario.isBlank()) throw new IllegalArgumentException("El tablero debe tener un email de propietario");
+        if (propietario == null) throw new IllegalArgumentException("El tablero debe tener un propietario");
         this.id = id;
         this.nombre = nombre;
-        this.emailPropietario = emailPropietario;
+        this.propietario = propietario;
         this.bloqueado = false;
         this.listas = new ArrayList<>();
         this.tarjetasCompletadas = new ArrayList<>();
@@ -48,11 +50,15 @@ public class Tablero {
 
     // --- Operaciones sobre Listas ---
 
-    public Lista agregarLista(String nombre) {
-        Lista lista = Lista.nueva(nombre);
-        listas.add(lista);
-        historial.add(Traza.nueva("Lista '" + nombre + "' añadida al tablero"));
-        return lista;
+    /**
+     * Agrega una Lista ya construida al tablero y registra la accion en el historial.
+     */
+    public Lista agregarLista(Lista nuevaLista) {
+        if (nuevaLista == null)
+            throw new IllegalArgumentException("La lista no puede ser nula");
+        listas.add(nuevaLista);
+        historial.add(Traza.nueva("Lista '" + nuevaLista.getNombre() + "' agregada al tablero"));
+        return nuevaLista;
     }
 
     public boolean eliminarLista(ListaId listaId) {
@@ -74,14 +80,19 @@ public class Tablero {
 
     // --- Operaciones sobre Tarjetas (siempre a través del Tablero) ---
 
-    public Tarjeta agregarTarjeta(ListaId listaId, String titulo) {
+    /**
+     * Agrega una Tarjeta ya construida a la lista indicada.
+     * INVARIANTE: lanza TableroException si el tablero esta bloqueado.
+     */
+    public Tarjeta agregarTarjeta(ListaId listaId, Tarjeta tarjeta) throws TableroException {
         if (bloqueado)
-            throw new IllegalStateException("El tablero está bloqueado: no se pueden añadir tarjetas nuevas");
+            throw new TableroException("El tablero esta bloqueado: no se pueden agregar tarjetas nuevas");
+        if (tarjeta == null)
+            throw new IllegalArgumentException("La tarjeta no puede ser nula");
         Lista lista = buscarLista(listaId)
                 .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId));
-        Tarjeta tarjeta = Tarjeta.nueva(titulo);
         lista.agregarTarjeta(tarjeta);
-        historial.add(Traza.nueva("Tarjeta '" + titulo + "' añadida a la lista '" + lista.getNombre() + "'"));
+        historial.add(Traza.nueva("Tarjeta '" + tarjeta.getTitulo() + "' agregada a la lista '" + lista.getNombre() + "'"));
         return tarjeta;
     }
 
@@ -117,19 +128,46 @@ public class Tablero {
     }
 
     /**
-     * Marca una tarjeta como completada y la mueve a la lista especial de completadas.
+     * Saca la tarjeta de su lista origen y la registra en tarjetasCompletadas.
+     * Permitido aunque el tablero este bloqueado (solo agregar tarjetas nuevas esta restringido).
      */
-    public void marcarTarjetaCompletada(ListaId listaId, TarjetaId tarjetaId) {
-        Lista lista = buscarLista(listaId)
-                .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId));
+    public void completarTarjeta(TarjetaId tarjetaId, ListaId listaOrigenId) {
+        Lista lista = buscarLista(listaOrigenId)
+                .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaOrigenId));
         Tarjeta tarjeta = lista.buscarTarjeta(tarjetaId)
                 .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada: " + tarjetaId));
-
         lista.eliminarTarjeta(tarjetaId);
         tarjeta.marcarCompletada();
         tarjetasCompletadas.add(tarjeta);
         historial.add(Traza.nueva(
-            "Tarjeta '" + tarjeta.getTitulo() + "' marcada como completada desde la lista '" + lista.getNombre() + "'"
+            "Tarjeta '" + tarjeta.getTitulo() + "' completada desde la lista '" + lista.getNombre() + "'"
+        ));
+    }
+
+    // --- Etiquetas ---
+
+    /**
+     * Asigna una etiqueta a la tarjeta indicada y registra la accion en el historial.
+     * Toda modificacion pasa por el Aggregate Root para mantener las invariantes.
+     */
+    public void etiquetarTarjeta(TarjetaId tarjetaId, ListaId listaId, Etiqueta etiqueta) {
+        if (etiqueta == null)
+            throw new IllegalArgumentException("La etiqueta no puede ser nula");
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        tarjeta.agregarEtiqueta(etiqueta);
+        historial.add(Traza.nueva(
+            "Etiqueta '" + etiqueta.nombre() + "' asignada a la tarjeta '" + tarjeta.getTitulo() + "'"
+        ));
+    }
+
+    /**
+     * Quita una etiqueta de la tarjeta indicada y registra la accion en el historial.
+     */
+    public void desetiquetarTarjeta(TarjetaId tarjetaId, ListaId listaId, Etiqueta etiqueta) {
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        tarjeta.quitarEtiqueta(etiqueta);
+        historial.add(Traza.nueva(
+            "Etiqueta '" + etiqueta.nombre() + "' retirada de la tarjeta '" + tarjeta.getTitulo() + "'"
         ));
     }
 
@@ -198,16 +236,20 @@ public class Tablero {
 
     // --- Getters ---
 
-    public TableroId getId() { 
-    	return id; 
+    public TableroId getId() {
+    	return id;
     }
-    public String getNombre() { 
-    	return nombre; 
+    public String getNombre() {
+    	return nombre;
     }
-    public String getEmailPropietario() { 
-    	return emailPropietario; 
+    public Usuario getPropietario() {
+        return propietario;
     }
-    public boolean isBloqueado() { 
+    /** Convenience: devuelve el email del propietario sin exponer el objeto Usuario. */
+    public String getEmailPropietario() {
+    	return propietario.getEmail();
+    }
+    public boolean isBloqueado() {
     	return bloqueado; 
     }
     public List<Lista> getListas() { 

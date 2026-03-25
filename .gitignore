@@ -27,6 +27,7 @@ local.properties
 # Archivo local con secretos
 src/main/resources/application-secrets.properties
 application-secrets.properties
+data/
 
 # External tool builders
 .externalToolBuilders/

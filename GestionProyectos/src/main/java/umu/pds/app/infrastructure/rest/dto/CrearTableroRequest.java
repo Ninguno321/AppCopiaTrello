@@ -1,3 +1,8 @@
 package umu.pds.app.infrastructure.rest.dto;
 
-public record CrearTableroRequest(String nombre, String email) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record CrearTableroRequest(
+        @JsonProperty("nombre") String nombre,
+        @JsonProperty("email")  String email
+) {}

@@ -1,3 +1,5 @@
 package umu.pds.app.infrastructure.rest.dto;
 
-public record AgregarListaRequest(String nombre) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record AgregarListaRequest(@JsonProperty("nombre") String nombre) {}

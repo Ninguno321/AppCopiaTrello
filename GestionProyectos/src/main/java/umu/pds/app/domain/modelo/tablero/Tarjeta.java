@@ -69,6 +69,11 @@ public class Tarjeta {
         if (!etiquetas.contains(etiqueta)) etiquetas.add(etiqueta);
     }
 
+    /** Alias semantico para el lenguaje ubicuo. Delega en asignarEtiqueta. */
+    public void agregarEtiqueta(Etiqueta etiqueta) {
+        asignarEtiqueta(etiqueta);
+    }
+
     public void quitarEtiqueta(Etiqueta etiqueta) {
         etiquetas.remove(etiqueta);
     }

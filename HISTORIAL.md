@@ -355,6 +355,150 @@ desmarcarItemChecklist(tableroId, listaId, tarjetaId, indice)
 
 ---
 
+---
+
+## 2026-03-24
+
+### Contexto de la sesión
+
+Sesión dedicada íntegramente al backend (`GestionProyectos`). Se implementó la capa de persistencia real con JPA/H2, se incorporó la entidad `Usuario` al dominio y a la base de datos, se enriqueció el Aggregate Root `Tablero` con invariantes de negocio explícitas, y se sincronizó el controlador REST con los últimos contratos.
+
+---
+
+### 1. Persistencia real con JPA (estilo UMULingo)
+
+Se sustituyó `InMemoryTableroRepository` por una pila JPA completa. El dominio permanece puro: ninguna clase bajo `domain/` contiene `@Entity`, `@Id` ni dependencias de Jakarta.
+
+#### Entidades JPA (`adapters/jpa/entity/`)
+
+| Clase | Tabla | Descripción |
+|---|---|---|
+| `TableroJpaEntity` | `tableros` | Aggregate Root. Cascada a listas, tarjetas completadas e historial. |
+| `ListaJpaEntity` | `listas` | `@OneToMany` ordenado con `@OrderColumn`. |
+| `TarjetaJpaEntity` | `tarjetas` | Contiene `@Embedded` para Tarea y `@OneToOne` para Checklist. |
+| `ChecklistJpaEntity` | `checklists` | `@ElementCollection` para ítems. |
+| `TareaJpaEmbeddable` | columnas en `tarjetas` | Mapea los 4 campos del VO `Tarea`. |
+| `ItemChecklistJpaEmbeddable` | `checklist_items` | Un registro por ítem. |
+| `EtiquetaJpaEmbeddable` | `tarjeta_etiquetas` | Un registro por etiqueta. |
+| `TrazaJpaEmbeddable` | `tablero_historial` | Descripcion + timestamp con orden garantizado. |
+
+#### Repositorio JPA y Adaptador
+
+- **`TableroRepositoryJPA`** — extiende `JpaRepository<TableroJpaEntity, String>`. Query derivada: `findByPropietarioEmail(String email)`.
+- **`TableroJpaAdapter`** — `@Repository` que implementa el puerto de salida `TableroRepository`. Delega en `TableroRepositoryJPA` y usa el mapper para cruzar la frontera.
+
+#### Mapper (`adapters/mappers/TableroMapper`)
+
+Convierte Dominio ↔ JPA en ambas direcciones. Para reconstruir `Tablero` desde base de datos se usa **reflexión** sobre los campos `private final` (`listas`, `tarjetasCompletadas`, `historial`, `bloqueado`): es la técnica correcta cuando el Aggregate Root no expone un constructor de reconstrucción y el dominio no puede modificarse para añadir anotaciones.
+
+Para `Checklist`, los ítems se reconstituyen accediendo también vía reflexión al `ArrayList` interno para restaurar el estado `completado` de cada ítem (que `agregarItem()` siempre inicializa a `false`).
+
+#### Configuración
+
+- `application.properties` — H2 en modo archivo (`./data/gestion_proyectos`), `ddl-auto=update`. Las tablas se crean automáticamente al arrancar. Consola H2 habilitada en `/h2-console`.
+- `BeanConfiguration` — eliminado el bean `InMemoryTableroRepository`; Spring detecta `TableroJpaAdapter` por `@Repository`.
+- Fix: el fichero `application.properties` tenía codificación ISO-8859-1 (con caracteres especiales en los comentarios); se reescribió en UTF-8 puro para evitar `MalformedInputException` en el plugin de recursos de Maven.
+
+---
+
+### 2. Entidad Usuario en el dominio y en la persistencia
+
+#### Dominio (`domain/modelo/usuario/Usuario.java`)
+
+Nueva entidad del dominio conforme al Glosario Ubicuo: "Persona identificada por correo electrónico".
+
+- **Identidad**: el propio email (String) actúa como ID — no se necesita UUID aparte.
+- **Campos**: `email` (final), `nombre` (mutable via `cambiarNombre()`).
+- **Sin setters públicos**, sin anotaciones de persistencia.
+- `equals`/`hashCode` por email.
+
+Puerto de salida: **`domain/ports/output/UsuarioRepository`** — `guardar(Usuario)` + `buscarPorEmail(String)`.
+
+#### Actualización de `Tablero`
+
+- Campo `String emailPropietario` sustituido por `Usuario propietario` (final).
+- Ambos constructores actualizados.
+- Se mantiene `getEmailPropietario()` como método de conveniencia que delega en `propietario.getEmail()` — el controlador REST y los DTOs no necesitaron cambios.
+- Añadido `getPropietario()` para acceso al objeto completo.
+
+#### Persistencia JPA del Usuario
+
+| Clase | Descripción |
+|---|---|
+| `UsuarioJpaEntity` | `@Entity`, tabla `usuarios`, `@Id String email` |
+| `UsuarioRepositoryJPA` | `JpaRepository<UsuarioJpaEntity, String>` |
+| `UsuarioMapper` | `toDomain` / `toJpaEntity` |
+| `UsuarioJpaAdapter` | `@Repository`, implementa `UsuarioRepository` |
+
+`TableroJpaEntity` — sustituido `@Column email_propietario` por `@ManyToOne(eager) UsuarioJpaEntity propietario` con `@JoinColumn(name="propietario_email")`.
+
+#### Lógica find-or-create en `TableroService`
+
+`crearTablero(nombre, email)` ahora:
+1. Busca el `Usuario` por email en `UsuarioRepository`.
+2. Si no existe, lo crea y lo guarda.
+3. Pasa el `Usuario` al constructor de `Tablero`.
+
+---
+
+### 3. Enriquecimiento del Aggregate Root `Tablero`
+
+Se actualizaron los contratos de tres métodos existentes y se añadió un método nuevo, siguiendo la regla de no usar ñ ni tildes en nombres de métodos o variables:
+
+| Método | Cambio |
+|---|---|
+| `agregarLista(String)` → `agregarLista(Lista)` | El dominio recibe el objeto ya construido; la capa de aplicación hace `Lista.nueva(nombre)`. |
+| `agregarTarjeta(ListaId, String)` → `agregarTarjeta(ListaId, Tarjeta) throws TableroException` | Lanza `TableroException` (checked) si el tablero está bloqueado — excepción de dominio en lugar de `IllegalStateException`. |
+| `marcarTarjetaCompletada(ListaId, TarjetaId)` → `completarTarjeta(TarjetaId, ListaId)` | Renombrado al término del glosario; orden de parámetros: TarjetaId primero. |
+
+Todos los métodos de mutación ya generaban `Traza` al historial; los nuevos también la generan. Los getters ya devolvían `Collections.unmodifiableList()` — sin cambio.
+
+`TableroService` actualizado: construye `Lista.nueva()` y `Tarjeta.nueva()` en la capa de aplicación antes de pasar al dominio; captura `TableroException` y la envuelve en `IllegalStateException` para que el controlador la mapee a HTTP 409.
+
+---
+
+### 4. Gestión de Etiquetas a través del Aggregate Root
+
+Antes, `TableroService.asignarEtiqueta` accedía directamente a `Lista.buscarTarjeta(...).asignarEtiqueta(...)`, saltándose el Aggregate Root. Se corrigió:
+
+#### `Tarjeta`
+
+- Añadido `agregarEtiqueta(Etiqueta)` — alias semántico del glosario que delega en `asignarEtiqueta`. Se mantiene `asignarEtiqueta` para el mapper JPA (que no puede tocarse).
+- `getEtiquetas()` ya devolvía `unmodifiableList` — sin cambio.
+
+#### `Tablero`
+
+Dos nuevos métodos que cierran la frontera del agregado:
+
+```
+etiquetarTarjeta(TarjetaId, ListaId, Etiqueta)
+    → busca tarjeta via buscarTarjetaEnLista, llama agregarEtiqueta, registra Traza
+
+desetiquetarTarjeta(TarjetaId, ListaId, Etiqueta)
+    → busca tarjeta, llama quitarEtiqueta, registra Traza
+```
+
+#### Capa de aplicación
+
+- `GestionTableroUseCase` — añadidos `etiquetarTarjeta` y `desetiquetarTarjeta`.
+- `TableroService` — `asignarEtiqueta` y `quitarEtiqueta` (legacy, usados por el controlador) delegan en los nuevos métodos. Patrón: obtener → dominio → guardar.
+
+---
+
+### 5. Sincronización del controlador REST
+
+- Endpoints de etiquetas renombrados: `asignarEtiqueta` → `etiquetarTarjeta`, `quitarEtiqueta` → `desetiquetarTarjeta`. Las rutas HTTP no cambian.
+- Añadido `@ExceptionHandler(TableroException.class)` → **HTTP 409 Conflict** (regla de negocio violada: tablero bloqueado).
+- Mapa de excepciones resultante:
+
+| Excepción | HTTP | Caso típico |
+|---|---|---|
+| `IllegalArgumentException` | 404 Not Found | ID de tablero/lista/tarjeta no existe |
+| `IllegalStateException` | 409 Conflict | Regla de negocio envuelta por el servicio |
+| `TableroException` | 409 Conflict | Regla de negocio directa del dominio |
+
+---
+
 ## Pendiente para la próxima sesión
 
 ### Funcionalidades de la UI aún por conectar
@@ -362,19 +506,73 @@ desmarcarItemChecklist(tableroId, listaId, tarjetaId, indice)
 | Feature | Descripción | Estado |
 |---|---|---|
 | Etiquetas con color | Asignar/quitar etiquetas a tarjeta, mostrar pastillas de color | Pendiente |
-| Bloquear/desbloquear tablero | Botón en cabecera, endpoint ya existe | Pendiente |
+| Bloquear/desbloquear tablero | Botón en cabecera, endpoints `etiquetarTarjeta`/`desetiquetarTarjeta` ya operativos | Pendiente |
 | Historial del tablero | Panel o modal que muestra las `Traza`s | Pendiente |
+| Login / pantalla de usuario | `Usuario` ya existe en dominio y BD; falta flujo de login en la UI | Pendiente |
 
 ### Deuda técnica conocida
 
 - Los `target/classes/*.css` y `target/classes/*.fxml` se actualizan manualmente copiando desde `src/`. En un entorno con `mvn compile` activo esto no es problema, pero si Eclipse no reconstruye, los cambios del FXML/CSS no se reflejan en tiempo de ejecución.
 - `VentanaTarjeta.fxml` referencia `app-base2.css` (no `app-base.css`). Verificar que el fichero existe en `src/main/resources/.../estilos/`.
 - El índice de ítem del checklist es posicional (`int indice`). Si en el futuro se permite reordenar o eliminar ítems, el índice puede quedar desfasado entre UI y backend.
+- `InMemoryTableroRepository` ya no se usa pero el fichero sigue en el repositorio — se puede eliminar cuando se confirme que nadie lo referencia. (YA ELIMINADO)
 
 ### Próximos pasos sugeridos (por prioridad)
 
-1. **Etiquetas**: añadir `ChoiceBox` o `ColorPicker` en el diálogo de tarjeta; mostrar pastillas en `VentanaTarjeta`
-2. **Bloquear tablero**: botón en `VentanaPrincipal` o `VentanaTablero`, toggle con `apiClient.bloquearTablero()` / `desbloquearTablero()`
-3. **Historial**: botón "Ver historial" que abra un `Alert` o panel lateral con la lista de `TrazaResponse`
-4. **Tests unitarios** del dominio (pendiente desde la primera sesión)
+1. **Tests unitarios** del dominio: `Tablero`, `Tarjeta`, `Lista`, `Checklist` — pendiente desde la primera sesión; ahora que el dominio está estabilizado es el momento idóneo.
+2. **Etiquetas en la UI**: `ChoiceBox` o `ColorPicker` en el diálogo de tarjeta; pastillas de color en `VentanaTarjeta`; llamar a `POST/DELETE .../etiquetas`.
+3. **Bloquear tablero en la UI**: botón toggle en `VentanaPrincipal` o `VentanaTablero`; capturar el 409 que devuelve el backend al intentar agregar tarjeta con tablero bloqueado.
+4. **Historial**: botón "Ver historial" que abra un `Alert` o panel lateral con la lista de `TrazaResponse`.
+5. **Pantalla de login**: aprovechar que `Usuario` ya existe en dominio y BD; la UI puede solicitar email al arrancar y hacer `GET /tableros?email=...` para cargar los tableros del usuario.
 
+## 2026-03-24 (continuación — tercera sesión)
+
+### Contexto de la sesión
+Sesión enfocada en la estabilización del proyecto. Se completaron los requisitos de pruebas de software (testing), se integró el flujo de login real conectando el frontend con el nuevo backend persistente, y se implementó visual y funcionalmente la asignación de etiquetas a las tarjetas.
+
+---
+
+### 1. Pruebas Unitarias y Cobertura (Testing)
+Se implementaron pruebas unitarias exhaustivas para asegurar la robustez del Bounded Context principal (`Tablero`).
+
+* **Implementación:** Se creó `TableroTest.java` utilizando **JUnit 5**.
+* **Enfoque:** Se combinaron pruebas de **caja negra** (validando especificaciones como no añadir tarjetas a tableros bloqueados) y pruebas de **caja blanca** (buscando ejecutar todos los caminos lógicos).
+* **Cobertura:** Se configuró el plugin **JaCoCo** (`jacoco-maven-plugin` 0.8.12) en el `pom.xml`.
+* **Resultado:** Se generaron 57 tests agrupados mediante `@Nested`, logrando una cobertura completa sobre las reglas de negocio, la gestión de listas, tarjetas, checklists y excepciones (`TableroException`). Se verificó el éxito mediante el reporte HTML generado por Maven (`target/site/jacoco/index.html`).
+
+---
+
+### 2. Integración del Flujo de Login (Frontend - Backend)
+Se abordó la deuda técnica generada al hacer que el `Usuario` fuera obligatorio para la persistencia de un `Tablero`.
+
+* **API Client (`TableroApiClient`):** Se añadió el método `obtenerTablerosPorEmail(String email)` que consume el endpoint `GET /tableros?email=...`.
+* **Login Visual (`VentanaInicio`):** Se refactorizó la interfaz para actuar exclusivamente como pantalla de inicio de sesión. Ahora solo solicita el `email`.
+* **Sincronización:** Al introducir el email, la UI recupera los tableros de ese usuario desde la base de datos H2 y los inyecta en la `VentanaPrincipal` mediante `setDatosUsuario(email, tableros)`.
+* **Resolución de Bugs Críticos:**
+    * **Jackson Mapping:** Se resolvió un error 500 donde los campos del JSON llegaban nulos al backend. Se aplicó explícitamente la anotación `@JsonProperty` en los `record` DTOs (ej: `CrearTableroRequest`) para asegurar la correcta deserialización.
+    * **Entidades Transientes (JPA):** Se solucionó una violación de integridad (`SQL Error: 23502 - EMAIL_PROPIETARIO is null`) en `TableroJpaAdapter`. Al mapear el dominio a JPA, Hibernate no reconocía al usuario instanciado en memoria. Se corrigió inyectando `UsuarioRepositoryJPA` y utilizando `getReferenceById(email)` para asociar el tablero a una entidad gestionada por JPA antes de hacer el `save()`.
+
+---
+
+### 3. Feature: Etiquetas de Colores en la UI
+Se completó la funcionalidad visual para categorizar tarjetas.
+
+* **API Client:** Se añadieron los métodos `etiquetarTarjeta` (POST) y `desetiquetarTarjeta` (DELETE).
+* **DTO:** Se actualizó `TarjetaDto` para incluir `List<EtiquetaDto> etiquetas` y se creó la clase `EtiquetaDto`.
+* **Interfaz de Edición (`VentanaTarjeta`):**
+    * Se añadió un contenedor `FlowPane` para mostrar las etiquetas activas.
+    * Se implementó un botón "+ Etiqueta" que abre un diálogo (`Dialog`) personalizado. Este diálogo incluye un `TextField` para el nombre y un `ColorPicker` nativo de JavaFX para seleccionar el color (convertido a formato HEX).
+* **Visualización (Pastillas):** Las etiquetas se renderizan dinámicamente como `Label`s de JavaFX con CSS inyectado (fondo de color, texto blanco, bordes redondeados).
+* **Interacción:** Al hacer clic sobre una "pastilla" de etiqueta en la tarjeta, se ejecuta el borrado asíncrono en el backend y se elimina visualmente al instante.
+
+---
+
+### Estado de Funcionalidades Pendientes (Actualizado)
+
+| Feature | Descripción | Estado |
+|---|---|---|
+| Login / pantalla de usuario | Flujo de login por email conectado a la persistencia. | **Completado** |
+| Etiquetas con color | Asignar/quitar etiquetas a tarjeta, mostrar pastillas de color. | **Completado** |
+| Tests Unitarios | Pruebas unitarias del dominio con JUnit 5 y JaCoCo. | **Completado** |
+| Bloquear/desbloquear tablero | Botón en cabecera para bloquear la adición de tarjetas. | Pendiente |
+| Historial del tablero | Panel o modal que muestra las `Traza`s. | Pendiente |

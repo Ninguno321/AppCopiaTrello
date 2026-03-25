@@ -49,15 +49,19 @@ public class VentanaPrincipalController {
     }
 
     /**
-     * Recibe el tablero recién creado desde VentanaInicioController
-     * y actualiza la vista con sus datos.
+     * Recibe el email del usuario y su lista de tableros desde VentanaInicioController.
+     * Puebla el sidebar y carga el primer tablero si existe.
      */
-    public void setTablero(TableroDto tablero) {
-        this.tableroActual = tablero;
-        this.emailActual = tablero.emailPropietario;
-        lblTableroActual.setText(tablero.nombre);
-        agregarBotonSidebar(tablero);
-        cargarVistaTablero();
+    public void setDatosUsuario(String email, List<TableroDto> tableros) {
+        this.emailActual = email;
+        for (TableroDto tablero : tableros) {
+            agregarBotonSidebar(tablero);
+        }
+        if (!tableros.isEmpty()) {
+            tableroActual = tableros.get(0);
+            lblTableroActual.setText(tableroActual.nombre);
+            cargarVistaTablero();
+        }
     }
 
     // --- Sidebar ---

@@ -1,3 +1,5 @@
 package umu.pds.app.infrastructure.rest.dto;
 
-public record RenombrarTableroRequest(String nuevoNombre) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record RenombrarTableroRequest(@JsonProperty("nuevoNombre") String nuevoNombre) {}

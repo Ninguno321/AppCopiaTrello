@@ -12,44 +12,44 @@ import javafx.stage.Stage;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 
+import java.util.List;
+
 public class VentanaInicioController {
 
-    @FXML private TextField txtNombreTablero;
     @FXML private TextField txtEmail;
-    @FXML private Button btnCrearTablero;
+    @FXML private Button btnEntrar;
 
     private final TableroApiClient apiClient = new TableroApiClient();
 
     @FXML
-    void onCrearTablero() {
-        String nombre = txtNombreTablero.getText().trim();
+    void onEntrar() {
         String email = txtEmail.getText().trim();
 
-        if (nombre.isBlank() || email.isBlank()) {
-            mostrarError("Campos vacíos", "El nombre del tablero y el correo son obligatorios.");
+        if (email.isBlank()) {
+            mostrarError("Campo vacío", "El correo electrónico es obligatorio.");
             return;
         }
 
-        btnCrearTablero.setDisable(true);
+        btnEntrar.setDisable(true);
 
-        Task<TableroDto> task = new Task<>() {
+        Task<List<TableroDto>> task = new Task<>() {
             @Override
-            protected TableroDto call() throws Exception {
-                return apiClient.crearTablero(nombre, email);
+            protected List<TableroDto> call() throws Exception {
+                return apiClient.obtenerTablerosPorEmail(email);
             }
         };
 
-        task.setOnSucceeded(e -> navegarAVentanaPrincipal(task.getValue()));
+        task.setOnSucceeded(e -> navegarAVentanaPrincipal(email, task.getValue()));
 
         task.setOnFailed(e -> {
-            btnCrearTablero.setDisable(false);
-            mostrarError("Error al crear tablero", task.getException().getMessage());
+            btnEntrar.setDisable(false);
+            mostrarError("Error al conectar", task.getException().getMessage());
         });
 
         new Thread(task).start();
     }
 
-    private void navegarAVentanaPrincipal(TableroDto tablero) {
+    private void navegarAVentanaPrincipal(String email, List<TableroDto> tableros) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(
                     "/umu/pds/gestion_proyectos_ui/inicio/VentanaPrincipal.fxml"
@@ -57,9 +57,9 @@ public class VentanaInicioController {
             Parent root = loader.load();
 
             VentanaPrincipalController controller = loader.getController();
-            controller.setTablero(tablero);
+            controller.setDatosUsuario(email, tableros);
 
-            Stage stage = (Stage) btnCrearTablero.getScene().getWindow();
+            Stage stage = (Stage) btnEntrar.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
 

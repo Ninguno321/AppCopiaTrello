@@ -1,20 +1,32 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
+import java.util.Optional;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.text.Text;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
+import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 
@@ -24,6 +36,8 @@ public class VentanaTarjetaController {
     @FXML private CheckBox check;
     @FXML private Text tituloTarjeta;
     @FXML private VBox contenedorItems;
+    @FXML private FlowPane contenedorEtiquetas;
+    @FXML private Button btnAnadirEtiqueta;
 
     private String tableroId;
     private String listaId;
@@ -54,6 +68,14 @@ public class VentanaTarjetaController {
             for (int i = 0; i < tarjeta.checklist.items.size(); i++) {
                 ItemChecklistDto item = tarjeta.checklist.items.get(i);
                 agregarItemUI(item.descripcion, item.completado, i);
+            }
+        }
+        
+        // --- Pintar etiquetas existentes ---
+        contenedorEtiquetas.getChildren().clear();
+        if (tarjeta.etiquetas != null) {
+            for (EtiquetaDto etiq : tarjeta.etiquetas) {
+                agregarPastillaEtiqueta(etiq.nombre, etiq.color);
             }
         }
     }
@@ -163,4 +185,92 @@ public class VentanaTarjetaController {
         canvasParams.setFill(Color.TRANSPARENT);
         return canvas.snapshot(canvasParams, null);
     }
+    
+ // --- Lógica de Etiquetas ---
+
+    private void agregarPastillaEtiqueta(String nombre, String colorHex) {
+        Label pastilla = new Label(nombre);
+        // Estilo de la pastilla: fondo del color elegido, texto blanco, bordes redondeados
+        pastilla.setStyle(
+            "-fx-background-color: " + colorHex + "; " +
+            "-fx-text-fill: white; " +
+            "-fx-padding: 2 6 2 6; " +
+            "-fx-background-radius: 10; " +
+            "-fx-font-size: 10px; " +
+            "-fx-font-weight: bold;"
+        );
+        
+        // Clic para eliminarla
+        pastilla.setOnMouseClicked(e -> {
+            Task<Void> t = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    apiClient.desetiquetarTarjeta(tableroId, listaId, tarjeta.id, nombre, colorHex);
+                    return null;
+                }
+            };
+            t.setOnSucceeded(ev -> contenedorEtiquetas.getChildren().remove(pastilla));
+            t.setOnFailed(ev -> System.err.println("Error al borrar etiqueta"));
+            new Thread(t).start();
+        });
+        
+        contenedorEtiquetas.getChildren().add(pastilla);
+    }
+
+    @FXML
+    void onAnadirEtiquetaClick() {
+        // Crear un diálogo personalizado con nombre y color
+        Dialog<EtiquetaDto> dialog = new Dialog<>();
+        dialog.setTitle("Nueva Etiqueta");
+        dialog.setHeaderText("Configura tu etiqueta");
+
+        ButtonType guardarButtonType = new ButtonType("Guardar", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(guardarButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField nombreEtiqueta = new TextField();
+        nombreEtiqueta.setPromptText("Ej: Urgente");
+        ColorPicker colorPicker = new ColorPicker(Color.web("#e01e5a")); // Rojo por defecto
+
+        grid.add(new Label("Nombre:"), 0, 0);
+        grid.add(nombreEtiqueta, 1, 0);
+        grid.add(new Label("Color:"), 0, 1);
+        grid.add(colorPicker, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == guardarButtonType) {
+                EtiquetaDto dto = new EtiquetaDto();
+                dto.nombre = nombreEtiqueta.getText();
+                // Convertir Color de JavaFX a HEX (ej: #FF0000)
+                dto.color = String.format("#%02X%02X%02X",
+                        (int)(colorPicker.getValue().getRed() * 255),
+                        (int)(colorPicker.getValue().getGreen() * 255),
+                        (int)(colorPicker.getValue().getBlue() * 255));
+                return dto;
+            }
+            return null;
+        });
+
+        Optional<EtiquetaDto> result = dialog.showAndWait();
+
+        result.ifPresent(etiqueta -> {
+            Task<Void> t = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    apiClient.etiquetarTarjeta(tableroId, listaId, tarjeta.id, etiqueta.nombre, etiqueta.color);
+                    return null;
+                }
+            };
+            t.setOnSucceeded(e -> agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color));
+            t.setOnFailed(e -> System.err.println("Error al añadir etiqueta"));
+            new Thread(t).start();
+        });
+    }
+    
 }

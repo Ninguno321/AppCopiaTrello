@@ -2,14 +2,18 @@ package umu.pds.gestion_proyectos_ui.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import umu.pds.gestion_proyectos_ui.api.dto.ChecklistDto;
+import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -182,6 +186,63 @@ public class TableroApiClient {
         if (response.statusCode() != 200) {
             throw new RuntimeException("Error al desmarcar ítem (" + response.statusCode() + "): " + response.body());
         }
+    }
+
+    public EtiquetaDto etiquetarTarjeta(String tableroId, String listaId, String tarjetaId,
+                                         String nombre, String color) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("nombre", nombre, "color", color));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId
+                        + "/tarjetas/" + tarjetaId + "/etiquetas"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200 || response.statusCode() == 201) {
+            EtiquetaDto dto = new EtiquetaDto();
+            dto.nombre = nombre;
+            dto.color = color;
+            return dto;
+        }
+        throw new RuntimeException("Error al etiquetar tarjeta (" + response.statusCode() + "): " + response.body());
+    }
+
+    public void desetiquetarTarjeta(String tableroId, String listaId, String tarjetaId,
+                                     String nombre, String color) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("nombre", nombre, "color", color));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId
+                        + "/tarjetas/" + tarjetaId + "/etiquetas"))
+                .header("Content-Type", "application/json")
+                .method("DELETE", HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 && response.statusCode() != 204) {
+            throw new RuntimeException("Error al desetiquetar tarjeta (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
+    public List<TableroDto> obtenerTablerosPorEmail(String email) throws Exception {
+        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros?email=" + encodedEmail))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, TableroDto.class));
+        }
+        throw new RuntimeException("Error al obtener tableros (" + response.statusCode() + "): " + response.body());
     }
 
     public TableroDto obtenerTablero(String id) throws Exception {
