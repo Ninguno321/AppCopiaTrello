@@ -6,6 +6,7 @@ import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TrazaDto;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -59,6 +60,19 @@ public class TableroApiClient {
 
         if (response.statusCode() != 204) {
             throw new RuntimeException("Error al eliminar tarjeta (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
+    public void eliminarLista(String tableroId, String listaId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId))
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 204) {
+            throw new RuntimeException("Error al eliminar lista (" + response.statusCode() + "): " + response.body());
         }
     }
 
@@ -257,5 +271,63 @@ public class TableroApiClient {
             return objectMapper.readValue(response.body(), TableroDto.class);
         }
         throw new RuntimeException("Tablero no encontrado (" + response.statusCode() + ")");
+    }
+
+    public void bloquearTablero(String tableroId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/bloquear"))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Error al bloquear tablero (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
+    public void desbloquearTablero(String tableroId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/desbloquear"))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Error al desbloquear tablero (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
+    public void asignarFechaVencimiento(String tableroId, String listaId, String tarjetaId, String fechaIso) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("fecha", fechaIso));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId
+                        + "/tarjetas/" + tarjetaId + "/vencimiento"))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Error al asignar fecha de vencimiento (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
+    public List<TrazaDto> obtenerHistorial(String tableroId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/historial"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, TrazaDto.class));
+        }
+        throw new RuntimeException("Error al obtener historial (" + response.statusCode() + "): " + response.body());
     }
 }

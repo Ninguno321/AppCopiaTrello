@@ -151,7 +151,7 @@ public class VentanaPrincipalController {
     @FXML
     void onTabCalendario(ActionEvent event) {
         activarTab(btnTabCalendario);
-        // TODO: cargar vista de Calendario en mainContentPane
+        cargarVistaCalendario();
     }
 
     @FXML
@@ -188,6 +188,37 @@ public class VentanaPrincipalController {
 
         task.setOnFailed(e -> {
             System.err.println("Error al obtener tablero: " + task.getException().getMessage());
+        });
+
+        new Thread(task).start();
+    }
+
+    private void cargarVistaCalendario() {
+        if (tableroActual == null) return;
+
+        Task<TableroDto> task = new Task<>() {
+            @Override
+            protected TableroDto call() throws Exception {
+                return apiClient.obtenerTablero(tableroActual.id);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                        "/umu/pds/gestion_proyectos_ui/inicio/VentanaCalendario.fxml"
+                ));
+                Node vista = loader.load();
+                VentanaCalendarioController controller = loader.getController();
+                controller.setDatos(task.getValue());
+                mainContentPane.getChildren().setAll(vista);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        task.setOnFailed(e -> {
+            System.err.println("Error al obtener tablero para calendario: " + task.getException().getMessage());
         });
 
         new Thread(task).start();

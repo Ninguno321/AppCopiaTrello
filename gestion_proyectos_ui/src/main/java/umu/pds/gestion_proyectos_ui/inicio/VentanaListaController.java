@@ -3,13 +3,20 @@ package umu.pds.gestion_proyectos_ui.inicio;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Side;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.ChecklistDto;
@@ -172,6 +179,42 @@ public class VentanaListaController {
             titulo.setEditable(true);
             titulo.selectAll();
         });
+
+        // --- MENÚ DE LISTA ---
+        MenuItem itemAnadirTarjeta = new MenuItem("Añadir tarjeta");
+        itemAnadirTarjeta.setOnAction(e -> crearTarjeta());
+
+        MenuItem itemEliminarLista = new MenuItem("Eliminar lista");
+        itemEliminarLista.setOnAction(e -> {
+            Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmacion.setTitle("Eliminar lista");
+            confirmacion.setHeaderText(null);
+            confirmacion.setContentText("¿Estás seguro de que quieres eliminar esta lista?");
+            confirmacion.showAndWait().ifPresent(respuesta -> {
+                if (respuesta == ButtonType.OK) {
+                    Task<Void> taskEliminar = new Task<>() {
+                        @Override
+                        protected Void call() throws Exception {
+                            apiClient.eliminarLista(tableroId, listaId);
+                            return null;
+                        }
+                    };
+                    taskEliminar.setOnSucceeded(ev -> {
+                        Node raizLista = scroll.getParent();
+                        if (raizLista != null && raizLista.getParent() instanceof Pane padre) {
+                            padre.getChildren().remove(raizLista);
+                        }
+                    });
+                    taskEliminar.setOnFailed(ev ->
+                        System.err.println("Error al eliminar lista: " + taskEliminar.getException().getMessage())
+                    );
+                    new Thread(taskEliminar).start();
+                }
+            });
+        });
+
+        ContextMenu contextMenu = new ContextMenu(itemAnadirTarjeta, itemEliminarLista);
+        btnMenuLista.setOnAction(e -> contextMenu.show(btnMenuLista, Side.BOTTOM, 0, 0));
     }
 
     /**
@@ -260,7 +303,18 @@ public class VentanaListaController {
         };
 
         task.setOnSucceeded(e -> mostrarTarjeta(task.getValue()));
-        task.setOnFailed(e -> System.err.println("Error al crear tarjeta: " + task.getException().getMessage()));
+        task.setOnFailed(e -> {
+            String msg = task.getException().getMessage();
+            if (msg != null && (msg.contains("409") || msg.contains("Conflict"))) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Tablero bloqueado");
+                alert.setHeaderText(null);
+                alert.setContentText("El tablero esta bloqueado y no admite nuevas tarjetas.");
+                alert.showAndWait();
+            } else {
+                System.err.println("Error al crear tarjeta: " + msg);
+            }
+        });
 
         new Thread(task).start();
     }

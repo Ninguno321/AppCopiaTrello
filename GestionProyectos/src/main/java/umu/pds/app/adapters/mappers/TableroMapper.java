@@ -84,6 +84,8 @@ public class TableroMapper {
                 .map(e -> new EtiquetaJpaEmbeddable(e.nombre(), e.color()))
                 .collect(Collectors.toList()));
 
+        entity.setFechaVencimiento(tarjeta.getFechaVencimiento());
+
         return entity;
     }
 
@@ -173,6 +175,10 @@ public class TableroMapper {
         entity.getEtiquetas().forEach(e ->
                 tarjeta.asignarEtiqueta(new Etiqueta(e.getNombre(), e.getColor()))
         );
+
+        if (entity.getFechaVencimiento() != null) {
+            tarjeta.asignarFechaVencimiento(entity.getFechaVencimiento());
+        }
 
         if (entity.isCompletada()) {
             tarjeta.marcarCompletada();

@@ -2,6 +2,7 @@ package umu.pds.app.domain.modelo.tablero;
 
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +22,7 @@ public class Tarjeta {
     private Checklist checklist;
     private final List<Etiqueta> etiquetas;
     private boolean completada;
+    private LocalDateTime fechaVencimiento;
 
     public Tarjeta(TarjetaId id, String titulo) {
         if (id == null) throw new IllegalArgumentException("TarjetaId no puede ser nulo");
@@ -82,6 +84,10 @@ public class Tarjeta {
         this.completada = true;
     }
 
+    public void asignarFechaVencimiento(LocalDateTime fecha) {
+        this.fechaVencimiento = fecha;
+    }
+
     // --- Consultas ---
 
     public boolean tieneTarea() { return tarea != null; }
@@ -96,6 +102,7 @@ public class Tarjeta {
     public Optional<Tarea> getTarea() { return Optional.ofNullable(tarea); }
     public Optional<Checklist> getChecklist() { return Optional.ofNullable(checklist); }
     public List<Etiqueta> getEtiquetas() { return Collections.unmodifiableList(etiquetas); }
+    public LocalDateTime getFechaVencimiento() { return fechaVencimiento; }
 
     // --- Identidad por ID ---
 

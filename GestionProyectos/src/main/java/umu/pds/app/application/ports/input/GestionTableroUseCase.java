@@ -9,6 +9,7 @@ import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -64,4 +65,8 @@ public interface GestionTableroUseCase {
     void marcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice);
 
     void desmarcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice);
+
+    // --- Fecha de Vencimiento ---
+
+    void asignarFechaVencimiento(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha);
 }

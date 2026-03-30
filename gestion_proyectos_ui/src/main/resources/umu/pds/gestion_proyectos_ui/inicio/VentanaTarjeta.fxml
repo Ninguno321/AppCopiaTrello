@@ -2,6 +2,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.FlowPane?>
@@ -33,11 +34,13 @@
                </VBox.margin>
             </VBox>
             
-            <Button fx:id="btnAnadirEtiqueta" text="+ Etiqueta" onAction="#onAnadirEtiquetaClick" style="-fx-font-size: 9px; -fx-padding: 2 4;">
+            <HBox spacing="6.0" alignment="CENTER_LEFT">
                <VBox.margin>
                   <Insets left="6.0" top="4.0" bottom="2.0"/>
                </VBox.margin>
-            </Button>
+               <Button fx:id="btnAnadirEtiqueta" text="+ Etiqueta" onAction="#onAnadirEtiquetaClick" style="-fx-font-size: 9px; -fx-padding: 2 4;"/>
+               <DatePicker fx:id="datePickerVencimiento" promptText="Vencimiento" prefWidth="140.0" style="-fx-font-size: 9px;"/>
+            </HBox>
          </children>
       </VBox>
    </children>

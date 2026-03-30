@@ -1,11 +1,16 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
 import javafx.animation.PauseTransition;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputDialog;
@@ -19,13 +24,16 @@ import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TrazaDto;
 
+import java.util.List;
 import java.util.Optional;
 
 public class VentanaTableroController {
 
     @FXML private HBox contenedorListas;
     @FXML private Button btnCrearLista;
+    @FXML private Button btnBloquear;
     @FXML private ScrollPane scrollTablero;
     @FXML private ScrollBar scrollBarH;
     @FXML private HBox zonaEliminar;
@@ -35,6 +43,7 @@ public class VentanaTableroController {
     private final PauseTransition hideTimer = new PauseTransition(Duration.millis(300));
 
     private String tableroId;
+    private boolean tableroBlockeado = false;
     private final TableroApiClient apiClient = new TableroApiClient();
 
     public void setTableroId(String tableroId) {
@@ -46,10 +55,108 @@ public class VentanaTableroController {
      */
     public void cargarDatos(TableroDto tablero) {
         this.tableroId = tablero.id;
+        this.tableroBlockeado = tablero.bloqueado;
+        actualizarBotonBloqueo();
         if (tablero.listas == null) return;
         for (ListaDto lista : tablero.listas) {
             mostrarListaConTarjetas(lista);
         }
+    }
+
+    private void actualizarBotonBloqueo() {
+        if (tableroBlockeado) {
+            btnBloquear.setText("Desbloquear");
+            btnBloquear.setStyle("-fx-background-color: #e53e3e; -fx-text-fill: white;");
+        } else {
+            btnBloquear.setText("Bloquear");
+            btnBloquear.setStyle("");
+        }
+    }
+
+    @FXML
+    void toggleBloqueo() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                if (tableroBlockeado) {
+                    apiClient.desbloquearTablero(tableroId);
+                } else {
+                    apiClient.bloquearTablero(tableroId);
+                }
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            tableroBlockeado = !tableroBlockeado;
+            actualizarBotonBloqueo();
+        });
+
+        task.setOnFailed(e -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("No se pudo cambiar el estado del tablero: " + task.getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
+    }
+
+    @FXML
+    void verHistorial() {
+        Task<List<TrazaDto>> task = new Task<>() {
+            @Override
+            protected List<TrazaDto> call() throws Exception {
+                return apiClient.obtenerHistorial(tableroId);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            List<TrazaDto> trazas = task.getValue();
+
+            ListView<String> listView = new ListView<>();
+            listView.setPrefWidth(500);
+            listView.setPrefHeight(350);
+
+            if (trazas == null || trazas.isEmpty()) {
+                listView.setItems(FXCollections.observableArrayList("No hay entradas en el historial."));
+            } else {
+                listView.setItems(FXCollections.observableArrayList(
+                    trazas.stream()
+                          .map(t -> formatearFecha(t.timestamp) + "  —  " + t.descripcion)
+                          .toList()
+                ));
+            }
+
+            Dialog<Void> dialog = new Dialog<>();
+            dialog.setTitle("Historial del tablero");
+            dialog.setHeaderText(null);
+
+            DialogPane pane = dialog.getDialogPane();
+            pane.setContent(listView);
+            pane.getButtonTypes().add(javafx.scene.control.ButtonType.CLOSE);
+
+            dialog.showAndWait();
+        });
+
+        task.setOnFailed(e -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("No se pudo obtener el historial: " + task.getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
+    }
+
+    private String formatearFecha(String timestamp) {
+        if (timestamp == null || timestamp.isBlank()) return "—";
+        // "2026-03-30T14:05:32" → "2026-03-30 14:05"
+        String s = timestamp.replace("T", " ");
+        if (s.length() > 16) s = s.substring(0, 16);
+        return s;
     }
 
     @FXML

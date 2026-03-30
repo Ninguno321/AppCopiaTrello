@@ -1,5 +1,6 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import javafx.concurrent.Task;
@@ -11,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -38,6 +40,7 @@ public class VentanaTarjetaController {
     @FXML private VBox contenedorItems;
     @FXML private FlowPane contenedorEtiquetas;
     @FXML private Button btnAnadirEtiqueta;
+    @FXML private DatePicker datePickerVencimiento;
 
     private String tableroId;
     private String listaId;
@@ -78,6 +81,31 @@ public class VentanaTarjetaController {
                 agregarPastillaEtiqueta(etiq.nombre, etiq.color);
             }
         }
+
+        // --- Fecha de vencimiento ---
+        if (tarjeta.fechaVencimiento != null && tarjeta.fechaVencimiento.length() >= 10) {
+            try {
+                datePickerVencimiento.setValue(LocalDate.parse(tarjeta.fechaVencimiento.substring(0, 10)));
+            } catch (Exception e) {
+                System.err.println("Error al parsear fechaVencimiento: " + e.getMessage());
+            }
+        }
+
+        datePickerVencimiento.setOnAction(e -> {
+            LocalDate fecha = datePickerVencimiento.getValue();
+            if (fecha == null) return;
+            // El backend espera un campo "fecha" con formato ISO LocalDateTime
+            String fechaIso = fecha.atStartOfDay().toString();
+            Task<Void> t = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    apiClient.asignarFechaVencimiento(tableroId, listaId, tarjeta.id, fechaIso);
+                    return null;
+                }
+            };
+            t.setOnFailed(ev -> System.err.println("Error al asignar fecha de vencimiento: " + t.getException().getMessage()));
+            new Thread(t).start();
+        });
     }
 
     // --- Getters y setter para drag & drop ---

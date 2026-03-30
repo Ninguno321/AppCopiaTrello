@@ -576,3 +576,122 @@ Se completó la funcionalidad visual para categorizar tarjetas.
 | Tests Unitarios | Pruebas unitarias del dominio con JUnit 5 y JaCoCo. | **Completado** |
 | Bloquear/desbloquear tablero | Botón en cabecera para bloquear la adición de tarjetas. | Pendiente |
 | Historial del tablero | Panel o modal que muestra las `Traza`s. | Pendiente |
+| Vista de Calendario | Visualización de tarjetas con fecha de vencimiento en CalendarFX. | **Completado** |
+| Fechas de vencimiento (DatePicker) | Asignar fecha de vencimiento a una tarjeta desde la UI. | **Completado** |
+| Menú contextual de lista | Opciones "Añadir tarjeta" y "Eliminar lista" desde el botón de opciones. | **Completado** |
+
+---
+
+## 2026-03-30
+
+### Contexto de la sesión
+
+Sesión de integración fullstack. Se completaron cuatro funcionalidades independientes que en conjunto cierran el ciclo de vida de una tarjeta (fechas de vencimiento), mejoran la gestión de listas (menú contextual con eliminación), y añaden una vista alternativa de calendario para la planificación visual.
+
+---
+
+### 1. Menú Contextual en Listas (`ContextMenu`)
+
+Se añadió funcionalidad al botón de opciones de la lista (`btnMenuLista`) en `VentanaListaController`.
+
+**Opciones implementadas:**
+
+| Opción | Comportamiento |
+|---|---|
+| Añadir tarjeta | Reutiliza el flujo `crearTarjeta()` existente — `ChoiceDialog` de tipo → `TextInputDialog` de título → llamada al backend. |
+| Eliminar lista | Muestra un `Alert` de confirmación de tipo `CONFIRMATION`. Si el usuario confirma, ejecuta un `Task<Void>` asíncrono que llama al endpoint `DELETE /tableros/{id}/listas/{listaId}`. |
+
+**Eliminación dinámica del nodo visual:** al recibir HTTP 200, el `HBox` correspondiente a la lista se elimina del `contenedorListas` en el hilo JavaFX (`Platform.runLater`). Si el backend devuelve error, no se modifica la UI y se muestra un `Alert` de tipo `ERROR`.
+
+---
+
+### 2. Soporte de Fechas de Vencimiento (Fullstack — Arquitectura Hexagonal)
+
+Implementación completa de extremo a extremo, respetando en todo momento la separación de capas hexagonal.
+
+#### Backend
+
+**Dominio (`Tarjeta.java`):**
+- Añadido campo `LocalDateTime fechaVencimiento` (nullable — `Optional<LocalDateTime>` en el getter).
+- Método `asignarFechaVencimiento(LocalDateTime)` añadido a la entidad.
+
+**Persistencia (`TarjetaJpaEntity.java`):**
+- Nuevo `@Column` de tipo `LocalDateTime` — mapeado automáticamente por JPA/H2.
+
+**Mapper (`TableroMapper`):**
+- `toDomain` y `toJpaEntity` actualizados para trasladar `fechaVencimiento` en ambas direcciones.
+
+**DTO de respuesta (`TarjetaResponse`):**
+- Añadido campo `String fechaVencimiento` (serializado como ISO-8601 desde `LocalDateTime.toString()`).
+- Factory `from(Tarjeta)` actualizado.
+
+**Nuevo DTO de entrada:**
+- `AsignarFechaVencimientoRequest.java` — record con un único campo `String fecha`.
+
+**Puerto de entrada y caso de uso:**
+- `GestionTableroUseCase` — nuevo método `asignarFechaVencimiento(TableroId, ListaId, TarjetaId, LocalDateTime)`.
+- `TableroService` — implementación con el patrón estándar: obtener → dominio → guardar.
+
+**Nuevo endpoint REST:**
+
+```
+PUT /tableros/{id}/listas/{listaId}/tarjetas/{tarjetaId}/vencimiento
+Body: { "fecha": "2026-04-15T00:00:00" }
+```
+
+#### Frontend
+
+**`TarjetaDto`:** añadido campo `String fechaVencimiento`.
+
+**`TableroApiClient`:** nuevo método `asignarFechaVencimiento(tableroId, listaId, tarjetaId, fecha)` que serializa la fecha como `String` ISO-8601 truncado a 10 caracteres (`YYYY-MM-DD`) — `fecha.toString().substring(0, 10)` — para evitar discrepancias de formato entre la representación de `LocalDate` y lo que el backend espera.
+
+---
+
+### 3. Vista de Calendario (Integración con CalendarFX)
+
+Se añadió una segunda vista principal, accesible desde la cabecera de `VentanaTablero`, que muestra todas las tarjetas con fecha de vencimiento asignada sobre un calendario mensual interactivo.
+
+#### Dependencia añadida
+
+```xml
+<dependency>
+    <groupId>com.calendarfx</groupId>
+    <artifactId>view</artifactId>
+    <version>11.12.7</version>
+</dependency>
+```
+
+#### Nuevos ficheros
+
+| Fichero | Descripción |
+|---|---|
+| `VentanaCalendario.fxml` | Layout que contiene el `CalendarView` de CalendarFX. |
+| `VentanaCalendarioController.java` | Controlador que recibe el `tableroId`, consulta el backend y puebla el calendario. |
+
+#### Navegación dinámica
+
+En `VentanaTableroController` se añadió un botón "Calendario" en la cabecera. Al pulsarlo se intercambia dinámicamente la vista en el `mainContentPane`:
+- Si ya se muestra el calendario → vuelve a la vista de listas (`VentanaTablero.fxml`).
+- Si se muestra la vista de listas → carga `VentanaCalendario.fxml`, obtiene el controller y llama a `setTableroId(id)`.
+
+#### Resolución de bug crítico de CalendarFX
+
+CalendarFX genera listeners internos sobre el `CalendarSource` durante la inicialización del `CalendarView`. Si se crea y asigna el `CalendarSource` antes de que el componente esté completamente inicializado (p. ej., en el constructor o en el mismo hilo antes de que JavaFX termine el layout), estos listeners no se registran y el calendario queda en blanco o se rompe al recargar.
+
+**Solución aplicada:**
+1. La creación del `CalendarSource` y la asociación al `CalendarView` se movieron al método `initialize()` — garantizando que el componente ya está completamente inicializado por JavaFX.
+2. Para añadir entradas de tarjetas se usa `entry.setInterval(LocalDate)` en lugar de `entry.setInterval(LocalDateTime, LocalDateTime)` — la sobrecarga con `LocalDate` usa la zona horaria del sistema y respeta los listeners internos de la librería sin destruirlos al reasignar.
+
+---
+
+### 4. Selector de Fechas (`DatePicker`)
+
+Se añadió un `DatePicker` compacto directamente en `VentanaTarjeta.fxml`, alineado en la misma fila que el botón de etiquetas.
+
+**Interacción:**
+- Al cambiar la fecha seleccionada (`setOnAction`), `VentanaTarjetaController` ejecuta un `Task<Void>` asíncrono que llama a `apiClient.asignarFechaVencimiento()`.
+- Si el backend responde con éxito, el campo `fechaVencimiento` del `TarjetaDto` local se actualiza para que la vista de calendario pueda reflejarlo al recargar.
+
+**Parseo tolerante al cargar datos desde el backend:**
+
+Al recibir la fecha del backend (formato ISO con parte de tiempo variable, p. ej. `"2026-04-15T00:00"` o `"2026-04-15T00:00:00"`), se usa `substring(0, 10)` antes de parsear con `LocalDate.parse()` para aislar siempre la parte `YYYY-MM-DD` e impedir `StringIndexOutOfBoundsException` ante respuestas de diferente longitud.

@@ -8,6 +8,7 @@ import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 import umu.pds.app.domain.modelo.usuario.Usuario;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -212,6 +213,16 @@ public class Tablero {
         } catch (CheckListIndiceException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
+    }
+
+    // --- Fecha de Vencimiento ---
+
+    public void asignarFechaVencimientoTarjeta(TarjetaId tarjetaId, ListaId listaId, LocalDateTime fecha) {
+        Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
+        tarjeta.asignarFechaVencimiento(fecha);
+        historial.add(Traza.nueva(
+            "Fecha de vencimiento '" + fecha + "' asignada a la tarjeta '" + tarjeta.getTitulo() + "'"
+        ));
     }
 
     // --- Bloqueo ---

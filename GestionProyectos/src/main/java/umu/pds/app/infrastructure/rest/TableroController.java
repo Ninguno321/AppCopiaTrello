@@ -24,6 +24,7 @@ import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
 import umu.pds.app.domain.modelo.tablero.Checklist;
 import umu.pds.app.infrastructure.rest.dto.AgregarChecklistRequest;
+import umu.pds.app.infrastructure.rest.dto.AsignarFechaVencimientoRequest;
 import umu.pds.app.infrastructure.rest.dto.AgregarItemChecklistRequest;
 import umu.pds.app.infrastructure.rest.dto.AgregarListaRequest;
 import umu.pds.app.infrastructure.rest.dto.AgregarTarjetaRequest;
@@ -37,6 +38,7 @@ import umu.pds.app.infrastructure.rest.dto.TableroResponse;
 import umu.pds.app.infrastructure.rest.dto.TarjetaResponse;
 import umu.pds.app.infrastructure.rest.dto.TrazaResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -181,6 +183,20 @@ public class TableroController {
     }
 
     // --- Checklist ---
+
+    @PutMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/vencimiento")
+    public ResponseEntity<Void> asignarFechaVencimiento(@PathVariable String id,
+                                                         @PathVariable String listaId,
+                                                         @PathVariable String tarjetaId,
+                                                         @RequestBody AsignarFechaVencimientoRequest request) {
+        gestionTablero.asignarFechaVencimiento(
+                TableroId.de(id),
+                ListaId.de(listaId),
+                TarjetaId.de(tarjetaId),
+                LocalDateTime.parse(request.fecha())
+        );
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/checklist")
     public ResponseEntity<ChecklistResponse> crearChecklist(@PathVariable String id,

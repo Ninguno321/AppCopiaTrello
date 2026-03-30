@@ -12,9 +12,11 @@
 <VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@../estilos/theme.css, @../estilos/app-board.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaTableroController">
    <children>
 
-      <HBox spacing="10.0">
+      <HBox spacing="10.0" alignment="CENTER_LEFT">
          <children>
-            <TextField promptText="Buscar" />
+            <TextField promptText="Buscar" HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnBloquear" mnemonicParsing="false" onAction="#toggleBloqueo" styleClass="button" text="Bloquear" />
+            <Button mnemonicParsing="false" onAction="#verHistorial" styleClass="button" text="Ver Historial" />
          </children>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

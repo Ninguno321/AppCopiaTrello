@@ -14,6 +14,7 @@ import umu.pds.app.domain.modelo.usuario.Usuario;
 import umu.pds.app.domain.ports.output.TableroRepository;
 import umu.pds.app.domain.ports.output.UsuarioRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -181,6 +182,15 @@ public class TableroService implements GestionTableroUseCase {
     public void desmarcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.desmarcarItemChecklist(listaId, tarjetaId, indice);
+        tableroRepository.guardar(tablero);
+    }
+
+    // --- Fecha de Vencimiento ---
+
+    @Override
+    public void asignarFechaVencimiento(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha) {
+        Tablero tablero = obtenerTablero(tableroId);
+        tablero.asignarFechaVencimientoTarjeta(tarjetaId, listaId, fecha);
         tableroRepository.guardar(tablero);
     }
 }
