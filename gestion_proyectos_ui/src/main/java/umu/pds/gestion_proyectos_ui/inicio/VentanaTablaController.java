@@ -6,6 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
@@ -14,6 +16,8 @@ import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 import java.util.stream.Collectors;
 
 public class VentanaTablaController {
+
+    private static final Logger log = LoggerFactory.getLogger(VentanaTablaController.class);
 
     @FXML private TableView<FilaTarjeta> tablaTarjetas;
     @FXML private TableColumn<FilaTarjeta, String> colTitulo;
@@ -35,6 +39,9 @@ public class VentanaTablaController {
      * para rellenar la tabla
      */
     public void cargarDatos(TableroDto tablero) {
+        log.info("Renderizando tabla - Listas normales: {} | Tarjetas completadas: {}",
+                tablero.listas.size(),
+                tablero.tarjetasCompletadas != null ? tablero.tarjetasCompletadas.size() : "null");
         ObservableList<FilaTarjeta> filas = FXCollections.observableArrayList();
 
         if (tablero.listas != null) {
@@ -44,6 +51,12 @@ public class VentanaTablaController {
                         filas.add(new FilaTarjeta(tarjeta, lista.nombre));
                     }
                 }
+            }
+        }
+
+        if (tablero.tarjetasCompletadas != null) {
+            for (TarjetaDto tarjeta : tablero.tarjetasCompletadas) {
+                filas.add(new FilaTarjeta(tarjeta, "Completadas"));
             }
         }
 

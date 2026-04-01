@@ -30,6 +30,8 @@ import javafx.scene.text.Text;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
+import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 
 public class VentanaTarjetaController {
@@ -45,13 +47,15 @@ public class VentanaTarjetaController {
     private String tableroId;
     private String listaId;
     private TarjetaDto tarjeta;
+    private TableroDto tablero;
 
     private final TableroApiClient apiClient = new TableroApiClient();
 
-    public void setDatos(String tableroId, String listaId, TarjetaDto tarjeta) {
+    public void setDatos(String tableroId, String listaId, TarjetaDto tarjeta, TableroDto tablero) {
         this.tableroId = tableroId;
         this.listaId = listaId;
         this.tarjeta = tarjeta;
+        this.tablero = tablero;
         tituloTarjeta.setText(tarjeta.titulo);
         root.setUserData(this);
 
@@ -118,12 +122,55 @@ public class VentanaTarjetaController {
     // --- Lógica de marcar/desmarcar tarjeta ---
 
     private void onToggleCompletada() {
-        if (check.isSelected()) {
-            tituloTarjeta.setStyle("-fx-strikethrough: true;");
-            root.setOpacity(0.5);
-        } else {
+        if (!check.isSelected()) {
+            // Desmarcar no está soportado por el backend; revertimos visualmente
+            check.setSelected(true);
+            return;
+        }
+
+        tituloTarjeta.setStyle("-fx-strikethrough: true;");
+        root.setOpacity(0.5);
+
+        Task<Void> t = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                apiClient.completarTarjeta(tableroId, listaId, tarjeta.id);
+                return null;
+            }
+        };
+
+        t.setOnSucceeded(ev -> sincronizarEstadoLocal());
+
+        t.setOnFailed(ev -> {
+            // Revertir visual si el backend falla
+            check.setSelected(false);
             tituloTarjeta.setStyle("");
             root.setOpacity(1.0);
+            System.err.println("Error al completar tarjeta: " + t.getException().getMessage());
+        });
+
+        new Thread(t).start();
+    }
+
+    /** Mueve la tarjeta del ListaDto de origen a tablero.tarjetasCompletadas en el estado local
+     *  y elimina el nodo de la vista del Tablero. */
+    private void sincronizarEstadoLocal() {
+        if (tablero == null || tablero.listas == null) return;
+        for (ListaDto lista : tablero.listas) {
+            if (lista.id != null && lista.id.equals(listaId) && lista.tarjetas != null) {
+                lista.tarjetas.removeIf(t -> t.id != null && t.id.equals(tarjeta.id));
+                break;
+            }
+        }
+        tarjeta.completada = true;
+        if (tablero.tarjetasCompletadas == null) {
+            tablero.tarjetasCompletadas = new java.util.ArrayList<>();
+        }
+        tablero.tarjetasCompletadas.add(tarjeta);
+
+        // Eliminar el nodo de la vista del Tablero
+        if (root.getParent() instanceof javafx.scene.layout.VBox parent) {
+            parent.getChildren().remove(root);
         }
     }
 

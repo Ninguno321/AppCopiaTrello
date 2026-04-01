@@ -64,33 +64,34 @@ public class VentanaCalendarioController {
         }
         entriesActuales.clear();
 
-        if (tablero.listas == null) return;
-
         // 2. Recorrer listas → tarjetas
-        for (ListaDto lista : tablero.listas) {
-            if (lista.tarjetas == null) continue;
-            for (TarjetaDto tarjeta : lista.tarjetas) {
-                if (tarjeta.fechaVencimiento == null || tarjeta.fechaVencimiento.isBlank()) continue;
-                try {
-                    LocalDate fecha = parsearFecha(tarjeta.fechaVencimiento);
-                    String titulo = tarjeta.titulo != null ? tarjeta.titulo : "(sin título)";
-
-                    System.out.println("Añadiendo al calendario: " + titulo + " en " + fecha);
-
-                    // setInterval(LocalDate) es el método canónico de CalendarFX
-                    // para eventos de día completo; equivale a:
-                    //   setInterval(date.atStartOfDay(), date.atStartOfDay())
-                    //   setFullDay(true)
-                    Entry<String> entry = new Entry<>(titulo);
-                    entry.setInterval(fecha);
-
-                    calendar.addEntry(entry);
-                    entriesActuales.add(entry);
-                } catch (Exception e) {
-                    System.err.println("Error al parsear fechaVencimiento '"
-                            + tarjeta.fechaVencimiento + "': " + e.getMessage());
+        if (tablero.listas != null) {
+            for (ListaDto lista : tablero.listas) {
+                if (lista.tarjetas == null) continue;
+                for (TarjetaDto tarjeta : lista.tarjetas) {
+                    agregarEntradaCalendario(tarjeta);
                 }
             }
+        }
+
+    }
+
+    private void agregarEntradaCalendario(TarjetaDto tarjeta) {
+        if (tarjeta.fechaVencimiento == null || tarjeta.fechaVencimiento.isBlank()) return;
+        try {
+            LocalDate fecha = parsearFecha(tarjeta.fechaVencimiento);
+            String titulo = tarjeta.titulo != null ? tarjeta.titulo : "(sin título)";
+
+            System.out.println("Añadiendo al calendario: " + titulo + " en " + fecha);
+
+            Entry<String> entry = new Entry<>(titulo);
+            entry.setInterval(fecha);
+
+            calendar.addEntry(entry);
+            entriesActuales.add(entry);
+        } catch (Exception e) {
+            System.err.println("Error al parsear fechaVencimiento '"
+                    + tarjeta.fechaVencimiento + "': " + e.getMessage());
         }
     }
 

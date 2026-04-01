@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.ChecklistDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 
 import java.util.ArrayList;
@@ -43,11 +44,13 @@ public class VentanaListaController {
 
     private String tableroId;
     private String listaId;
+    private TableroDto tablero;
     private final TableroApiClient apiClient = new TableroApiClient();
 
-    public void setDatos(String tableroId, String listaId, String nombre) {
+    public void setDatos(String tableroId, String listaId, String nombre, TableroDto tablero) {
         this.tableroId = tableroId;
         this.listaId = listaId;
+        this.tablero = tablero;
         titulo.setText(nombre);
     }
 
@@ -326,7 +329,7 @@ public class VentanaListaController {
             );
             HBox nodoTarjeta = loader.load();
             VentanaTarjetaController controller = loader.getController();
-            controller.setDatos(tableroId, listaId, tarjeta);  // también hace nodoTarjeta.setUserData(this)
+            controller.setDatos(tableroId, listaId, tarjeta, tablero);  // también hace nodoTarjeta.setUserData(this)
             contenedorTarjetas.getChildren().add(nodoTarjeta);
         } catch (Exception e) {
             e.printStackTrace();

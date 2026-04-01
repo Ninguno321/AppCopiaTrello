@@ -44,6 +44,7 @@ public class VentanaTableroController {
 
     private String tableroId;
     private boolean tableroBlockeado = false;
+    private TableroDto tableroDto;
     private final TableroApiClient apiClient = new TableroApiClient();
 
     public void setTableroId(String tableroId) {
@@ -55,6 +56,7 @@ public class VentanaTableroController {
      */
     public void cargarDatos(TableroDto tablero) {
         this.tableroId = tablero.id;
+        this.tableroDto = tablero;
         this.tableroBlockeado = tablero.bloqueado;
         actualizarBotonBloqueo();
         if (tablero.listas == null) return;
@@ -295,7 +297,7 @@ public class VentanaTableroController {
             VBox nodoLista = loader.load();
             VentanaListaController controller = loader.getController();
 
-            controller.setDatos(tableroId, lista.id, lista.nombre);
+            controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
             controller.getScroll().maxHeightProperty()
                     .bind(scrollTablero.heightProperty().subtract(220));
 
@@ -315,7 +317,7 @@ public class VentanaTableroController {
             VBox nodoLista = loader.load();
             VentanaListaController controller = loader.getController();
 
-            controller.setDatos(tableroId, lista.id, lista.nombre);
+            controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
             controller.getScroll().maxHeightProperty()
                     .bind(scrollTablero.heightProperty().subtract(220));
 

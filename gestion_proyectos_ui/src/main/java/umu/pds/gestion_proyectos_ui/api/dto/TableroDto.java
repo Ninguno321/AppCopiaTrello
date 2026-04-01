@@ -10,5 +10,5 @@ public class TableroDto {
     public String emailPropietario;
     public boolean bloqueado;
     public List<ListaDto> listas;
-    public List<TarjetaDto> tarjetasCompletadas;
+    public List<TarjetaDto> tarjetasCompletadas = new java.util.ArrayList<>();
 }
