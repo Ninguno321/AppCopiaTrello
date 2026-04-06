@@ -694,4 +694,61 @@ Se añadió un `DatePicker` compacto directamente en `VentanaTarjeta.fxml`, alin
 
 **Parseo tolerante al cargar datos desde el backend:**
 
+---
+
+## 2026-04-06
+
+### HU-08 — Lista virtual de Tarjetas Completadas (frontend)
+
+Implementación completa de la historia de usuario "marcar tarjeta como completada" en el frontend, sin modificar el backend. Se aprovecha el campo `tablero.tarjetasCompletadas` que el backend ya devuelve.
+
+#### Estrategia: Lista Virtual
+
+En lugar de añadir una lista real en el backend, se crea un `ListaDto` sintético en el cliente con `id = "ESPECIAL_COMPLETADAS"` y `tarjetas = tablero.tarjetasCompletadas`. Este DTO se pasa al mismo flujo de renderizado que las listas normales, apareciendo siempre al final del tablero.
+
+#### Archivos modificados
+
+**`VentanaTableroController.java`**
+- `cargarDatos()`: ahora itera las listas normales aunque sean `null` (sin early return), y al final siempre construye y renderiza la lista virtual de completadas.
+- `recargarVista()` (nuevo): limpia `contenedorListas` y vuelve a llamar a `cargarDatos(tableroDto)` desde el estado en memoria. Lo invocan los controladores hijos tras completar una tarjeta.
+- `mostrarLista()` / `mostrarListaConTarjetas()`: propagan `this` a cada `VentanaListaController` mediante el nuevo `setTableroController()`.
+
+**`VentanaListaController.java`**
+- `setDatos()`: si `listaId.equals("ESPECIAL_COMPLETADAS")`, oculta y deshabilita `btnAnadirTarjeta`, `btnMenuLista` y `footerLista` (`setVisible/setManaged(false)`), y aplica estilo visual al título (fondo teal, texto blanco).
+- `setTableroController()` (nuevo): setter para recibir la referencia al `VentanaTableroController` padre.
+- `setOnDragDropped`: bifurca la lógica según la lista destino:
+  - Si es `ESPECIAL_COMPLETADAS` → llama a `apiClient.completarTarjeta(tbId, listaOrigen, tId)` y en `setOnSucceeded` invoca `tc.moverATarjetasCompletadas()`.
+  - Si es lista normal → comportamiento anterior (`apiClient.moverTarjeta()`).
+- `mostrarTarjeta()`: propaga `tableroController` al `VentanaTarjetaController` de cada tarjeta cargada.
+
+**`VentanaTarjetaController.java`**
+- `setTableroController()` (nuevo): setter para recibir la referencia al tablero.
+- `setDatos()`: si `tarjeta.completada` (tarjetas que ya estaban en la lista especial), deshabilita el drag (`root.setOnDragDetected(null)`) — impide arrastrarlas fuera.
+- `moverATarjetasCompletadas()` (renombrado y publicado desde `sincronizarEstadoLocal()`):
+  - Elimina la tarjeta de su `ListaDto` de origen en el DTO local.
+  - Marca `tarjeta.completada = true` y la añade a `tablero.tarjetasCompletadas` (evitando duplicados).
+  - Llama a `tableroController.recargarVista()` para refrescar la vista; si no hay referencia, cae al comportamiento anterior (elimina el nodo del padre directamente).
+- `onToggleCompletada()`: ahora llama a `moverATarjetasCompletadas()` en el `setOnSucceeded`.
+
+#### Flujo completo — Checkbox
+
+1. Usuario marca el checkbox → `onToggleCompletada()`.
+2. Se llama a `apiClient.completarTarjeta()` de forma asíncrona.
+3. Si éxito → `moverATarjetasCompletadas()`: actualiza el DTO + `tableroController.recargarVista()`.
+4. La vista se reconstruye desde el DTO actualizado: la tarjeta aparece en la columna "✓ COMPLETADAS".
+
+#### Flujo completo — Drag & Drop
+
+1. Usuario arrastra una tarjeta y la suelta sobre la columna "✓ COMPLETADAS".
+2. El nodo se mueve visualmente al contenedor de esa lista.
+3. Se llama a `apiClient.completarTarjeta()` de forma asíncrona.
+4. Si éxito → `tc.moverATarjetasCompletadas()` → actualiza DTO + `recargarVista()`.
+5. La vista se reconstruye correctamente desde el DTO.
+
+#### Restricciones visuales
+
+- La lista especial no tiene botón de añadir tarjeta ni menú de opciones.
+- Las tarjetas ya completadas no son arrastrables (drag deshabilitado en `setDatos()`).
+- La columna siempre aparece al final del tablero.
+
 Al recibir la fecha del backend (formato ISO con parte de tiempo variable, p. ej. `"2026-04-15T00:00"` o `"2026-04-15T00:00:00"`), se usa `substring(0, 10)` antes de parsear con `LocalDate.parse()` para aislar siempre la parte `YYYY-MM-DD` e impedir `StringIndexOutOfBoundsException` ante respuestas de diferente longitud.
