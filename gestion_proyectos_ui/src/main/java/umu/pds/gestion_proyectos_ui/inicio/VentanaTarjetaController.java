@@ -48,8 +48,13 @@ public class VentanaTarjetaController {
     private String listaId;
     private TarjetaDto tarjeta;
     private TableroDto tablero;
+    private VentanaTableroController tableroController;
 
     private final TableroApiClient apiClient = new TableroApiClient();
+
+    public void setTableroController(VentanaTableroController tc) {
+        this.tableroController = tc;
+    }
 
     public void setDatos(String tableroId, String listaId, TarjetaDto tarjeta, TableroDto tablero) {
         this.tableroId = tableroId;
@@ -64,6 +69,8 @@ public class VentanaTarjetaController {
             check.setSelected(true);
             tituloTarjeta.setStyle("-fx-strikethrough: true;");
             root.setOpacity(0.5);
+            // Deshabilitar drag desde la lista de completadas
+            root.setOnDragDetected(null);
         }
 
         check.setOnAction(e -> onToggleCompletada());
@@ -139,7 +146,7 @@ public class VentanaTarjetaController {
             }
         };
 
-        t.setOnSucceeded(ev -> sincronizarEstadoLocal());
+        t.setOnSucceeded(ev -> moverATarjetasCompletadas());
 
         t.setOnFailed(ev -> {
             // Revertir visual si el backend falla
@@ -153,24 +160,33 @@ public class VentanaTarjetaController {
     }
 
     /** Mueve la tarjeta del ListaDto de origen a tablero.tarjetasCompletadas en el estado local
-     *  y elimina el nodo de la vista del Tablero. */
-    private void sincronizarEstadoLocal() {
-        if (tablero == null || tablero.listas == null) return;
-        for (ListaDto lista : tablero.listas) {
-            if (lista.id != null && lista.id.equals(listaId) && lista.tarjetas != null) {
-                lista.tarjetas.removeIf(t -> t.id != null && t.id.equals(tarjeta.id));
-                break;
+     *  y recarga la vista del tablero. Llamable también desde otros controladores (drag-drop). */
+    void moverATarjetasCompletadas() {
+        if (tablero == null) return;
+        if (tablero.listas != null) {
+            for (ListaDto lista : tablero.listas) {
+                if (lista.id != null && lista.id.equals(listaId) && lista.tarjetas != null) {
+                    lista.tarjetas.removeIf(t -> t.id != null && t.id.equals(tarjeta.id));
+                    break;
+                }
             }
         }
         tarjeta.completada = true;
         if (tablero.tarjetasCompletadas == null) {
             tablero.tarjetasCompletadas = new java.util.ArrayList<>();
         }
-        tablero.tarjetasCompletadas.add(tarjeta);
+        // Evitar duplicados si ya fue añadida
+        if (tablero.tarjetasCompletadas.stream().noneMatch(t -> t.id != null && t.id.equals(tarjeta.id))) {
+            tablero.tarjetasCompletadas.add(tarjeta);
+        }
 
-        // Eliminar el nodo de la vista del Tablero
-        if (root.getParent() instanceof javafx.scene.layout.VBox parent) {
-            parent.getChildren().remove(root);
+        if (tableroController != null) {
+            tableroController.recargarVista();
+        } else {
+            // Fallback: eliminar el nodo de la vista si no hay referencia al tablero
+            if (root.getParent() instanceof javafx.scene.layout.VBox parent) {
+                parent.getChildren().remove(root);
+            }
         }
     }
 

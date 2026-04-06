@@ -45,6 +45,7 @@ public class VentanaListaController {
     private String tableroId;
     private String listaId;
     private TableroDto tablero;
+    private VentanaTableroController tableroController;
     private final TableroApiClient apiClient = new TableroApiClient();
 
     public void setDatos(String tableroId, String listaId, String nombre, TableroDto tablero) {
@@ -52,6 +53,24 @@ public class VentanaListaController {
         this.listaId = listaId;
         this.tablero = tablero;
         titulo.setText(nombre);
+
+        if ("ESPECIAL_COMPLETADAS".equals(listaId)) {
+            btnAnadirTarjeta.setVisible(false);
+            btnAnadirTarjeta.setManaged(false);
+            btnMenuLista.setVisible(false);
+            btnMenuLista.setManaged(false);
+            footerLista.setVisible(false);
+            footerLista.setManaged(false);
+            titulo.setEditable(false);
+            titulo.setStyle(
+                "-fx-background-color: #27b1bf; -fx-text-fill: white; " +
+                "-fx-font-weight: bold; -fx-background-radius: 4;"
+            );
+        }
+    }
+
+    public void setTableroController(VentanaTableroController tc) {
+        this.tableroController = tc;
     }
 
     public ScrollPane getScroll() {
@@ -136,10 +155,28 @@ public class VentanaListaController {
                 if (dropIndex < 0) dropIndex = contenedorTarjetas.getChildren().size();
                 contenedorTarjetas.getChildren().add(Math.min(dropIndex, contenedorTarjetas.getChildren().size()), tarjeta);
 
-                // Notificar al backend si la tarjeta cambió de lista
                 if (tarjeta.getUserData() instanceof VentanaTarjetaController tc) {
                     String listaOrigen = tc.getListaId();
-                    if (!Objects.equals(listaOrigen, listaId)) {
+
+                    if ("ESPECIAL_COMPLETADAS".equals(listaId)) {
+                        // Soltar en lista de completadas → completar tarjeta en backend
+                        if (!Objects.equals(listaOrigen, listaId)) {
+                            String tId = tc.getTarjetaId();
+                            String tbId = tc.getTableroId();
+                            Task<Void> completar = new Task<>() {
+                                @Override
+                                protected Void call() throws Exception {
+                                    apiClient.completarTarjeta(tbId, listaOrigen, tId);
+                                    return null;
+                                }
+                            };
+                            completar.setOnSucceeded(e -> tc.moverATarjetasCompletadas());
+                            completar.setOnFailed(e -> System.err.println(
+                                "Error al completar tarjeta: " + completar.getException().getMessage()));
+                            new Thread(completar).start();
+                        }
+                    } else if (!Objects.equals(listaOrigen, listaId)) {
+                        // Movimiento normal entre listas
                         tc.setListaId(listaId);
                         String tId = tc.getTarjetaId();
                         String tbId = tc.getTableroId();
@@ -150,7 +187,8 @@ public class VentanaListaController {
                                 return null;
                             }
                         };
-                        mover.setOnFailed(e -> System.err.println("Error al mover tarjeta: " + mover.getException().getMessage()));
+                        mover.setOnFailed(e -> System.err.println(
+                            "Error al mover tarjeta: " + mover.getException().getMessage()));
                         new Thread(mover).start();
                     }
                 }
@@ -329,7 +367,10 @@ public class VentanaListaController {
             );
             HBox nodoTarjeta = loader.load();
             VentanaTarjetaController controller = loader.getController();
-            controller.setDatos(tableroId, listaId, tarjeta, tablero);  // también hace nodoTarjeta.setUserData(this)
+            controller.setDatos(tableroId, listaId, tarjeta, tablero);
+            if (tableroController != null) {
+                controller.setTableroController(tableroController);
+            }
             contenedorTarjetas.getChildren().add(nodoTarjeta);
         } catch (Exception e) {
             e.printStackTrace();

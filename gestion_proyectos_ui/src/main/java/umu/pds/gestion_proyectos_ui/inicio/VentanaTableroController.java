@@ -59,10 +59,25 @@ public class VentanaTableroController {
         this.tableroDto = tablero;
         this.tableroBlockeado = tablero.bloqueado;
         actualizarBotonBloqueo();
-        if (tablero.listas == null) return;
-        for (ListaDto lista : tablero.listas) {
-            mostrarListaConTarjetas(lista);
+        if (tablero.listas != null) {
+            for (ListaDto lista : tablero.listas) {
+                mostrarListaConTarjetas(lista);
+            }
         }
+        // Lista virtual de tarjetas completadas (siempre al final)
+        ListaDto listaCompletadas = new ListaDto();
+        listaCompletadas.id = "ESPECIAL_COMPLETADAS";
+        listaCompletadas.nombre = "✓ COMPLETADAS";
+        listaCompletadas.tarjetas = tablero.tarjetasCompletadas != null
+                ? tablero.tarjetasCompletadas
+                : new java.util.ArrayList<>();
+        mostrarListaConTarjetas(listaCompletadas);
+    }
+
+    /** Limpia el contenedor y recarga la vista desde el TableroDto en memoria. */
+    public void recargarVista() {
+        contenedorListas.getChildren().clear();
+        cargarDatos(tableroDto);
     }
 
     private void actualizarBotonBloqueo() {
@@ -298,6 +313,7 @@ public class VentanaTableroController {
             VentanaListaController controller = loader.getController();
 
             controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
+            controller.setTableroController(this);
             controller.getScroll().maxHeightProperty()
                     .bind(scrollTablero.heightProperty().subtract(220));
 
@@ -318,6 +334,7 @@ public class VentanaTableroController {
             VentanaListaController controller = loader.getController();
 
             controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
+            controller.setTableroController(this);
             controller.getScroll().maxHeightProperty()
                     .bind(scrollTablero.heightProperty().subtract(220));
 
