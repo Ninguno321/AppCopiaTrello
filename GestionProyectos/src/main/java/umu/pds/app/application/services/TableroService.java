@@ -42,6 +42,8 @@ public class TableroService implements GestionTableroUseCase {
                     return nuevo;
                 });
         Tablero tablero = new Tablero(nombre, propietario);
+        System.out.println("TABLEROOO ID");
+        System.out.println(tablero.getId());
         tableroRepository.guardar(tablero);
         return tablero;
     }

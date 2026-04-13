@@ -1,6 +1,7 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -18,6 +19,11 @@ public class VentanaInicioController {
 
     @FXML private TextField txtEmail;
     @FXML private Button btnEntrar;
+    @FXML
+    private Button tableroCompartido;
+    @FXML
+    private TextField textoTableroCompartido;
+
 
     private final TableroApiClient apiClient = new TableroApiClient();
 
@@ -76,4 +82,35 @@ public class VentanaInicioController {
         alert.setContentText(mensaje);
         alert.showAndWait();
     }
+    
+    @FXML   //AHORA CARGA TODOS LOS TABLEROS PORQUE ESTA CARGANDO POR EMAIL. CAMBIAR A QUE SOLO CARGUE UN TABLERO, LA MEJOR OPCION ES CREAR OTRA VISTA DONDE SOLO SALGA ESE TABLERO.
+    void onCompartido() throws Exception {
+        String id = textoTableroCompartido.getText().trim();
+        if (id.isBlank()) {
+            mostrarError("Campo vacío", "El ID del tablero es oligatorio.");
+            return;
+        }
+
+        tableroCompartido.setDisable(true);
+        
+    	TableroDto tab = apiClient.obtenerTablero(id); //agrega exception
+    	String email = tab.emailPropietario;
+        Task<List<TableroDto>> task = new Task<>() {
+            @Override
+            protected List<TableroDto> call() throws Exception {
+                return apiClient.obtenerTablerosPorEmail(tab.emailPropietario);
+            }
+        };
+
+        task.setOnSucceeded(e -> navegarAVentanaPrincipal(email, task.getValue()));
+
+        task.setOnFailed(e -> {
+            btnEntrar.setDisable(false);
+            mostrarError("Error al conectar", task.getException().getMessage());
+        });
+
+        new Thread(task).start();
+      
+    }
+    
 }

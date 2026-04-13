@@ -31,6 +31,8 @@
             </padding>
 
             <Label styleClass="card-title" text="Iniciar sesión" />
+         <TextField fx:id="textoTableroCompartido" promptText="ID de tablero compartido" />
+         <Button fx:id="tableroCompartido" mnemonicParsing="false" onAction="#onCompartido" text="Compartido" />
 
             <VBox spacing="5">
                 <Label text="Tu correo electrónico" />
