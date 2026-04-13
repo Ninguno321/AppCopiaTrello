@@ -15,7 +15,7 @@
     color-surface:          #FFFFFF;   /* Tarjetas / cards */
     color-surface-hover:    #c2e4cb;   /* Menta suave hover */
     color-lista-bg:         #c2e4cb;   /* Menta para listas */
-    color-tarjeta-bg:       #FFFFFF;   /* Fondo de cada tarjeta */
+    color-tarjeta-bg:       rgb(213, 236, 219);   /* Fondo de cada tarjeta */
     color-toolbar-bg:       #176585;   /* Azul profundo sidebar */
     color-toolbar-active:   #36cecc;   /* Cian brillante activo */
 

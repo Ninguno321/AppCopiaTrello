@@ -85,7 +85,7 @@
     -fx-background-color:  color-tarjeta-bg;
     -fx-background-radius: 8;
     -fx-padding:           10 12;
-    -fx-cursor:            open-hand;
+    -fx-cursor:            hand;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 6, 0, 0, 2);
     -fx-border-color:      color-border;
     -fx-border-width:      1px;
@@ -100,6 +100,69 @@
 .tarjeta Text {
     -fx-fill:      color-text-primary;
     -fx-font-size: 13px;
+}
+
+
+/* ===========================
+   BOTÓN DE ETIQUETAS
+   =========================== */
+.boton-etiqueta {
+    -fx-background-color: color-primary;
+    -fx-text-fill: color-text-on-primary;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 8;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.boton-etiqueta:hover {
+    -fx-background-color: color-primary-hover;
+}
+
+.boton-etiqueta:pressed {
+    -fx-background-color: color-primary-pressed;
+}
+
+
+/* ===========================
+   DATE PICKER DE TARJETA
+   =========================== */
+.date-picker-tarjeta {
+    -fx-background-color: white;
+    -fx-border-color: color-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 10px;
+}
+
+/* Campo de texto interno */
+.date-picker-tarjeta .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: color-text-primary;
+    -fx-padding: 2 6;
+}
+
+/* Botón del calendario */
+.date-picker-tarjeta .arrow-button {
+    -fx-background-color: color-primary;
+    -fx-background-radius: 0 6 6 0;
+}
+
+.date-picker-tarjeta .arrow-button:hover {
+    -fx-background-color: color-primary-hover;
+}
+
+/* Icono de la flecha */
+.date-picker-tarjeta .arrow {
+    -fx-background-color: white;
+}
+
+/* Enfoque */
+.date-picker-tarjeta:focused {
+    -fx-border-color: color-border-focus;
+    -fx-border-width: 1.5px;
 }
 
 /* ===========================
