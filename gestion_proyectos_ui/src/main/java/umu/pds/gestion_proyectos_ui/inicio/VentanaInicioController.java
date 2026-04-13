@@ -61,6 +61,7 @@ public class VentanaInicioController {
 
             Stage stage = (Stage) btnEntrar.getScene().getWindow();
             stage.setScene(new Scene(root));
+            stage.setFullScreen(true);
             stage.show();
 
         } catch (Exception e) {

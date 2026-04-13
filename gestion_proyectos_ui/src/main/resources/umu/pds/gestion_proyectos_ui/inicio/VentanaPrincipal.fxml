@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="700.0" prefWidth="1100.0"
+<BorderPane prefHeight="1000.0" prefWidth="1333.0"
             stylesheets="@../estilos/theme.css, @../estilos/app-base.css, @../estilos/app-board.css"
             xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
