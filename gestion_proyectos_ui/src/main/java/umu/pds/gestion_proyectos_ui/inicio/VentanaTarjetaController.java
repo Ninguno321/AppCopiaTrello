@@ -358,7 +358,27 @@ public class VentanaTarjetaController {
                     return null;
                 }
             };
-            t.setOnSucceeded(e -> agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color));
+            //t.setOnSucceeded(e -> agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color));
+            t.setOnSucceeded(e -> {
+                agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color);
+
+                TableroDto tab = null;
+				try {
+					tab = apiClient.obtenerTablero(tableroId);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+                tableroController.cargarDatos(tab);   //Primero eliminar los otros no? solo deberia cargar la detarea.
+                			//MUY MUY INEFICIENTE. CREAR UN METODO SOLO PARA RECARGAR LA LISTA O LA TAREA. 
+                // Recargar la vista completa del tablero. FALLA, deja de mostrar la tarjeta
+               if (tableroController != null) {
+                    tableroController.recargarVista();
+                }
+            });
+            
+            
             t.setOnFailed(e -> System.err.println("Error al añadir etiqueta"));
             new Thread(t).start();
         });
