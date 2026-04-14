@@ -12,7 +12,7 @@
 <VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@../estilos/theme.css, @../estilos/app-board.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaTableroController">
    <children>
 
-      <HBox spacing="10.0" alignment="CENTER_LEFT">
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
          <children>
             <TextField promptText="Buscar" HBox.hgrow="ALWAYS" />
             <Button fx:id="btnBloquear" mnemonicParsing="false" onAction="#toggleBloqueo" styleClass="button" text="Bloquear" />
@@ -23,10 +23,20 @@
          </padding>
       </HBox>
 
+      <!-- Zona de eliminación -->
+      <HBox fx:id="zonaEliminar" alignment="CENTER" managed="false" minHeight="50.0" prefHeight="50.0" styleClass="zona-eliminar" visible="false">
+         <children>
+            <Label styleClass="zona-eliminar-texto" text="Arrastra aquí para eliminar" />
+         </children>
+         <padding>
+            <Insets bottom="8.0" left="20.0" right="20.0" top="8.0" />
+         </padding>
+      </HBox>
+
       <!-- Contenido scrollable, sin barra nativa -->
-      <ScrollPane fx:id="scrollTablero" fitToHeight="false" hbarPolicy="NEVER" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+      <ScrollPane fx:id="scrollTablero" fitToHeight="false" hbarPolicy="NEVER" prefHeight="254.0" prefWidth="1000.0" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
          <content>
-			<HBox fx:id="contenedorListas" alignment="TOP_LEFT" spacing="15.0" fillHeight="false">
+			<HBox fx:id="contenedorListas" alignment="TOP_LEFT" fillHeight="false" spacing="15.0">
                <padding>
                   <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
                </padding>
@@ -34,19 +44,8 @@
          </content>
       </ScrollPane>
 
-      <!-- Zona de eliminación -->
-      <HBox fx:id="zonaEliminar" alignment="CENTER" styleClass="zona-eliminar"
-            visible="false" managed="false" minHeight="50.0" prefHeight="50.0">
-         <children>
-            <Label text="Arrastra aquí para eliminar" styleClass="zona-eliminar-texto" />
-         </children>
-         <padding>
-            <Insets bottom="8.0" left="20.0" right="20.0" top="8.0" />
-         </padding>
-      </HBox>
-
       <!-- Botones fijos -->
-      <HBox alignment="CENTER" prefHeight="33.0" prefWidth="1000.0" spacing="5.0">
+      <HBox alignment="CENTER" prefHeight="0.0" prefWidth="1000.0" spacing="5.0">
          <children>
             <VBox prefHeight="45.0" prefWidth="559.0" styleClass="toolbar-box">
                <children>
@@ -62,7 +61,7 @@
             </VBox>
          </children>
          <padding>
-            <Insets bottom="8.0" top="50.0" />
+            <Insets bottom="9.0" top="10.0" />
          </padding>
          <VBox.margin>
             <Insets />
@@ -72,8 +71,11 @@
       <!-- Scrollbar manual, debajo de los botones -->
       <ScrollBar fx:id="scrollBarH" blockIncrement="0.1" max="1.0" min="0.0" orientation="HORIZONTAL" styleClass="lista-scroll" unitIncrement="0.05" value="0.0">
          <VBox.margin>
-            <Insets />
-         </VBox.margin></ScrollBar>
+            <Insets bottom="1.0" />
+         </VBox.margin>
+         <padding>
+            <Insets bottom="8.0" />
+         </padding></ScrollBar>
 
    </children>
 </VBox>
