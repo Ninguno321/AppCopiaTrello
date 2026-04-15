@@ -165,8 +165,12 @@ public class VentanaTarjetaController {
         if (tablero == null) return;
         if (tablero.listas != null) {
             for (ListaDto lista : tablero.listas) {
-                if (lista.id != null && lista.id.equals(listaId) && lista.tarjetas != null) {
-                    lista.tarjetas.removeIf(t -> t.id != null && t.id.equals(tarjeta.id));
+                if (lista.id != null && lista.id.equals(listaId)) {
+                    // Eliminar SOLO la tarjeta de su lista, nunca la lista de tablero.listas
+                    if (lista.tarjetas != null) {
+                        lista.tarjetas = new java.util.ArrayList<>(lista.tarjetas);
+                        lista.tarjetas.removeIf(t -> t.id != null && t.id.equals(tarjeta.id));
+                    }
                     break;
                 }
             }
@@ -312,6 +316,7 @@ public class VentanaTarjetaController {
     void onAnadirEtiquetaClick() {
         // Crear un diálogo personalizado con nombre y color
         Dialog<EtiquetaDto> dialog = new Dialog<>();
+        dialog.initOwner(root.getScene().getWindow());
         dialog.setTitle("Nueva Etiqueta");
         dialog.setHeaderText("Configura tu etiqueta");
 
@@ -358,23 +363,12 @@ public class VentanaTarjetaController {
                     return null;
                 }
             };
-            //t.setOnSucceeded(e -> agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color));
             t.setOnSucceeded(e -> {
+                // Actualizar el DTO local para que la etiqueta no se pierda al mover a completadas
+                if (tarjeta.etiquetas == null) tarjeta.etiquetas = new java.util.ArrayList<>();
+                tarjeta.etiquetas.add(etiqueta);
+                // Actualizar UI inmediatamente
                 agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color);
-
-                TableroDto tab = null;
-				try {
-					tab = apiClient.obtenerTablero(tableroId);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-				
-                tableroController.cargarDatos(tab);   //Primero eliminar los otros no? solo deberia cargar la detarea.
-                			//MUY MUY INEFICIENTE. CREAR UN METODO SOLO PARA RECARGAR LA LISTA O LA TAREA
-                // Recargar la vista completa del tablero. FALLA, deja de mostrar la tarjeta
-               if (tableroController != null) {
-                    tableroController.recargarVista();
-                }
             });
             
             

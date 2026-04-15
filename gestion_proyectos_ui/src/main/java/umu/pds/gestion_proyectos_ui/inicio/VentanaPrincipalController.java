@@ -10,9 +10,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.Node;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
+import javafx.scene.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +93,7 @@ public class VentanaPrincipalController {
     @FXML
     void onCrearTablero(ActionEvent event) {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(btnCrearTablero.getScene().getWindow());
         dialog.setTitle("Nuevo tablero");
         dialog.setHeaderText(null);
         dialog.setContentText("Nombre del tablero:");
@@ -118,6 +119,7 @@ public class VentanaPrincipalController {
 
             task.setOnFailed(e -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(btnCrearTablero.getScene().getWindow());
                 alert.setTitle("Error");
                 alert.setHeaderText(null);
                 alert.setContentText("Error al crear tablero: " + task.getException().getMessage());

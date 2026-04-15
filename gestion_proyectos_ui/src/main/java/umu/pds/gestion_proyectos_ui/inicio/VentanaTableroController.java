@@ -111,6 +111,7 @@ public class VentanaTableroController {
 
         task.setOnFailed(e -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(contenedorListas.getScene().getWindow());
             alert.setTitle("Error");
             alert.setHeaderText(null);
             alert.setContentText("No se pudo cambiar el estado del tablero: " + task.getException().getMessage());
@@ -147,6 +148,7 @@ public class VentanaTableroController {
             }
 
             Dialog<Void> dialog = new Dialog<>();
+            dialog.initOwner(contenedorListas.getScene().getWindow());
             dialog.setTitle("Historial del tablero");
             dialog.setHeaderText(null);
 
@@ -159,6 +161,7 @@ public class VentanaTableroController {
 
         task.setOnFailed(e -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(contenedorListas.getScene().getWindow());
             alert.setTitle("Error");
             alert.setHeaderText(null);
             alert.setContentText("No se pudo obtener el historial: " + task.getException().getMessage());
@@ -282,6 +285,7 @@ public class VentanaTableroController {
     @FXML
     void crearLista(MouseEvent event) {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(contenedorListas.getScene().getWindow());
         dialog.setTitle("Nueva lista");
         dialog.setHeaderText(null);
         dialog.setContentText("Nombre de la lista:");

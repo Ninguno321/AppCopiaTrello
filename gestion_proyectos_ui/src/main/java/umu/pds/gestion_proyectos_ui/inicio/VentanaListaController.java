@@ -228,6 +228,7 @@ public class VentanaListaController {
         MenuItem itemEliminarLista = new MenuItem("Eliminar lista");
         itemEliminarLista.setOnAction(e -> {
             Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmacion.initOwner(scroll.getScene().getWindow());
             confirmacion.setTitle("Eliminar lista");
             confirmacion.setHeaderText(null);
             confirmacion.setContentText("¿Estás seguro de que quieres eliminar esta lista?");
@@ -286,6 +287,7 @@ public class VentanaListaController {
     void crearTarjeta() {
         // 1. Elegir tipo
         ChoiceDialog<String> tipoDialog = new ChoiceDialog<>("Tarea simple", "Tarea simple", "Con checklist");
+        tipoDialog.initOwner(scroll.getScene().getWindow());
         tipoDialog.setTitle("Nueva tarjeta");
         tipoDialog.setHeaderText(null);
         tipoDialog.setContentText("Tipo de tarjeta:");
@@ -294,6 +296,7 @@ public class VentanaListaController {
 
         // 2. Pedir título
         TextInputDialog tituloDialog = new TextInputDialog();
+        tituloDialog.initOwner(scroll.getScene().getWindow());
         tituloDialog.setTitle("Nueva tarjeta");
         tituloDialog.setHeaderText(null);
         tituloDialog.setContentText("Título de la tarjeta:");
@@ -308,6 +311,7 @@ public class VentanaListaController {
         if (esChecklist) {
             while (true) {
                 TextInputDialog itemDialog = new TextInputDialog();
+                itemDialog.initOwner(scroll.getScene().getWindow());
                 itemDialog.setTitle("Ítem del checklist");
                 itemDialog.setHeaderText("Deja vacío para terminar");
                 itemDialog.setContentText("Descripción del ítem:");
@@ -348,6 +352,7 @@ public class VentanaListaController {
             String msg = task.getException().getMessage();
             if (msg != null && (msg.contains("409") || msg.contains("Conflict"))) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.initOwner(scroll.getScene().getWindow());
                 alert.setTitle("Tablero bloqueado");
                 alert.setHeaderText(null);
                 alert.setContentText("El tablero esta bloqueado y no admite nuevas tarjetas.");
