@@ -51,8 +51,6 @@
                <children>
                   <HBox alignment="TOP_CENTER" prefHeight="33.0" prefWidth="492.0">
                      <children>
-                        <Button mnemonicParsing="false" styleClass="button" text="Bandeja de entrada" />
-                        <Button mnemonicParsing="false" styleClass="button" text="Planificador" />
                         <Button mnemonicParsing="false" styleClass="button,active" text="Tablero" />
                         <Button fx:id="btnCrearLista" mnemonicParsing="false" onMouseClicked="#crearLista" styleClass="button" text="+ Añadir lista" />
                      </children>
