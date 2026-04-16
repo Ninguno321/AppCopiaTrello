@@ -20,11 +20,12 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TrazaDto;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,7 @@ public class VentanaTableroController {
     private String tableroId;
     private boolean tableroBlockeado = false;
     private TableroDto tableroDto;
-    private final TableroApiClient apiClient = new TableroApiClient();
+    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
 
     public void setTableroId(String tableroId) {
         this.tableroId = tableroId;
@@ -92,17 +93,9 @@ public class VentanaTableroController {
 
     @FXML
     void toggleBloqueo() {
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                if (tableroBlockeado) {
-                    apiClient.desbloquearTablero(tableroId);
-                } else {
-                    apiClient.bloquearTablero(tableroId);
-                }
-                return null;
-            }
-        };
+        Task<Void> task = tableroBlockeado
+                ? service.desbloquearTablero(tableroId)
+                : service.bloquearTablero(tableroId);
 
         task.setOnSucceeded(e -> {
             tableroBlockeado = !tableroBlockeado;
@@ -123,12 +116,7 @@ public class VentanaTableroController {
 
     @FXML
     void verHistorial() {
-        Task<List<TrazaDto>> task = new Task<>() {
-            @Override
-            protected List<TrazaDto> call() throws Exception {
-                return apiClient.obtenerHistorial(tableroId);
-            }
-        };
+        Task<List<TrazaDto>> task = service.obtenerHistorial(tableroId);
 
         task.setOnSucceeded(e -> {
             List<TrazaDto> trazas = task.getValue();
@@ -223,13 +211,7 @@ public class VentanaTableroController {
                     origen.getChildren().remove(tarjeta);
                 }
                 // Eliminar en backend
-                Task<Void> task = new Task<>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        apiClient.eliminarTarjeta(tc.getTableroId(), tc.getListaId(), tc.getTarjetaId());
-                        return null;
-                    }
-                };
+                Task<Void> task = service.eliminarTarjeta(tc.getTableroId(), tc.getListaId(), tc.getTarjetaId());
                 task.setOnFailed(ev -> System.err.println("Error al eliminar tarjeta: " + task.getException().getMessage()));
                 new Thread(task).start();
                 success = true;
@@ -294,12 +276,7 @@ public class VentanaTableroController {
         resultado.ifPresent(nombre -> {
             if (nombre.isBlank()) return;
 
-            Task<ListaDto> task = new Task<>() {
-                @Override
-                protected ListaDto call() throws Exception {
-                    return apiClient.agregarLista(tableroId, nombre);
-                }
-            };
+            Task<ListaDto> task = service.agregarLista(tableroId, nombre);
 
             task.setOnSucceeded(e -> mostrarLista(task.getValue()));
             task.setOnFailed(e -> System.err.println("Error al crear lista: " + task.getException().getMessage()));

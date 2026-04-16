@@ -32,6 +32,8 @@ public interface GestionTableroUseCase {
 
     void desbloquearTablero(TableroId id);
 
+    void eliminarTablero(TableroId id);
+
     // --- Listas ---
 
     Lista agregarLista(TableroId tableroId, String nombre);

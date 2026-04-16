@@ -6,12 +6,18 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 import javafx.scene.Node;
 
 import java.util.ArrayList;
@@ -38,10 +44,11 @@ public class VentanaPrincipalController {
     @FXML private StackPane mainContentPane;
 
     private List<Button> tabButtons;
-    private final List<Button> sidebarButtons = new ArrayList<>();
+    private final List<HBox> sidebarItems = new ArrayList<>();
+    private final List<TableroDto> listaTableros = new ArrayList<>();
     private TableroDto tableroActual;
     private String emailActual;
-    private final TableroApiClient apiClient = new TableroApiClient();
+    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
 
     @FXML
     public void initialize() {
@@ -55,7 +62,7 @@ public class VentanaPrincipalController {
     public void setDatosUsuario(String email, List<TableroDto> tableros) {
         this.emailActual = email;
         for (TableroDto tablero : tableros) {
-            agregarBotonSidebar(tablero);
+            agregarItemSidebar(tablero);
         }
         if (!tableros.isEmpty()) {
             tableroActual = tableros.get(0);
@@ -66,24 +73,126 @@ public class VentanaPrincipalController {
 
     // --- Sidebar ---
 
-    private void agregarBotonSidebar(TableroDto tablero) {
-        Button btn = new Button(tablero.nombre);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.getStyleClass().add("sidebar-item");
-        btn.setOnAction(e -> {
+    private void agregarItemSidebar(TableroDto tablero) {
+        // Botón con el nombre, ocupa todo el espacio disponible
+        Button btnNombre = new Button(tablero.nombre);
+        btnNombre.setMaxWidth(Double.MAX_VALUE);
+        btnNombre.getStyleClass().add("sidebar-item-btn");
+        HBox.setHgrow(btnNombre, Priority.ALWAYS);
+
+        // MenuButton "⋮" con las acciones del tablero
+        MenuButton menuBtn = new MenuButton("⋮");
+        menuBtn.getStyleClass().add("sidebar-menu-btn");
+
+        MenuItem itemRenombrar = new MenuItem("Editar nombre");
+        MenuItem itemEliminar  = new MenuItem("Eliminar tablero");
+        menuBtn.getItems().addAll(itemRenombrar, itemEliminar);
+
+        HBox hbox = new HBox(btnNombre, menuBtn);
+        hbox.getStyleClass().add("sidebar-item");
+
+        // Clic en el nombre → abrir tablero
+        btnNombre.setOnAction(e -> {
             tableroActual = tablero;
             lblTableroActual.setText(tablero.nombre);
-            activarSidebarButton(btn);
+            activarSidebarItem(hbox);
             cargarVistaTablero();
         });
-        sidebarButtons.add(btn);
-        sidebarTableros.getChildren().add(btn);
-        activarSidebarButton(btn);
+
+        // Editar nombre
+        itemRenombrar.setOnAction(e -> {
+            TextInputDialog dialog = new TextInputDialog(tablero.nombre);
+            dialog.initOwner(hbox.getScene().getWindow());
+            dialog.setTitle("Renombrar tablero");
+            dialog.setHeaderText(null);
+            dialog.setContentText("Nuevo nombre:");
+
+            Optional<String> resultado = dialog.showAndWait();
+            resultado.ifPresent(nuevoNombre -> {
+                if (nuevoNombre.isBlank()) return;
+
+                Task<Void> task = service.renombrarTablero(tablero.id, nuevoNombre);
+
+                task.setOnSucceeded(ev -> {
+                    tablero.nombre = nuevoNombre;
+                    btnNombre.setText(nuevoNombre);
+                    if (tableroActual != null && tableroActual.id.equals(tablero.id)) {
+                        lblTableroActual.setText(nuevoNombre);
+                    }
+                });
+
+                task.setOnFailed(ev -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initOwner(hbox.getScene().getWindow());
+                    alert.setTitle("Error");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Error al renombrar: " + task.getException().getMessage());
+                    alert.showAndWait();
+                });
+
+                new Thread(task).start();
+            });
+        });
+
+        // Eliminar tablero
+        itemEliminar.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.initOwner(hbox.getScene().getWindow());
+            confirm.setTitle("Eliminar tablero");
+            confirm.setHeaderText(null);
+            confirm.setContentText("¿Eliminar \"" + tablero.nombre + "\"? Esta acción no se puede deshacer.");
+
+            confirm.showAndWait().ifPresent(respuesta -> {
+                if (respuesta != ButtonType.OK) return;
+
+                Task<Void> task = service.eliminarTablero(tablero.id);
+
+                task.setOnSucceeded(ev -> {
+                    int indice = sidebarItems.indexOf(hbox);
+                    sidebarItems.remove(hbox);
+                    listaTableros.remove(tablero);
+                    sidebarTableros.getChildren().remove(hbox);
+
+                    if (tableroActual != null && tableroActual.id.equals(tablero.id)) {
+                        if (!sidebarItems.isEmpty()) {
+                            // Seleccionar el elemento adyacente más cercano
+                            int siguienteIndice = Math.min(indice, sidebarItems.size() - 1);
+                            HBox siguiente = sidebarItems.get(siguienteIndice);
+                            TableroDto siguienteTablero = listaTableros.get(siguienteIndice);
+                            tableroActual = siguienteTablero;
+                            lblTableroActual.setText(siguienteTablero.nombre);
+                            activarSidebarItem(siguiente);
+                            cargarVistaTablero();
+                        } else {
+                            tableroActual = null;
+                            lblTableroActual.setText("");
+                            mainContentPane.getChildren().clear();
+                        }
+                    }
+                });
+
+                task.setOnFailed(ev -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initOwner(hbox.getScene().getWindow());
+                    alert.setTitle("Error");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Error al eliminar: " + task.getException().getMessage());
+                    alert.showAndWait();
+                });
+
+                new Thread(task).start();
+            });
+        });
+
+        listaTableros.add(tablero);
+        sidebarItems.add(hbox);
+        sidebarTableros.getChildren().add(hbox);
+        activarSidebarItem(hbox);
     }
 
-    private void activarSidebarButton(Button activo) {
-        for (Button btn : sidebarButtons) {
-            btn.getStyleClass().remove("active");
+    private void activarSidebarItem(HBox activo) {
+        for (HBox item : sidebarItems) {
+            item.getStyleClass().remove("active");
         }
         if (!activo.getStyleClass().contains("active")) {
             activo.getStyleClass().add("active");
@@ -102,16 +211,11 @@ public class VentanaPrincipalController {
         resultado.ifPresent(nombre -> {
             if (nombre.isBlank()) return;
 
-            Task<TableroDto> task = new Task<>() {
-                @Override
-                protected TableroDto call() throws Exception {
-                    return apiClient.crearTablero(nombre, emailActual);
-                }
-            };
+            Task<TableroDto> task = service.crearTablero(nombre, emailActual);
 
             task.setOnSucceeded(e -> {
                 TableroDto nuevoTablero = task.getValue();
-                agregarBotonSidebar(nuevoTablero);
+                agregarItemSidebar(nuevoTablero);
                 tableroActual = nuevoTablero;
                 lblTableroActual.setText(nuevoTablero.nombre);
                 cargarVistaTablero();
@@ -167,12 +271,7 @@ public class VentanaPrincipalController {
     private void cargarVistaTabla() {
         if (tableroActual == null) return;
 
-        Task<TableroDto> task = new Task<>() {
-            @Override
-            protected TableroDto call() throws Exception {
-                return apiClient.obtenerTablero(tableroActual.id);
-            }
-        };
+        Task<TableroDto> task = service.obtenerTablero(tableroActual.id);
 
         task.setOnSucceeded(e -> {
             try {
@@ -198,12 +297,7 @@ public class VentanaPrincipalController {
     private void cargarVistaCalendario() {
         if (tableroActual == null) return;
 
-        Task<TableroDto> task = new Task<>() {
-            @Override
-            protected TableroDto call() throws Exception {
-                return apiClient.obtenerTablero(tableroActual.id);
-            }
-        };
+        Task<TableroDto> task = service.obtenerTablero(tableroActual.id);
 
         task.setOnSucceeded(e -> {
             try {
@@ -229,13 +323,7 @@ public class VentanaPrincipalController {
     private void cargarVistaTablero() {
         if (tableroActual == null) return;
 
-        // Obtener datos actualizados del backend en hilo de fondo
-        Task<TableroDto> task = new Task<>() {
-            @Override
-            protected TableroDto call() throws Exception {
-                return apiClient.obtenerTablero(tableroActual.id);
-            }
-        };
+        Task<TableroDto> task = service.obtenerTablero(tableroActual.id);
 
         task.setOnSucceeded(e -> {
             try {

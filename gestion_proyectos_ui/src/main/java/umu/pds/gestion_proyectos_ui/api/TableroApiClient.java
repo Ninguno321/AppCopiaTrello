@@ -50,6 +50,35 @@ public class TableroApiClient {
         throw new RuntimeException("Error al crear tablero (" + response.statusCode() + "): " + response.body());
     }
 
+    public void renombrarTablero(String tableroId, String nuevoNombre) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("nuevoNombre", nuevoNombre));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/nombre"))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Error al renombrar tablero (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
+    public void eliminarTablero(String tableroId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId))
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 204) {
+            throw new RuntimeException("Error al eliminar tablero (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
     public void eliminarTarjeta(String tableroId, String listaId, String tarjetaId) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId + "/tarjetas/" + tarjetaId))

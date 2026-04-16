@@ -80,6 +80,12 @@ public class TableroController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarTablero(@PathVariable String id) {
+        gestionTablero.eliminarTablero(TableroId.de(id));
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/bloquear")
     public ResponseEntity<Void> bloquearTablero(@PathVariable String id) {
         gestionTablero.bloquearTablero(TableroId.de(id));

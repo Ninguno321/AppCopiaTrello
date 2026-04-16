@@ -18,11 +18,10 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
-import umu.pds.gestion_proyectos_ui.api.dto.ChecklistDto;
-import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class VentanaListaController {
     private String listaId;
     private TableroDto tablero;
     private VentanaTableroController tableroController;
-    private final TableroApiClient apiClient = new TableroApiClient();
+    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
 
     public void setDatos(String tableroId, String listaId, String nombre, TableroDto tablero) {
         this.tableroId = tableroId;
@@ -163,13 +162,7 @@ public class VentanaListaController {
                         if (!Objects.equals(listaOrigen, listaId)) {
                             String tId = tc.getTarjetaId();
                             String tbId = tc.getTableroId();
-                            Task<Void> completar = new Task<>() {
-                                @Override
-                                protected Void call() throws Exception {
-                                    apiClient.completarTarjeta(tbId, listaOrigen, tId);
-                                    return null;
-                                }
-                            };
+                            Task<Void> completar = service.completarTarjeta(tbId, listaOrigen, tId);
                             completar.setOnSucceeded(e -> tc.moverATarjetasCompletadas());
                             completar.setOnFailed(e -> System.err.println(
                                 "Error al completar tarjeta: " + completar.getException().getMessage()));
@@ -180,13 +173,7 @@ public class VentanaListaController {
                         tc.setListaId(listaId);
                         String tId = tc.getTarjetaId();
                         String tbId = tc.getTableroId();
-                        Task<Void> mover = new Task<>() {
-                            @Override
-                            protected Void call() throws Exception {
-                                apiClient.moverTarjeta(tbId, tId, listaOrigen, listaId);
-                                return null;
-                            }
-                        };
+                        Task<Void> mover = service.moverTarjeta(tbId, tId, listaOrigen, listaId);
                         mover.setOnFailed(e -> System.err.println(
                             "Error al mover tarjeta: " + mover.getException().getMessage()));
                         new Thread(mover).start();
@@ -234,13 +221,7 @@ public class VentanaListaController {
             confirmacion.setContentText("¿Estás seguro de que quieres eliminar esta lista?");
             confirmacion.showAndWait().ifPresent(respuesta -> {
                 if (respuesta == ButtonType.OK) {
-                    Task<Void> taskEliminar = new Task<>() {
-                        @Override
-                        protected Void call() throws Exception {
-                            apiClient.eliminarLista(tableroId, listaId);
-                            return null;
-                        }
-                    };
+                    Task<Void> taskEliminar = service.eliminarLista(tableroId, listaId);
                     taskEliminar.setOnSucceeded(ev -> {
                         Node raizLista = scroll.getParent();
                         if (raizLista != null && raizLista.getParent() instanceof Pane padre) {
@@ -321,31 +302,8 @@ public class VentanaListaController {
             }
         }
 
-        // 4. Crear en backend
-        Task<TarjetaDto> task = new Task<>() {
-            @Override
-            protected TarjetaDto call() throws Exception {
-                TarjetaDto tarjeta = apiClient.agregarTarjeta(tableroId, listaId, tituloTexto);
-                if (esChecklist) {
-                    ChecklistDto checklist = apiClient.crearChecklist(tableroId, listaId, tarjeta.id, "Checklist");
-                    for (String desc : items) {
-                        apiClient.agregarItemChecklist(tableroId, listaId, tarjeta.id, desc);
-                    }
-                    // Construir el DTO localmente para mostrarlo sin re-fetch
-                    List<ItemChecklistDto> itemDtos = new ArrayList<>();
-                    for (String desc : items) {
-                        ItemChecklistDto dto = new ItemChecklistDto();
-                        dto.descripcion = desc;
-                        dto.completado = false;
-                        itemDtos.add(dto);
-                    }
-                    checklist.items = itemDtos;
-                    tarjeta.checklist = checklist;
-                    tarjeta.tieneChecklist = true;
-                }
-                return tarjeta;
-            }
-        };
+        // 4. Crear en backend (tarjeta + checklist + ítems en un solo Task del servicio)
+        Task<TarjetaDto> task = service.crearTarjetaCompleta(tableroId, listaId, tituloTexto, esChecklist, items);
 
         task.setOnSucceeded(e -> mostrarTarjeta(task.getValue()));
         task.setOnFailed(e -> {

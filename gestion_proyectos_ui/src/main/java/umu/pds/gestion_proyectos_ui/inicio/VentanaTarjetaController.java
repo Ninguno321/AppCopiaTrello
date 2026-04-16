@@ -27,12 +27,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.text.Text;
-import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
 import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 
 public class VentanaTarjetaController {
 
@@ -50,7 +51,7 @@ public class VentanaTarjetaController {
     private TableroDto tablero;
     private VentanaTableroController tableroController;
 
-    private final TableroApiClient apiClient = new TableroApiClient();
+    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
 
     public void setTableroController(VentanaTableroController tc) {
         this.tableroController = tc;
@@ -84,7 +85,7 @@ public class VentanaTarjetaController {
                 agregarItemUI(item.descripcion, item.completado, i);
             }
         }
-        
+
         // --- Pintar etiquetas existentes ---
         contenedorEtiquetas.getChildren().clear();
         if (tarjeta.etiquetas != null) {
@@ -107,13 +108,7 @@ public class VentanaTarjetaController {
             if (fecha == null) return;
             // El backend espera un campo "fecha" con formato ISO LocalDateTime
             String fechaIso = fecha.atStartOfDay().toString();
-            Task<Void> t = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    apiClient.asignarFechaVencimiento(tableroId, listaId, tarjeta.id, fechaIso);
-                    return null;
-                }
-            };
+            Task<Void> t = service.asignarFechaVencimiento(tableroId, listaId, tarjeta.id, fechaIso);
             t.setOnFailed(ev -> System.err.println("Error al asignar fecha de vencimiento: " + t.getException().getMessage()));
             new Thread(t).start();
         });
@@ -138,13 +133,7 @@ public class VentanaTarjetaController {
         tituloTarjeta.setStyle("-fx-strikethrough: true;");
         root.setOpacity(0.5);
 
-        Task<Void> t = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                apiClient.completarTarjeta(tableroId, listaId, tarjeta.id);
-                return null;
-            }
-        };
+        Task<Void> t = service.completarTarjeta(tableroId, listaId, tarjeta.id);
 
         t.setOnSucceeded(ev -> moverATarjetasCompletadas());
 
@@ -163,32 +152,35 @@ public class VentanaTarjetaController {
      *  y recarga la vista del tablero. Llamable también desde otros controladores (drag-drop). */
     void moverATarjetasCompletadas() {
         if (tablero == null) return;
+
+        // 1. Actualizar el DTO local: quitar la tarjeta de su lista de origen
         if (tablero.listas != null) {
             for (ListaDto lista : tablero.listas) {
                 if (lista.id != null && lista.id.equals(listaId)) {
-                    // Eliminar SOLO la tarjeta de su lista, nunca la lista de tablero.listas
                     if (lista.tarjetas != null) {
                         lista.tarjetas = new java.util.ArrayList<>(lista.tarjetas);
-                        lista.tarjetas.removeIf(t -> t.id != null && t.id.equals(tarjeta.id));
+                        lista.tarjetas.remove(tarjeta);
                     }
                     break;
                 }
             }
         }
+
+        // 2. Añadir a tarjetasCompletadas (evitar duplicados)
         tarjeta.completada = true;
         if (tablero.tarjetasCompletadas == null) {
             tablero.tarjetasCompletadas = new java.util.ArrayList<>();
         }
-        // Evitar duplicados si ya fue añadida
         if (tablero.tarjetasCompletadas.stream().noneMatch(t -> t.id != null && t.id.equals(tarjeta.id))) {
             tablero.tarjetasCompletadas.add(tarjeta);
         }
 
+        // 3. Redibujar el tablero completo o, en su defecto, quitar solo este nodo
         if (tableroController != null) {
             tableroController.recargarVista();
         } else {
-            // Fallback: eliminar el nodo de la vista si no hay referencia al tablero
-            if (root.getParent() instanceof javafx.scene.layout.VBox parent) {
+            // Fallback seguro: eliminar únicamente este nodo de su contenedor padre
+            if (root.getParent() instanceof javafx.scene.layout.Pane parent) {
                 parent.getChildren().remove(root);
             }
         }
@@ -202,17 +194,9 @@ public class VentanaTarjetaController {
 
         itemCheck.setOnAction(e -> {
             boolean marcado = itemCheck.isSelected();
-            Task<Void> t = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    if (marcado) {
-                        apiClient.marcarItemChecklist(tableroId, listaId, tarjeta.id, indice);
-                    } else {
-                        apiClient.desmarcarItemChecklist(tableroId, listaId, tarjeta.id, indice);
-                    }
-                    return null;
-                }
-            };
+            Task<Void> t = marcado
+                    ? service.marcarItemChecklist(tableroId, listaId, tarjeta.id, indice)
+                    : service.desmarcarItemChecklist(tableroId, listaId, tarjeta.id, indice);
             t.setOnFailed(ev -> {
                 itemCheck.setSelected(!marcado);
                 System.err.println("Error al actualizar ítem: " + t.getException().getMessage());
@@ -280,8 +264,8 @@ public class VentanaTarjetaController {
         canvasParams.setFill(Color.TRANSPARENT);
         return canvas.snapshot(canvasParams, null);
     }
-    
- // --- Lógica de Etiquetas ---
+
+    // --- Lógica de Etiquetas ---
 
     private void agregarPastillaEtiqueta(String nombre, String colorHex) {
         Label pastilla = new Label(nombre);
@@ -294,21 +278,15 @@ public class VentanaTarjetaController {
             "-fx-font-size: 10px; " +
             "-fx-font-weight: bold;"
         );
-        
+
         // Clic para eliminarla
         pastilla.setOnMouseClicked(e -> {
-            Task<Void> t = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    apiClient.desetiquetarTarjeta(tableroId, listaId, tarjeta.id, nombre, colorHex);
-                    return null;
-                }
-            };
+            Task<Void> t = service.desetiquetarTarjeta(tableroId, listaId, tarjeta.id, nombre, colorHex);
             t.setOnSucceeded(ev -> contenedorEtiquetas.getChildren().remove(pastilla));
             t.setOnFailed(ev -> System.err.println("Error al borrar etiqueta"));
             new Thread(t).start();
         });
-        
+
         contenedorEtiquetas.getChildren().add(pastilla);
     }
 
@@ -356,13 +334,7 @@ public class VentanaTarjetaController {
         Optional<EtiquetaDto> result = dialog.showAndWait();
 
         result.ifPresent(etiqueta -> {
-            Task<Void> t = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    apiClient.etiquetarTarjeta(tableroId, listaId, tarjeta.id, etiqueta.nombre, etiqueta.color);
-                    return null;
-                }
-            };
+            Task<Void> t = service.etiquetarTarjeta(tableroId, listaId, tarjeta.id, etiqueta.nombre, etiqueta.color);
             t.setOnSucceeded(e -> {
                 // Actualizar el DTO local para que la etiqueta no se pierda al mover a completadas
                 if (tarjeta.etiquetas == null) tarjeta.etiquetas = new java.util.ArrayList<>();
@@ -370,11 +342,8 @@ public class VentanaTarjetaController {
                 // Actualizar UI inmediatamente
                 agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color);
             });
-            
-            
             t.setOnFailed(e -> System.err.println("Error al añadir etiqueta"));
             new Thread(t).start();
         });
     }
-    
 }

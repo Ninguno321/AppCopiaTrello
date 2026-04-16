@@ -80,6 +80,11 @@ public class TableroService implements GestionTableroUseCase {
         tableroRepository.guardar(tablero);
     }
 
+    @Override
+    public void eliminarTablero(TableroId id) {
+        tableroRepository.eliminar(id);
+    }
+
     // --- Listas ---
 
     @Override

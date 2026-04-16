@@ -1,7 +1,6 @@
 package umu.pds.gestion_proyectos_ui.inicio;
 
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,8 +9,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 
 import java.util.List;
 
@@ -19,13 +19,10 @@ public class VentanaInicioController {
 
     @FXML private TextField txtEmail;
     @FXML private Button btnEntrar;
-    @FXML
-    private Button tableroCompartido;
-    @FXML
-    private TextField textoTableroCompartido;
+    @FXML private Button tableroCompartido;
+    @FXML private TextField textoTableroCompartido;
 
-
-    private final TableroApiClient apiClient = new TableroApiClient();
+    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
 
     @FXML
     void onEntrar() {
@@ -38,12 +35,7 @@ public class VentanaInicioController {
 
         btnEntrar.setDisable(true);
 
-        Task<List<TableroDto>> task = new Task<>() {
-            @Override
-            protected List<TableroDto> call() throws Exception {
-                return apiClient.obtenerTablerosPorEmail(email);
-            }
-        };
+        Task<List<TableroDto>> task = service.obtenerTablerosPorEmail(email);
 
         task.setOnSucceeded(e -> navegarAVentanaPrincipal(email, task.getValue()));
 
@@ -82,35 +74,33 @@ public class VentanaInicioController {
         alert.setContentText(mensaje);
         alert.showAndWait();
     }
-    
+
     @FXML   //AHORA CARGA TODOS LOS TABLEROS PORQUE ESTA CARGANDO POR EMAIL. CAMBIAR A QUE SOLO CARGUE UN TABLERO, LA MEJOR OPCION ES CREAR OTRA VISTA DONDE SOLO SALGA ESE TABLERO.
-    void onCompartido() throws Exception {
+    void onCompartido() {
         String id = textoTableroCompartido.getText().trim();
         if (id.isBlank()) {
-            mostrarError("Campo vacío", "El ID del tablero es oligatorio.");
+            mostrarError("Campo vacío", "El ID del tablero es obligatorio.");
             return;
         }
 
         tableroCompartido.setDisable(true);
-        
-    	TableroDto tab = apiClient.obtenerTablero(id); //agrega exception
-    	String email = tab.emailPropietario;
-        Task<List<TableroDto>> task = new Task<>() {
-            @Override
-            protected List<TableroDto> call() throws Exception {
-                return apiClient.obtenerTablerosPorEmail(tab.emailPropietario);
-            }
-        };
 
-        task.setOnSucceeded(e -> navegarAVentanaPrincipal(email, task.getValue()));
-
-        task.setOnFailed(e -> {
-            btnEntrar.setDisable(false);
-            mostrarError("Error al conectar", task.getException().getMessage());
+        Task<TableroDto> taskTablero = service.obtenerTablero(id);
+        taskTablero.setOnSucceeded(e -> {
+            TableroDto tab = taskTablero.getValue();
+            String email = tab.emailPropietario;
+            Task<List<TableroDto>> taskTableros = service.obtenerTablerosPorEmail(email);
+            taskTableros.setOnSucceeded(ev -> navegarAVentanaPrincipal(email, taskTableros.getValue()));
+            taskTableros.setOnFailed(ev -> {
+                tableroCompartido.setDisable(false);
+                mostrarError("Error al conectar", taskTableros.getException().getMessage());
+            });
+            new Thread(taskTableros).start();
         });
-
-        new Thread(task).start();
-      
+        taskTablero.setOnFailed(e -> {
+            tableroCompartido.setDisable(false);
+            mostrarError("Error al conectar", taskTablero.getException().getMessage());
+        });
+        new Thread(taskTablero).start();
     }
-    
 }
