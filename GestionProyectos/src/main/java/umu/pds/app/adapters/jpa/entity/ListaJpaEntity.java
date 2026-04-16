@@ -15,7 +15,7 @@ public class ListaJpaEntity {
     @Column(nullable = false)
     private String nombre;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "lista_id")
     @OrderColumn(name = "tarjeta_orden")
     private List<TarjetaJpaEntity> tarjetas = new ArrayList<>();

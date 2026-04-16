@@ -8,13 +8,15 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
 
 <VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@../estilos/theme.css, @../estilos/app-board.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaTableroController">
    <children>
 
       <HBox alignment="CENTER_LEFT" spacing="10.0">
          <children>
-            <TextField promptText="Buscar" HBox.hgrow="ALWAYS" />
+            <TextField fx:id="txtFiltro" promptText="Buscar por título..." HBox.hgrow="ALWAYS" />
+            <ComboBox fx:id="cmbEtiquetas" prefWidth="150.0" promptText="Etiqueta..." />
             <Button fx:id="btnBloquear" mnemonicParsing="false" onAction="#toggleBloqueo" styleClass="button" text="Bloquear" />
             <Button mnemonicParsing="false" onAction="#verHistorial" styleClass="button" text="Ver Historial" />
          </children>

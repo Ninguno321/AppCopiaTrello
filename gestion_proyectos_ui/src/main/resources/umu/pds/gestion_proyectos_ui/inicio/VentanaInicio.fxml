@@ -36,7 +36,7 @@
 
             <VBox spacing="5">
                 <Label text="Tu correo electrónico" />
-                <TextField fx:id="txtEmail" promptText="nombre@ejemplo.com" />
+                <TextField fx:id="txtEmail" promptText="nombre@ejemplo.com" onAction="#onEntrar" />
             </VBox>
 
             <Button fx:id="btnEntrar" maxWidth="Infinity" onAction="#onEntrar" styleClass="primary-button" text="Entrar" />

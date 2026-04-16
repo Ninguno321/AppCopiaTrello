@@ -71,6 +71,13 @@ public class VentanaPrincipalController {
         if (!tableros.isEmpty()) {
             tableroActual = tableros.get(0);
             lblTableroActual.setText(tableroActual.nombre);
+            
+            
+            if(!sidebarItems.isEmpty()) {
+            	activarSidebarItem(sidebarItems.get(0));
+            }
+            
+            
             cargarVistaTablero();
         }
     }
@@ -191,6 +198,7 @@ public class VentanaPrincipalController {
         listaTableros.add(tablero);
         sidebarItems.add(hbox);
         sidebarTableros.getChildren().add(hbox);
+
         activarSidebarItem(hbox);
     }
 
