@@ -13,6 +13,7 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
@@ -38,6 +39,9 @@ public class VentanaTableroController {
     @FXML private ScrollPane scrollTablero;
     @FXML private ScrollBar scrollBarH;
     @FXML private HBox zonaEliminar;
+    //Filtros etiquetas
+    @FXML private TextField txtFiltro;
+    @FXML private javafx.scene.control.ComboBox<String> cmbEtiquetas;
 
     private double dragStartX;
     private double hValueOnPress;
@@ -60,6 +64,7 @@ public class VentanaTableroController {
         this.tableroDto = tablero;
         this.tableroBlockeado = tablero.bloqueado;
         actualizarBotonBloqueo();
+        actualizarDesplegableEtiquetas();
         if (tablero.listas != null) {
             for (ListaDto lista : tablero.listas) {
                 mostrarListaConTarjetas(lista);
@@ -169,11 +174,16 @@ public class VentanaTableroController {
 
     @FXML
     public void initialize() {
+    	
+    	//para filtrar las tarjetas por etiquetas
+    	txtFiltro.textProperty().addListener((obs, oldVal, newVal) -> aplicarFiltrosCombinados());
+    	
         // Timer para ocultar la zona de eliminación cuando el drag acaba
         hideTimer.setOnFinished(e -> {
             zonaEliminar.setVisible(false);
             zonaEliminar.setManaged(false);
             zonaEliminar.getStyleClass().remove("zona-eliminar-hover");
+            
         });
 
         // Mostrar zona de eliminación cuando se arrastra algo sobre el tablero
@@ -331,6 +341,94 @@ public class VentanaTableroController {
         } catch (Exception e) {
             System.err.println("Error al mostrar lista: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    //recorremos el tablero para encontrar las etiquetas unicas por eso hacemos un set
+    private void actualizarDesplegableEtiquetas() {
+        java.util.Set<String> etiquetasUnicas = new java.util.TreeSet<>(); // TreeSet para que se ordenen alfabéticamente
+        etiquetasUnicas.add("Todas");
+
+        if (tableroDto != null && tableroDto.listas != null) {
+            for (ListaDto lista : tableroDto.listas) {
+                if (lista.tarjetas != null) {
+                    for (TarjetaDto tarjeta : lista.tarjetas) {
+                        if (tarjeta.etiquetas != null) {
+                            for (umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto etiq : tarjeta.etiquetas) {
+                                if (etiq.nombre != null && !etiq.nombre.isBlank()) {
+                                    etiquetasUnicas.add(etiq.nombre);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        cmbEtiquetas.setOnAction(null); 
+        cmbEtiquetas.setItems(javafx.collections.FXCollections.observableArrayList(etiquetasUnicas));
+        cmbEtiquetas.getSelectionModel().select("Todas");
+        cmbEtiquetas.setOnAction(e -> aplicarFiltrosCombinados());
+    }
+    
+    private void aplicarFiltrosCombinados() {
+        contenedorListas.getChildren().clear();
+        if (tableroDto == null) return;
+
+        String textoFiltro = txtFiltro.getText() == null ? "" : txtFiltro.getText().toLowerCase().trim();
+        String etiquetaSeleccionada = cmbEtiquetas.getValue();
+        if (etiquetaSeleccionada == null) etiquetaSeleccionada = "Todas";
+
+        if (tableroDto.listas != null) {
+            for (ListaDto lista : tableroDto.listas) {
+                mostrarListaConFiltros(lista, textoFiltro, etiquetaSeleccionada);
+            }
+        }
+
+        ListaDto listaCompletadas = new ListaDto();
+        listaCompletadas.id = "ESPECIAL_COMPLETADAS";
+        listaCompletadas.nombre = "✓ COMPLETADAS";
+        listaCompletadas.tarjetas = tableroDto.tarjetasCompletadas != null ? tableroDto.tarjetasCompletadas : new java.util.ArrayList<>();
+        mostrarListaConFiltros(listaCompletadas, textoFiltro, etiquetaSeleccionada);
+    }
+
+    private void mostrarListaConFiltros(ListaDto lista, String textoFiltro, String etiquetaSeleccionada) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaLista.fxml"));
+            VBox nodoLista = loader.load();
+            VentanaListaController controller = loader.getController();
+
+            controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
+            controller.setTableroController(this);
+            controller.getScroll().maxHeightProperty().bind(scrollTablero.heightProperty().subtract(220));
+
+            if (lista.tarjetas != null) {
+                for (TarjetaDto tarjeta : lista.tarjetas) {
+                    
+
+                    boolean pasaFiltroTexto = textoFiltro.isEmpty() || 
+                        (tarjeta.titulo != null && tarjeta.titulo.toLowerCase().contains(textoFiltro));
+                    
+
+                    boolean pasaFiltroEtiqueta = etiquetaSeleccionada.equals("Todas");
+                    if (!pasaFiltroEtiqueta && tarjeta.etiquetas != null) {
+                        for (umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto etiq : tarjeta.etiquetas) {
+                            if (etiq.nombre != null && etiq.nombre.equals(etiquetaSeleccionada)) {
+                                pasaFiltroEtiqueta = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // solo si pasa los dos mostramos la tarjeta
+                    if (pasaFiltroTexto && pasaFiltroEtiqueta) {
+                        controller.mostrarTarjeta(tarjeta);
+                    }
+                }
+            }
+            contenedorListas.getChildren().add(nodoLista);
+        } catch (Exception e) {
+            System.err.println("Error al mostrar lista filtrada: " + e.getMessage());
         }
     }
 }
