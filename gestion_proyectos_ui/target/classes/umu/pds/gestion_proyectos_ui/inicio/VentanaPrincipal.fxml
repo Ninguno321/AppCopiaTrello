@@ -29,6 +29,10 @@
                  styleClass="sidebar-create" maxWidth="Infinity"
                  onAction="#onCrearTablero"/>
 
+         <Button fx:id="btnImportarPlantilla" text="+ Importar Plantilla"
+                 styleClass="sidebar-create" maxWidth="Infinity"
+                 onAction="#onImportarPlantillaClick"/>
+
          <Region VBox.vgrow="ALWAYS"/>
 
          <Button fx:id="btnConfiguracion" text="⚙  Configuración"

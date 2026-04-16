@@ -345,6 +345,23 @@ public class TableroApiClient {
         }
     }
 
+    public TableroDto importarPlantilla(String yamlContent, String email) throws Exception {
+        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/plantilla?email=" + encodedEmail))
+                .header("Content-Type", "text/plain")
+                .POST(HttpRequest.BodyPublishers.ofString(yamlContent, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 201) {
+            return objectMapper.readValue(response.body(), TableroDto.class);
+        }
+        throw new RuntimeException("Error al importar plantilla (" + response.statusCode() + "): " + response.body());
+    }
+
     public List<TrazaDto> obtenerHistorial(String tableroId) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/historial"))

@@ -53,6 +53,16 @@ public class GestionTableroFrontendServiceImpl implements GestionTableroFrontend
     }
 
     @Override
+    public Task<TableroDto> importarPlantilla(String yamlContent, String email) {
+        return new Task<>() {
+            @Override
+            protected TableroDto call() throws Exception {
+                return apiClient.importarPlantilla(yamlContent, email);
+            }
+        };
+    }
+
+    @Override
     public Task<Void> bloquearTablero(String tableroId) {
         return new Task<>() {
             @Override

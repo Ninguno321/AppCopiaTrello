@@ -15,11 +15,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 import javafx.scene.Node;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +32,7 @@ public class VentanaPrincipalController {
     // Sidebar
     @FXML private VBox sidebarTableros;
     @FXML private Button btnCrearTablero;
+    @FXML private Button btnImportarPlantilla;
     @FXML private Button btnConfiguracion;
 
     // Cabecera del contenido central
@@ -232,6 +236,53 @@ public class VentanaPrincipalController {
 
             new Thread(task).start();
         });
+    }
+
+    @FXML
+    void onImportarPlantillaClick(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccionar plantilla YAML");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Archivos YAML (*.yaml, *.yml)", "*.yaml", "*.yml")
+        );
+
+        File archivo = fileChooser.showOpenDialog(btnImportarPlantilla.getScene().getWindow());
+        if (archivo == null) return;
+
+        String yamlContent;
+        try {
+            yamlContent = Files.readString(archivo.toPath());
+        } catch (Exception ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(btnImportarPlantilla.getScene().getWindow());
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("No se pudo leer el archivo: " + ex.getMessage());
+            alert.showAndWait();
+            return;
+        }
+
+        Task<TableroDto> task = service.importarPlantilla(yamlContent, emailActual);
+
+        task.setOnSucceeded(e -> {
+            TableroDto nuevoTablero = task.getValue();
+            agregarItemSidebar(nuevoTablero);
+            tableroActual = nuevoTablero;
+            lblTableroActual.setText(nuevoTablero.nombre);
+            cargarVistaTablero();
+        });
+
+        task.setOnFailed(e -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(btnImportarPlantilla.getScene().getWindow());
+            alert.setTitle("Error al importar plantilla");
+            alert.setHeaderText(null);
+            alert.setContentText("El formato YAML es inválido o hubo un error en el servidor:\n"
+                    + task.getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
     }
 
     @FXML

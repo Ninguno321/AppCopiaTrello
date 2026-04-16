@@ -71,4 +71,8 @@ public interface GestionTableroUseCase {
     // --- Fecha de Vencimiento ---
 
     void asignarFechaVencimiento(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha);
+
+    // --- Importación desde plantilla ---
+
+    Tablero crearDesdePlantilla(String yamlContent, String email);
 }

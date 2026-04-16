@@ -19,6 +19,7 @@ public interface GestionTableroFrontendService {
     Task<List<TableroDto>> obtenerTablerosPorEmail(String email);
     Task<TableroDto>       obtenerTablero(String id);
     Task<TableroDto>       crearTablero(String nombre, String email);
+    Task<TableroDto>       importarPlantilla(String yamlContent, String email);
     Task<Void>             bloquearTablero(String tableroId);
     Task<Void>             desbloquearTablero(String tableroId);
     Task<List<TrazaDto>>   obtenerHistorial(String tableroId);

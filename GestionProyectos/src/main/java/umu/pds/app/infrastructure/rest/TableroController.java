@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import umu.pds.app.application.ports.input.GestionTableroUseCase;
+import umu.pds.app.domain.exceptions.PlantillaInvalidaException;
 import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
@@ -244,7 +245,23 @@ public class TableroController {
         return ResponseEntity.ok().build();
     }
 
+    // --- Importación desde plantilla ---
+
+    @PostMapping("/plantilla")
+    public ResponseEntity<TableroResponse> crearDesdePlantilla(
+            @RequestBody String yamlContent,
+            @RequestParam String email) {
+        Tablero tablero = gestionTablero.crearDesdePlantilla(yamlContent, email);
+        return ResponseEntity.status(HttpStatus.CREATED).body(TableroResponse.from(tablero));
+    }
+
     // --- Manejo de errores ---
+
+    @ExceptionHandler(PlantillaInvalidaException.class)
+    public ResponseEntity<Map<String, String>> handlePlantillaInvalida(PlantillaInvalidaException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(IllegalArgumentException ex) {
