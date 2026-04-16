@@ -283,6 +283,12 @@ public class VentanaTarjetaController {
         pastilla.setOnMouseClicked(e -> {
             Task<Void> t = service.desetiquetarTarjeta(tableroId, listaId, tarjeta.id, nombre, colorHex);
             t.setOnSucceeded(ev -> contenedorEtiquetas.getChildren().remove(pastilla));
+            
+            //actualizamos etiquetas por si ya no hay ninguna al borrar la tarjeta de ese tipo
+            if (tableroController != null) {
+                tableroController.actualizarDesplegableEtiquetas();
+            }
+            
             t.setOnFailed(ev -> System.err.println("Error al borrar etiqueta"));
             new Thread(t).start();
         });
@@ -341,6 +347,11 @@ public class VentanaTarjetaController {
                 tarjeta.etiquetas.add(etiqueta);
                 // Actualizar UI inmediatamente
                 agregarPastillaEtiqueta(etiqueta.nombre, etiqueta.color);
+                
+                //actualizamos desplegable de etiquetas si añadimos una nueva
+                if(tableroController != null) {
+                	tableroController.actualizarDesplegableEtiquetas();
+                }
             });
             t.setOnFailed(e -> System.err.println("Error al añadir etiqueta"));
             new Thread(t).start();

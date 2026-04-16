@@ -345,7 +345,7 @@ public class VentanaTableroController {
     }
     
     //recorremos el tablero para encontrar las etiquetas unicas por eso hacemos un set
-    private void actualizarDesplegableEtiquetas() {
+    public void actualizarDesplegableEtiquetas() {
         java.util.Set<String> etiquetasUnicas = new java.util.TreeSet<>(); // TreeSet para que se ordenen alfabéticamente
         etiquetasUnicas.add("Todas");
 
