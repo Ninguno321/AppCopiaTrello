@@ -18,6 +18,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
@@ -144,7 +145,6 @@ public class VentanaListaController {
 
             if (dragged instanceof HBox tarjeta) {
                 int dropIndex = contenedorTarjetas.getChildren().indexOf(placeholder);
-
                 contenedorTarjetas.getChildren().remove(placeholder);
 
                 if (tarjeta.getParent() instanceof VBox origen) {
@@ -156,30 +156,60 @@ public class VentanaListaController {
 
                 if (tarjeta.getUserData() instanceof VentanaTarjetaController tc) {
                     String listaOrigen = tc.getListaId();
+                    String tId = tc.getTarjetaId();
+                    String tbId = tc.getTableroId();
 
                     if ("ESPECIAL_COMPLETADAS".equals(listaId)) {
-                        // Soltar en lista de completadas → completar tarjeta en backend
+                        // Soltar en lista de completadas
                         if (!Objects.equals(listaOrigen, listaId)) {
-                            String tId = tc.getTarjetaId();
-                            String tbId = tc.getTableroId();
                             Task<Void> completar = service.completarTarjeta(tbId, listaOrigen, tId);
                             completar.setOnSucceeded(e -> tc.moverATarjetasCompletadas());
-                            completar.setOnFailed(e -> System.err.println(
-                                "Error al completar tarjeta: " + completar.getException().getMessage()));
+                            completar.setOnFailed(e -> System.err.println("Error: " + completar.getException().getMessage()));
                             new Thread(completar).start();
                         }
-                    } else if (!Objects.equals(listaOrigen, listaId)) {
-                        // Movimiento normal entre listas
-                        tc.setListaId(listaId);
-                        String tId = tc.getTarjetaId();
-                        String tbId = tc.getTableroId();
-                        Task<Void> mover = service.moverTarjeta(tbId, tId, listaOrigen, listaId);
-                        mover.setOnFailed(e -> System.err.println(
-                            "Error al mover tarjeta: " + mover.getException().getMessage()));
-                        new Thread(mover).start();
+                    } else {
+                        // actualizamos en memoria ( dto ) 
+                        if (tablero != null && tablero.listas != null) {
+                            TarjetaDto tarjetaMovida = null;
+                            
+                            //buscar y quitar
+                            for (ListaDto l : tablero.listas) {
+                                if (l.id != null && l.id.equals(listaOrigen)) {
+                                    if (l.tarjetas != null) {
+                                        for (int i = 0; i < l.tarjetas.size(); i++) {
+                                            if (l.tarjetas.get(i).id.equals(tId)) {
+                                                tarjetaMovida = l.tarjetas.remove(i);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            
+                            // meterla en la pos correcta
+                            if (tarjetaMovida != null) {
+                                for (ListaDto l : tablero.listas) {
+                                    if (l.id != null && l.id.equals(listaId)) {
+                                        if (l.tarjetas == null) l.tarjetas = new ArrayList<>();
+                                        int safeIndex = Math.min(dropIndex, l.tarjetas.size());
+                                        l.tarjetas.add(safeIndex, tarjetaMovida);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // actualizar backend
+                        tc.setListaId(listaId); 
+
+                        if (!Objects.equals(listaOrigen, listaId)) {
+                            Task<Void> mover = service.moverTarjeta(tbId, tId, listaOrigen, listaId);
+                            mover.setOnFailed(e -> System.err.println("Error al mover tarjeta: " + mover.getException().getMessage()));
+                            new Thread(mover).start();
+                        }
                     }
                 }
-
                 success = true;
             }
 
@@ -305,18 +335,24 @@ public class VentanaListaController {
         // 4. Crear en backend (tarjeta + checklist + ítems en un solo Task del servicio)
         Task<TarjetaDto> task = service.crearTarjetaCompleta(tableroId, listaId, tituloTexto, esChecklist, items);
 
-        task.setOnSucceeded(e -> mostrarTarjeta(task.getValue()));
-        task.setOnFailed(e -> {
-            String msg = task.getException().getMessage();
-            if (msg != null && (msg.contains("409") || msg.contains("Conflict"))) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.initOwner(scroll.getScene().getWindow());
-                alert.setTitle("Tablero bloqueado");
-                alert.setHeaderText(null);
-                alert.setContentText("El tablero esta bloqueado y no admite nuevas tarjetas.");
-                alert.showAndWait();
+        task.setOnSucceeded(e -> {
+            TarjetaDto nuevaTarjeta = task.getValue();
+            
+            
+            if (tablero != null && tablero.listas != null) {
+                for (ListaDto l : tablero.listas) {
+                    if (l.id != null && l.id.equals(listaId)) {
+                        if (l.tarjetas == null) l.tarjetas = new ArrayList<>();
+                        l.tarjetas.add(nuevaTarjeta);
+                        break;
+                    }
+                }
+            }
+            
+            if (tableroController != null) {
+                tableroController.aplicarFiltrosCombinados();
             } else {
-                System.err.println("Error al crear tarjeta: " + msg);
+                mostrarTarjeta(nuevaTarjeta); 
             }
         });
 
@@ -332,7 +368,9 @@ public class VentanaListaController {
             VentanaTarjetaController controller = loader.getController();
             controller.setDatos(tableroId, listaId, tarjeta, tablero);
             if (tableroController != null) {
-                controller.setTableroController(tableroController);
+                controller.setTableroController(this.tableroController);
+            }else {
+            	System.out.println("error - la lista no tiene controlador");
             }
             contenedorTarjetas.getChildren().add(nodoTarjeta);
         } catch (Exception e) {

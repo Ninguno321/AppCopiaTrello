@@ -28,6 +28,7 @@ import umu.pds.gestion_proyectos_ui.api.dto.TrazaDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +40,6 @@ public class VentanaTableroController {
     @FXML private ScrollPane scrollTablero;
     @FXML private ScrollBar scrollBarH;
     @FXML private HBox zonaEliminar;
-    //Filtros etiquetas
     @FXML private TextField txtFiltro;
     @FXML private javafx.scene.control.ComboBox<String> cmbEtiquetas;
 
@@ -56,31 +56,15 @@ public class VentanaTableroController {
         this.tableroId = tableroId;
     }
 
-    /**
-     * Recibe un TableroDto completo y reconstruye las listas (con sus tarjetas).
-     */
     public void cargarDatos(TableroDto tablero) {
         this.tableroId = tablero.id;
         this.tableroDto = tablero;
         this.tableroBlockeado = tablero.bloqueado;
         actualizarBotonBloqueo();
         actualizarDesplegableEtiquetas();
-        if (tablero.listas != null) {
-            for (ListaDto lista : tablero.listas) {
-                mostrarListaConTarjetas(lista);
-            }
-        }
-        // Lista virtual de tarjetas completadas (siempre al final)
-        ListaDto listaCompletadas = new ListaDto();
-        listaCompletadas.id = "ESPECIAL_COMPLETADAS";
-        listaCompletadas.nombre = "✓ COMPLETADAS";
-        listaCompletadas.tarjetas = tablero.tarjetasCompletadas != null
-                ? tablero.tarjetasCompletadas
-                : new java.util.ArrayList<>();
-        mostrarListaConTarjetas(listaCompletadas);
+        aplicarFiltrosCombinados();
     }
 
-    /** Limpia el contenedor y recarga la vista desde el TableroDto en memoria. */
     public void recargarVista() {
         contenedorListas.getChildren().clear();
         cargarDatos(tableroDto);
@@ -107,15 +91,7 @@ public class VentanaTableroController {
             actualizarBotonBloqueo();
         });
 
-        task.setOnFailed(e -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initOwner(contenedorListas.getScene().getWindow());
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText("No se pudo cambiar el estado del tablero: " + task.getException().getMessage());
-            alert.showAndWait();
-        });
-
+        task.setOnFailed(e -> mostrarError("Error", "No se pudo cambiar el estado: " + task.getException().getMessage()));
         new Thread(task).start();
     }
 
@@ -125,7 +101,6 @@ public class VentanaTableroController {
 
         task.setOnSucceeded(e -> {
             List<TrazaDto> trazas = task.getValue();
-
             ListView<String> listView = new ListView<>();
             listView.setPrefWidth(500);
             listView.setPrefHeight(350);
@@ -134,59 +109,42 @@ public class VentanaTableroController {
                 listView.setItems(FXCollections.observableArrayList("No hay entradas en el historial."));
             } else {
                 listView.setItems(FXCollections.observableArrayList(
-                    trazas.stream()
-                          .map(t -> formatearFecha(t.timestamp) + "  —  " + t.descripcion)
-                          .toList()
+                    trazas.stream().map(t -> formatearFecha(t.timestamp) + "  —  " + t.descripcion).toList()
                 ));
             }
 
             Dialog<Void> dialog = new Dialog<>();
             dialog.initOwner(contenedorListas.getScene().getWindow());
             dialog.setTitle("Historial del tablero");
-            dialog.setHeaderText(null);
-
-            DialogPane pane = dialog.getDialogPane();
-            pane.setContent(listView);
-            pane.getButtonTypes().add(javafx.scene.control.ButtonType.CLOSE);
-
+            dialog.getDialogPane().setContent(listView);
+            dialog.getDialogPane().getButtonTypes().add(javafx.scene.control.ButtonType.CLOSE);
             dialog.showAndWait();
         });
 
-        task.setOnFailed(e -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initOwner(contenedorListas.getScene().getWindow());
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText("No se pudo obtener el historial: " + task.getException().getMessage());
-            alert.showAndWait();
-        });
-
+        task.setOnFailed(e -> mostrarError("Error", "No se pudo obtener historial: " + task.getException().getMessage()));
         new Thread(task).start();
     }
 
     private String formatearFecha(String timestamp) {
         if (timestamp == null || timestamp.isBlank()) return "—";
-        // "2026-03-30T14:05:32" → "2026-03-30 14:05"
         String s = timestamp.replace("T", " ");
-        if (s.length() > 16) s = s.substring(0, 16);
-        return s;
+        return s.length() > 16 ? s.substring(0, 16) : s;
+    }
+
+    private void mostrarError(String titulo, String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.initOwner(contenedorListas.getScene().getWindow());
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
     }
 
     @FXML
     public void initialize() {
-    	
-    	//para filtrar las tarjetas por etiquetas
-    	txtFiltro.textProperty().addListener((obs, oldVal, newVal) -> aplicarFiltrosCombinados());
-    	
-        // Timer para ocultar la zona de eliminación cuando el drag acaba
-        hideTimer.setOnFinished(e -> {
-            zonaEliminar.setVisible(false);
-            zonaEliminar.setManaged(false);
-            zonaEliminar.getStyleClass().remove("zona-eliminar-hover");
-            
-        });
+        txtFiltro.textProperty().addListener((obs, oldVal, newVal) -> aplicarFiltrosCombinados());
+        hideTimer.setOnFinished(e -> ocultarZonaEliminar());
 
-        // Mostrar zona de eliminación cuando se arrastra algo sobre el tablero
         scrollTablero.getParent().addEventFilter(DragEvent.DRAG_OVER, e -> {
             if (e.getDragboard().hasString()) {
                 zonaEliminar.setVisible(true);
@@ -195,7 +153,6 @@ public class VentanaTableroController {
             }
         });
 
-        // Zona de eliminación acepta drops
         zonaEliminar.setOnDragOver(e -> {
             if (e.getDragboard().hasString()) {
                 e.acceptTransferModes(TransferMode.MOVE);
@@ -215,32 +172,39 @@ public class VentanaTableroController {
         zonaEliminar.setOnDragDropped(e -> {
             boolean success = false;
             Object dragged = zonaEliminar.getScene().getUserData();
-            if (dragged instanceof HBox tarjeta && tarjeta.getUserData() instanceof VentanaTarjetaController tc) {
-                // Eliminar visualmente
-                if (tarjeta.getParent() instanceof VBox origen) {
-                    origen.getChildren().remove(tarjeta);
+            if (dragged instanceof HBox tarjetaNodo && tarjetaNodo.getUserData() instanceof VentanaTarjetaController tc) {
+                
+                // quitamos de la memoria la eliminada
+                if (tableroDto != null && tableroDto.listas != null) {
+                    for (ListaDto lista : tableroDto.listas) {
+                        if (lista.id != null && lista.id.equals(tc.getListaId())) {
+                            if (lista.tarjetas != null) {
+                                lista.tarjetas.removeIf(t -> t.id.equals(tc.getTarjetaId()));
+                            }
+                            break;
+                        }
+                    }
                 }
-                // Eliminar en backend
+
+                // eliminamos dle backend
                 Task<Void> task = service.eliminarTarjeta(tc.getTableroId(), tc.getListaId(), tc.getTarjetaId());
-                task.setOnFailed(ev -> System.err.println("Error al eliminar tarjeta: " + task.getException().getMessage()));
+                task.setOnFailed(ev -> System.err.println("Error backend: " + task.getException().getMessage()));
                 new Thread(task).start();
+
+                // actualizamos
+                actualizarDesplegableEtiquetas();
+                aplicarFiltrosCombinados();
                 success = true;
             }
             e.setDropCompleted(success);
             e.consume();
-            zonaEliminar.setVisible(false);
-            zonaEliminar.setManaged(false);
-            zonaEliminar.getStyleClass().remove("zona-eliminar-hover");
+            ocultarZonaEliminar();
         });
 
         scrollTablero.getContent().boundsInLocalProperty().addListener((obs, o, n) -> actualizarScrollBar());
         scrollTablero.viewportBoundsProperty().addListener((obs, o, n) -> actualizarScrollBar());
-
-        scrollBarH.valueProperty().addListener((obs, oldVal, newVal) ->
-            scrollTablero.setHvalue(newVal.doubleValue()));
-
-        scrollTablero.hvalueProperty().addListener((obs, oldVal, newVal) ->
-            scrollBarH.setValue(newVal.doubleValue()));
+        scrollBarH.valueProperty().addListener((obs, oldVal, newVal) -> scrollTablero.setHvalue(newVal.doubleValue()));
+        scrollTablero.hvalueProperty().addListener((obs, oldVal, newVal) -> scrollBarH.setValue(newVal.doubleValue()));
 
         scrollTablero.getContent().setOnMousePressed(event -> {
             dragStartX = event.getSceneX();
@@ -255,13 +219,17 @@ public class VentanaTableroController {
             if (scrollableWidth > 0) {
                 double dx = event.getSceneX() - dragStartX;
                 double deltaH = -dx / scrollableWidth;
-                double newH = Math.max(0, Math.min(1, hValueOnPress + deltaH));
-                scrollTablero.setHvalue(newH);
+                scrollTablero.setHvalue(Math.max(0, Math.min(1, hValueOnPress + deltaH)));
             }
         });
 
-        scrollTablero.getContent().setOnMouseReleased(event ->
-            scrollTablero.getContent().setCursor(Cursor.DEFAULT));
+        scrollTablero.getContent().setOnMouseReleased(event -> scrollTablero.getContent().setCursor(Cursor.DEFAULT));
+    }
+
+    private void ocultarZonaEliminar() {
+        zonaEliminar.setVisible(false);
+        zonaEliminar.setManaged(false);
+        zonaEliminar.getStyleClass().remove("zona-eliminar-hover");
     }
 
     private void actualizarScrollBar() {
@@ -287,66 +255,18 @@ public class VentanaTableroController {
             if (nombre.isBlank()) return;
 
             Task<ListaDto> task = service.agregarLista(tableroId, nombre);
-
-            task.setOnSucceeded(e -> mostrarLista(task.getValue()));
+            task.setOnSucceeded(e -> {
+                if (tableroDto.listas == null) tableroDto.listas = new ArrayList<>();
+                tableroDto.listas.add(task.getValue());
+                aplicarFiltrosCombinados();
+            });
             task.setOnFailed(e -> System.err.println("Error al crear lista: " + task.getException().getMessage()));
-
             new Thread(task).start();
         });
     }
 
-    private void mostrarLista(ListaDto lista) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaLista.fxml")
-            );
-            VBox nodoLista = loader.load();
-            VentanaListaController controller = loader.getController();
-
-            controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
-            controller.setTableroController(this);
-            controller.getScroll().maxHeightProperty()
-                    .bind(scrollTablero.heightProperty().subtract(220));
-
-            contenedorListas.getChildren().add(nodoLista);
-
-        } catch (Exception e) {
-            System.err.println("Error al mostrar lista: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void mostrarListaConTarjetas(ListaDto lista) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaLista.fxml")
-            );
-            VBox nodoLista = loader.load();
-            VentanaListaController controller = loader.getController();
-
-            controller.setDatos(tableroId, lista.id, lista.nombre, tableroDto);
-            controller.setTableroController(this);
-            controller.getScroll().maxHeightProperty()
-                    .bind(scrollTablero.heightProperty().subtract(220));
-
-            // Cargar tarjetas existentes
-            if (lista.tarjetas != null) {
-                for (TarjetaDto tarjeta : lista.tarjetas) {
-                    controller.mostrarTarjeta(tarjeta);
-                }
-            }
-
-            contenedorListas.getChildren().add(nodoLista);
-
-        } catch (Exception e) {
-            System.err.println("Error al mostrar lista: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    //recorremos el tablero para encontrar las etiquetas unicas por eso hacemos un set
     public void actualizarDesplegableEtiquetas() {
-        java.util.Set<String> etiquetasUnicas = new java.util.TreeSet<>(); // TreeSet para que se ordenen alfabéticamente
+        java.util.Set<String> etiquetasUnicas = new java.util.TreeSet<>();
         etiquetasUnicas.add("Todas");
 
         if (tableroDto != null && tableroDto.listas != null) {
@@ -364,16 +284,25 @@ public class VentanaTableroController {
                 }
             }
         }
+
+        String seleccionActual = cmbEtiquetas.getValue();
+        if (seleccionActual == null) seleccionActual = "Todas";
+
+        cmbEtiquetas.setOnAction(null);
+        cmbEtiquetas.setItems(FXCollections.observableArrayList(etiquetasUnicas));
         
-        cmbEtiquetas.setOnAction(null); 
-        cmbEtiquetas.setItems(javafx.collections.FXCollections.observableArrayList(etiquetasUnicas));
-        cmbEtiquetas.getSelectionModel().select("Todas");
+        if (etiquetasUnicas.contains(seleccionActual)) {
+            cmbEtiquetas.getSelectionModel().select(seleccionActual);
+        } else {
+            cmbEtiquetas.getSelectionModel().select("Todas");
+        }
+        
         cmbEtiquetas.setOnAction(e -> aplicarFiltrosCombinados());
     }
-    
-    private void aplicarFiltrosCombinados() {
-        contenedorListas.getChildren().clear();
+
+    public void aplicarFiltrosCombinados() {
         if (tableroDto == null) return;
+        contenedorListas.getChildren().clear();
 
         String textoFiltro = txtFiltro.getText() == null ? "" : txtFiltro.getText().toLowerCase().trim();
         String etiquetaSeleccionada = cmbEtiquetas.getValue();
@@ -381,18 +310,18 @@ public class VentanaTableroController {
 
         if (tableroDto.listas != null) {
             for (ListaDto lista : tableroDto.listas) {
-                mostrarListaConFiltros(lista, textoFiltro, etiquetaSeleccionada);
+                renderizarLista(lista, textoFiltro, etiquetaSeleccionada);
             }
         }
 
         ListaDto listaCompletadas = new ListaDto();
         listaCompletadas.id = "ESPECIAL_COMPLETADAS";
         listaCompletadas.nombre = "✓ COMPLETADAS";
-        listaCompletadas.tarjetas = tableroDto.tarjetasCompletadas != null ? tableroDto.tarjetasCompletadas : new java.util.ArrayList<>();
-        mostrarListaConFiltros(listaCompletadas, textoFiltro, etiquetaSeleccionada);
+        listaCompletadas.tarjetas = tableroDto.tarjetasCompletadas != null ? tableroDto.tarjetasCompletadas : new ArrayList<>();
+        renderizarLista(listaCompletadas, textoFiltro, etiquetaSeleccionada);
     }
 
-    private void mostrarListaConFiltros(ListaDto lista, String textoFiltro, String etiquetaSeleccionada) {
+    private void renderizarLista(ListaDto lista, String textoFiltro, String etiquetaSeleccionada) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/VentanaLista.fxml"));
             VBox nodoLista = loader.load();
@@ -404,12 +333,9 @@ public class VentanaTableroController {
 
             if (lista.tarjetas != null) {
                 for (TarjetaDto tarjeta : lista.tarjetas) {
-                    
-
                     boolean pasaFiltroTexto = textoFiltro.isEmpty() || 
                         (tarjeta.titulo != null && tarjeta.titulo.toLowerCase().contains(textoFiltro));
                     
-
                     boolean pasaFiltroEtiqueta = etiquetaSeleccionada.equals("Todas");
                     if (!pasaFiltroEtiqueta && tarjeta.etiquetas != null) {
                         for (umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto etiq : tarjeta.etiquetas) {
@@ -420,7 +346,6 @@ public class VentanaTableroController {
                         }
                     }
 
-                    // solo si pasa los dos mostramos la tarjeta
                     if (pasaFiltroTexto && pasaFiltroEtiqueta) {
                         controller.mostrarTarjeta(tarjeta);
                     }
@@ -429,6 +354,7 @@ public class VentanaTableroController {
             contenedorListas.getChildren().add(nodoLista);
         } catch (Exception e) {
             System.err.println("Error al mostrar lista filtrada: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

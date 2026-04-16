@@ -282,12 +282,13 @@ public class VentanaTarjetaController {
         // Clic para eliminarla
         pastilla.setOnMouseClicked(e -> {
             Task<Void> t = service.desetiquetarTarjeta(tableroId, listaId, tarjeta.id, nombre, colorHex);
-            t.setOnSucceeded(ev -> contenedorEtiquetas.getChildren().remove(pastilla));
-            
-            //actualizamos etiquetas por si ya no hay ninguna al borrar la tarjeta de ese tipo
-            if (tableroController != null) {
-                tableroController.actualizarDesplegableEtiquetas();
-            }
+            t.setOnSucceeded(ev -> {
+                contenedorEtiquetas.getChildren().remove(pastilla);
+
+                if (tableroController != null) {
+                    tableroController.actualizarDesplegableEtiquetas();
+                }
+            });
             
             t.setOnFailed(ev -> System.err.println("Error al borrar etiqueta"));
             new Thread(t).start();
