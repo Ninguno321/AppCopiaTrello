@@ -8,63 +8,60 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="1000.0" prefWidth="1333.0"
-            stylesheets="@../estilos/theme.css, @../estilos/app-base.css, @../estilos/app-board.css"
-            xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaPrincipalController">
+<BorderPane prefHeight="1000.0" prefWidth="1333.0" stylesheets="@../estilos/theme.css, @../estilos/app-base.css, @../estilos/app-board.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaPrincipalController">
 
    <left>
-      <VBox styleClass="sidebar" prefWidth="220.0" spacing="4.0">
+      <VBox prefWidth="220.0" spacing="4.0" styleClass="sidebar">
          <padding>
-            <Insets top="20.0" right="12.0" bottom="16.0" left="12.0"/>
+            <Insets bottom="16.0" left="12.0" right="12.0" top="20.0" />
          </padding>
 
-         <Label text="Mis tableros" styleClass="sidebar-section-title"/>
+         <Label styleClass="sidebar-section-title" text="Mis tableros" />
 
-         <VBox fx:id="sidebarTableros" spacing="4.0"/>
+         <VBox fx:id="sidebarTableros" spacing="4.0" />
 
-         <Button fx:id="btnCrearTablero" text="+ Crear tablero"
-                 styleClass="sidebar-create" maxWidth="Infinity"
-                 onAction="#onCrearTablero"/>
+         <Button fx:id="btnCrearTablero" maxWidth="Infinity" onAction="#onCrearTablero" styleClass="sidebar-create" text="+ Crear tablero" />
 
-         <Button fx:id="btnImportarPlantilla" text="+ Importar Plantilla"
-                 styleClass="sidebar-create" maxWidth="Infinity"
-                 onAction="#onImportarPlantillaClick"/>
+         <Button fx:id="btnImportarPlantilla" maxWidth="Infinity" onAction="#onImportarPlantillaClick" styleClass="sidebar-create" text="+ Importar Plantilla" />
 
-         <Region VBox.vgrow="ALWAYS"/>
+         <Region VBox.vgrow="ALWAYS" />
 
-         <Button fx:id="btnConfiguracion" text="⚙  Configuración"
-                 styleClass="sidebar-config" maxWidth="Infinity"
-                 onAction="#onConfiguracion"/>
+         <Button fx:id="btnConfiguracion" maxWidth="Infinity" onAction="#onConfiguracion" styleClass="sidebar-config" text="⚙  Configuración" />
       </VBox>
    </left>
 
    <center>
-      <VBox styleClass="content-area" spacing="12.0">
+      <VBox spacing="12.0" styleClass="content-area">
          <padding>
-            <Insets top="24.0" right="24.0" bottom="24.0" left="24.0"/>
+            <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
          </padding>
 
-         <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="8.0">
-            <Label fx:id="lblTableroActual" text="Tablero 1" styleClass="content-title"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnAutomatizaciones" text="Automatizaciones"
-                    styleClass="btn-automatizaciones" onAction="#onAutomatizaciones"/>
+         <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="content-header">
+            <Label fx:id="lblTableroActual" styleClass="content-title" text="Tablero 1" />
+            <Label fx:id="TableroID" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#onCopiarTableroId" prefHeight="25.0" prefWidth="88.0" text="Tablero_id" textAlignment="CENTER">
+               <font>
+                  <Font size="15.0" />
+               </font>
+               <HBox.margin>
+                  <Insets left="10.0" />
+               </HBox.margin>
+               <padding>
+                  <Insets top="5.0" />
+               </padding>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnAutomatizaciones" onAction="#onAutomatizaciones" styleClass="btn-automatizaciones" text="Automatizaciones" />
          </HBox>
 
-         <HBox styleClass="toolbar-box" spacing="4.0">
-            <Button fx:id="btnTabTablero" text="Tablero"
-                    styleClass="button,active" onAction="#onTabTablero"/>
-            <Button fx:id="btnTabCalendario" text="Calendario"
-                    styleClass="button" onAction="#onTabCalendario"/>
-            <Button fx:id="btnTabTabla" text="Tabla"
-                    styleClass="button" onAction="#onTabTabla"/>
+         <HBox spacing="4.0" styleClass="toolbar-box">
+            <Button fx:id="btnTabTablero" onAction="#onTabTablero" styleClass="button,active" text="Tablero" />
+            <Button fx:id="btnTabCalendario" onAction="#onTabCalendario" styleClass="button" text="Calendario" />
+            <Button fx:id="btnTabTabla" onAction="#onTabTabla" styleClass="button" text="Tabla" />
          </HBox>
 
-         <StackPane fx:id="mainContentPane" VBox.vgrow="ALWAYS"
-                    styleClass="main-content-pane"/>
+         <StackPane fx:id="mainContentPane" styleClass="main-content-pane" VBox.vgrow="ALWAYS" />
       </VBox>
    </center>
 

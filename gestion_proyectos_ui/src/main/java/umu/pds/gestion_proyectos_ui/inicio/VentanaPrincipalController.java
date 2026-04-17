@@ -20,12 +20,16 @@ import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 import javafx.scene.Node;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.w3c.dom.events.MouseEvent;
 
 public class VentanaPrincipalController {
 
@@ -47,6 +51,10 @@ public class VentanaPrincipalController {
     // Área de contenido intercambiable
     @FXML private StackPane mainContentPane;
 
+    //Para copiar el ID del tablero 
+    @FXML
+    private Label TableroID;
+
     private List<Button> tabButtons;
     private final List<HBox> sidebarItems = new ArrayList<>();
     private final List<TableroDto> listaTableros = new ArrayList<>();
@@ -57,6 +65,20 @@ public class VentanaPrincipalController {
     @FXML
     public void initialize() {
         tabButtons = List.of(btnTabTablero, btnTabCalendario, btnTabTabla);
+        TableroID.setText(tableroActual.id);
+    }
+
+
+    //Para copiarlo al portapapeles al hacer click
+    @FXML
+    void onCopiarTableroId(MouseEvent event) {
+
+        String textoACopiar = TableroID.getText();
+
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(textoACopiar);
+        clipboard.setContent(content);
     }
 
     /**
