@@ -32,11 +32,11 @@
 
             <Label styleClass="card-title" text="Iniciar sesión" />
          <TextField fx:id="textoTableroCompartido" promptText="ID de tablero compartido" />
-         <Button fx:id="tableroCompartido" mnemonicParsing="false" onAction="#onCompartido" text="Compartido" />
+         <Button fx:id="tableroCompartido" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCompartido" styleClass="primary-button" text="Compartido" />
 
             <VBox spacing="5">
                 <Label text="Tu correo electrónico" />
-                <TextField fx:id="txtEmail" promptText="nombre@ejemplo.com" onAction="#onEntrar" />
+                <TextField fx:id="txtEmail" onAction="#onEntrar" promptText="nombre@ejemplo.com" />
             </VBox>
 
             <Button fx:id="btnEntrar" maxWidth="Infinity" onAction="#onEntrar" styleClass="primary-button" text="Entrar" />
