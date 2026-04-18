@@ -51,4 +51,13 @@ public interface GestionTableroFrontendService {
 
     // --- Fechas ---
     Task<Void> asignarFechaVencimiento(String tableroId, String listaId, String tarjetaId, String fechaIso);
+
+    // -- CHAT --
+    
+    Task<String> preguntarAI(TableroDto contexto, String pregunta);
+    
+    public TableroDto getTablero();
+   
+    public void setTablero(TableroDto tablero);
+    
 }

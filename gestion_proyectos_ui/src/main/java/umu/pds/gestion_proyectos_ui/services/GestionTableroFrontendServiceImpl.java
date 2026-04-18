@@ -19,7 +19,17 @@ import java.util.List;
 public class GestionTableroFrontendServiceImpl implements GestionTableroFrontendService {
 
     private final TableroApiClient apiClient = new TableroApiClient();
-
+    private TableroDto tablero;
+    
+    
+    public TableroDto getTablero() {
+    	return tablero;
+    }
+    
+    public void setTablero(TableroDto tablero) {
+    	this.tablero = tablero;
+    }
+    
     // --- Tableros ---
 
     @Override
@@ -267,4 +277,14 @@ public class GestionTableroFrontendServiceImpl implements GestionTableroFrontend
             }
         };
     }
+
+	@Override
+	public Task<String> preguntarAI(TableroDto contexto, String pregunta) {
+		return new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                return apiClient.preguntarIA(pregunta, contexto);
+            }
+        };
+	}
 }

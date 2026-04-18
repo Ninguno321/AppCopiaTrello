@@ -40,7 +40,7 @@
 
          <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="content-header">
             <Label fx:id="lblTableroActual" styleClass="content-title" text="Tablero 1" />
-            <Button fx:id="TableroID" styleClass="tablero-id-btn" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#onCopiarTableroId" prefHeight="25.0" prefWidth="88.0" text="Tablero_id" textAlignment="CENTER">
+            <Button fx:id="TableroID" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#onCopiarTableroId" prefHeight="25.0" prefWidth="88.0" styleClass="tablero-id-btn" text="Tablero_id" textAlignment="CENTER">
                <font>
                   <Font size="15.0" />
                </font>
@@ -53,6 +53,7 @@
             </Button>
             <Region HBox.hgrow="ALWAYS" />
             <Button fx:id="btnAutomatizaciones" onAction="#onAutomatizaciones" styleClass="btn-automatizaciones" text="Automatizaciones" />
+            <Button fx:id="btnChatAi" onAction="#onChatAi" styleClass="btn-automatizaciones" text="ChatAI" />
          </HBox>
 
          <HBox spacing="4.0" styleClass="toolbar-box">

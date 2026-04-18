@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="umu.pds.gestion_proyectos_ui.inicio.VentanaChatController"
+            prefWidth="120" prefHeight="200">
+    <top>
+        <HBox styleClass="chat-header" alignment="CENTER_LEFT" spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Chat" styleClass="chat-title"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true">
+            <content>
+                <VBox fx:id="chatContainer" spacing="10" fillWidth="true">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" styleClass="chat-input-box">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <TextField fx:id="inputField"
+                       promptText="Escribe un mensaje..."
+                       HBox.hgrow="ALWAYS"/>
+
+            <Button text="Enviar"
+                    onAction="#onEnviarMensaje"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

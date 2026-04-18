@@ -30,33 +30,29 @@ public class ApiGroqTest {
     public ResponseEntity<?> preguntarIA(@RequestBody Map<String, String> request) {
 
         String pregunta = request.get("pregunta");
-
+        String contexto = request.get("contexto");
+        if (contexto == null) contexto = "";
         if (pregunta == null || pregunta.isEmpty()) {
             return ResponseEntity.badRequest().body("La pregunta no puede estar vacía");
         }
 
-        // Construimos el body para Groq
         Map<String, Object> body = new HashMap<>();
         body.put("model", "qwen/qwen3-32b");
         body.put("temperature", 0.7);
 
         List<Map<String, String>> messages = new ArrayList<>();
 
+        // 🧠 SYSTEM → reglas + contexto dinámico
         Map<String, String> systemMessage = new HashMap<>();
         systemMessage.put("role", "system");
         systemMessage.put("content",
-            "Responde únicamente la respuesta final en español. " +
-            "No incluyas razonamientos internos, pensamientos, ni etiquetas como <think>." +
-            "Responde claramente, respuestas claras pero precisas" +
-            "Estos son los datos reales/ contexto: " +
-            "Hay 7 vuelos de MAD BCN que salen el 10/10/2026"
-            + "El pasajero 47448089D tiene 2 reservas, una disponible y otra completada"
-            + "el pasajero 49215450G tiene una reserva de parking"
-            + "El pasajero 47448089D tiene 3 tareas pendientes, ST, GPDS y PDS "
-            + "El pasajero 49215450G tiene 3 tareas pendientes, STP1, STP2, STP2. STP1 tiene prioridad urgente."
-            + "Responde con los datos asociados a 49215450G"
+            "Responde en español de forma clara y directa. " +
+            "No incluyas razonamientos internos ni etiquetas como <think>. " +
+            "Usa únicamente el siguiente contexto si es relevante:\n" +
+            contexto
         );
-        Map<String, String> userMessage = new HashMap<>();	
+
+        Map<String, String> userMessage = new HashMap<>();
         userMessage.put("role", "user");
         userMessage.put("content", pregunta);
 
@@ -69,7 +65,6 @@ public class ApiGroqTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
 
-        
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         try {
@@ -80,7 +75,6 @@ public class ApiGroqTest {
                     Map.class
             );
 
-            // Extraemos solo el texto de la respuesta
             List<Map<String, Object>> choices =
                     (List<Map<String, Object>>) response.getBody().get("choices");
 
@@ -90,18 +84,17 @@ public class ApiGroqTest {
 
             String contenido = message.get("content");
 
-	         // Buscamos si hay </think> y tomamos solo lo que viene después
-	         int index = contenido.indexOf("</think>");
-	         String respuestaLimpia;
-	
-	         if(index != -1 && index + 8 < contenido.length()){
-	             respuestaLimpia = contenido.substring(index + 8).trim();
-	         } else {
-	             respuestaLimpia = contenido.trim();
-	         }
-	
-	         return ResponseEntity.ok(respuestaLimpia);
-	   
+            // limpiar <think>
+            int index = contenido.indexOf("</think>");
+            String respuestaLimpia;
+
+            if(index != -1 && index + 8 < contenido.length()){
+                respuestaLimpia = contenido.substring(index + 8).trim();
+            } else {
+                respuestaLimpia = contenido.trim();
+            }
+
+            return ResponseEntity.ok(respuestaLimpia);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

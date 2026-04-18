@@ -4,6 +4,7 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -16,10 +17,15 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 
@@ -55,6 +61,9 @@ public class VentanaPrincipalController {
     @FXML
     private Button TableroID;
 
+    @FXML
+    private Button btnChatAi;
+    private TableroDto contexto;
     private List<Button> tabButtons;
     private final List<HBox> sidebarItems = new ArrayList<>();
     private final List<TableroDto> listaTableros = new ArrayList<>();
@@ -66,8 +75,55 @@ public class VentanaPrincipalController {
     public void initialize() {
         tabButtons = List.of(btnTabTablero, btnTabCalendario, btnTabTabla);
     }
+    
+    class Delta {
+        double x, y;
+    }
 
+    @FXML
+    void onChatAi(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/chat.fxml")
+            );
 
+           
+            Parent root = loader.load();
+            VentanaChatController chatController = loader.getController();
+
+            chatController.setNombreTablero(this.contexto);
+            
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+
+            stage.setAlwaysOnTop(true);              // siempre encima
+            stage.setResizable(false);
+
+            stage.setWidth(380);
+            stage.setHeight(550);
+
+            Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            stage.setX(screen.getWidth() - 400);
+            stage.setY(screen.getHeight() - 600);
+
+            stage.show();
+
+            final Delta dragDelta = new Delta();
+
+            root.setOnMousePressed(e -> {
+                dragDelta.x = stage.getX() - e.getScreenX();
+                dragDelta.y = stage.getY() - e.getScreenY();
+            });
+
+            root.setOnMouseDragged(e -> {
+                stage.setX(e.getScreenX() + dragDelta.x);
+                stage.setY(e.getScreenY() + dragDelta.y);
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }    
     //Para copiarlo al portapapeles al hacer click
     @FXML
     void onCopiarTableroId(MouseEvent event) {
@@ -254,7 +310,7 @@ public class VentanaPrincipalController {
                 tableroActual = nuevoTablero;
                 lblTableroActual.setText(nuevoTablero.nombre);
                 TableroID.setText(tableroActual.id);
-                
+                contexto = task.getValue();
                 cargarVistaTablero();
             });
 
@@ -303,6 +359,7 @@ public class VentanaPrincipalController {
             tableroActual = nuevoTablero;
             lblTableroActual.setText(nuevoTablero.nombre);
             TableroID.setText(tableroActual.id);
+            contexto = task.getValue();
             
             cargarVistaTablero();
         });
@@ -367,6 +424,7 @@ public class VentanaPrincipalController {
                 Node vista = loader.load();
                 VentanaTablaController controller = loader.getController();
                 controller.cargarDatos(task.getValue());
+                contexto = task.getValue();
                 mainContentPane.getChildren().setAll(vista);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -393,6 +451,7 @@ public class VentanaPrincipalController {
                 Node vista = loader.load();
                 VentanaCalendarioController controller = loader.getController();
                 controller.setDatos(task.getValue());
+                contexto = task.getValue();
                 mainContentPane.getChildren().setAll(vista);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -412,15 +471,19 @@ public class VentanaPrincipalController {
         Task<TableroDto> task = service.obtenerTablero(tableroActual.id);
 
         task.setOnSucceeded(e -> {
-            try {
+        	try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(
                         "/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
                 ));
+
                 Node vista = loader.load();
                 VentanaTableroController controller = loader.getController();
                 controller.cargarDatos(task.getValue());
+                contexto = task.getValue();
+                contexto = task.getValue();
                 mainContentPane.getChildren().setAll(vista);
                 activarTab(btnTabTablero);
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

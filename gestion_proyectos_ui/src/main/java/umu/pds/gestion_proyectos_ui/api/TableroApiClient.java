@@ -376,4 +376,32 @@ public class TableroApiClient {
         }
         throw new RuntimeException("Error al obtener historial (" + response.statusCode() + "): " + response.body());
     }
+    
+    public String preguntarIA(String pregunta, TableroDto contexto) throws Exception {
+
+    	System.out.println("ANTES DEL MAPPER: " + contexto);
+        String contextoTexto = objectMapper.writeValueAsString(contexto);
+
+    	System.out.println("DESPUES DEL MAPPER: " + contextoTexto);
+        
+        String body = objectMapper.writeValueAsString(Map.of(
+            "pregunta", pregunta,
+            "contexto", contextoTexto
+        ));
+        
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/public/preguntar"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            return response.body();
+        }
+
+        throw new RuntimeException("Error IA: " + response.body());
+    }
+    
 }
