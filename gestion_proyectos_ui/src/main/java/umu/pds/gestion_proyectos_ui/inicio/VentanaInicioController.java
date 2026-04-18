@@ -84,18 +84,9 @@ public class VentanaInicioController {
         }
 
         tableroCompartido.setDisable(true);
-
         Task<TableroDto> taskTablero = service.obtenerTablero(id);
-        taskTablero.setOnSucceeded(e -> {
-            TableroDto tab = taskTablero.getValue();
-            String email = tab.emailPropietario;
-            Task<List<TableroDto>> taskTableros = service.obtenerTablerosPorEmail(email);
-            taskTableros.setOnSucceeded(ev -> navegarAVentanaPrincipal(email, taskTableros.getValue()));
-            taskTableros.setOnFailed(ev -> {
-                tableroCompartido.setDisable(false);
-                mostrarError("Error al conectar", taskTableros.getException().getMessage());
-            });
-            new Thread(taskTableros).start();
+        
+        taskTablero.setOnSucceeded(e -> {navegarAVentanaCompartida(taskTablero.getValue()) ;
         });
         taskTablero.setOnFailed(e -> {
             tableroCompartido.setDisable(false);
@@ -103,4 +94,27 @@ public class VentanaInicioController {
         });
         new Thread(taskTablero).start();
     }
+    
+    
+    private void navegarAVentanaCompartida(TableroDto tablero) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/umu/pds/gestion_proyectos_ui/inicio/VentanaTablero.fxml"
+            ));
+            Parent root = loader.load();
+
+            VentanaTableroController controller = loader.getController();
+            controller.cargarDatos(tablero);
+
+            Stage stage = (Stage) tableroCompartido.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setFullScreen(true);
+            stage.show();
+
+        } catch (Exception e) {
+            mostrarError("Error de navegación", e.getMessage());
+        }
+    }
+
+    
 }
