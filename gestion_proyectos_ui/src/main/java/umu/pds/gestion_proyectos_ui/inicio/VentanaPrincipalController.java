@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.w3c.dom.events.MouseEvent;
+import javafx.scene.input.MouseEvent;
 
 public class VentanaPrincipalController {
 
@@ -65,16 +65,13 @@ public class VentanaPrincipalController {
     @FXML
     public void initialize() {
         tabButtons = List.of(btnTabTablero, btnTabCalendario, btnTabTabla);
-        TableroID.setText(tableroActual.id);
     }
 
 
     //Para copiarlo al portapapeles al hacer click
     @FXML
     void onCopiarTableroId(MouseEvent event) {
-
         String textoACopiar = TableroID.getText();
-
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(textoACopiar);
@@ -93,7 +90,7 @@ public class VentanaPrincipalController {
         if (!tableros.isEmpty()) {
             tableroActual = tableros.get(0);
             lblTableroActual.setText(tableroActual.nombre);
-            
+            TableroID.setText(tableroActual.id);
             
             if(!sidebarItems.isEmpty()) {
             	activarSidebarItem(sidebarItems.get(0));
@@ -124,10 +121,12 @@ public class VentanaPrincipalController {
         HBox hbox = new HBox(btnNombre, menuBtn);
         hbox.getStyleClass().add("sidebar-item");
 
-        // Clic en el nombre → abrir tablero
+        // Clic en el nombre -> abrir tablero
         btnNombre.setOnAction(e -> {
             tableroActual = tablero;
             lblTableroActual.setText(tablero.nombre);
+            TableroID.setText(tableroActual.id);
+            
             activarSidebarItem(hbox);
             cargarVistaTablero();
         });
@@ -194,6 +193,8 @@ public class VentanaPrincipalController {
                             TableroDto siguienteTablero = listaTableros.get(siguienteIndice);
                             tableroActual = siguienteTablero;
                             lblTableroActual.setText(siguienteTablero.nombre);
+                            TableroID.setText(tableroActual.id);
+                            
                             activarSidebarItem(siguiente);
                             cargarVistaTablero();
                         } else {
@@ -252,6 +253,8 @@ public class VentanaPrincipalController {
                 agregarItemSidebar(nuevoTablero);
                 tableroActual = nuevoTablero;
                 lblTableroActual.setText(nuevoTablero.nombre);
+                TableroID.setText(tableroActual.id);
+                
                 cargarVistaTablero();
             });
 
@@ -299,6 +302,8 @@ public class VentanaPrincipalController {
             agregarItemSidebar(nuevoTablero);
             tableroActual = nuevoTablero;
             lblTableroActual.setText(nuevoTablero.nombre);
+            TableroID.setText(tableroActual.id);
+            
             cargarVistaTablero();
         });
 
