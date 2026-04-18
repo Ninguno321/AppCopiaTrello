@@ -53,7 +53,7 @@ public class VentanaPrincipalController {
 
     //Para copiar el ID del tablero 
     @FXML
-    private Label TableroID;
+    private Button TableroID;
 
     private List<Button> tabButtons;
     private final List<HBox> sidebarItems = new ArrayList<>();

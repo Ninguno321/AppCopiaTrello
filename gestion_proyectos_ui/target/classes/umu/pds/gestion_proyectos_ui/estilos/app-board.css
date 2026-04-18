@@ -2,6 +2,27 @@
    APP-BOARD.CSS — Tablero y barra de navegación
    ============================================================ */
 
+/* PARA E BOTON DE COPIADO */
+
+.tablero-id-btn {
+    -fx-background-color: color-primary;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 4 10;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.tablero-id-btn:hover {
+    -fx-background-color: color-primary-hover;
+    -fx-text-fill: white;
+}
+
+.tablero-id-btn:pressed {
+    -fx-background-color: color-primary-pressed;
+}
+
 /* ===========================
    TOOLBAR
    =========================== */

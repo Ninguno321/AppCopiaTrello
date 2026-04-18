@@ -40,7 +40,7 @@
 
          <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="content-header">
             <Label fx:id="lblTableroActual" styleClass="content-title" text="Tablero 1" />
-            <Label fx:id="TableroID" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#onCopiarTableroId" prefHeight="25.0" prefWidth="88.0" text="Tablero_id" textAlignment="CENTER">
+            <Button fx:id="TableroID" styleClass="tablero-id-btn" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#onCopiarTableroId" prefHeight="25.0" prefWidth="88.0" text="Tablero_id" textAlignment="CENTER">
                <font>
                   <Font size="15.0" />
                </font>
@@ -50,7 +50,7 @@
                <padding>
                   <Insets top="5.0" />
                </padding>
-            </Label>
+            </Button>
             <Region HBox.hgrow="ALWAYS" />
             <Button fx:id="btnAutomatizaciones" onAction="#onAutomatizaciones" styleClass="btn-automatizaciones" text="Automatizaciones" />
          </HBox>
