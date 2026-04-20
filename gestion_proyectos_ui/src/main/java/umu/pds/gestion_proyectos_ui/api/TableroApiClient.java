@@ -8,6 +8,8 @@ import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TrazaDto;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -16,6 +18,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Cliente HTTP que comunica la UI con el backend REST.
@@ -23,7 +26,18 @@ import java.util.Map;
  */
 public class TableroApiClient {
 
-    private static final String BASE_URL = "http://localhost:8080/umu/pds";
+    private static final String BASE_URL = loadBaseUrl();
+
+    private static String loadBaseUrl() {
+        try (InputStream in = TableroApiClient.class.getResourceAsStream("/config.properties")) {
+            if (in == null) return "http://localhost:8080/umu/pds";
+            Properties props = new Properties();
+            props.load(in);
+            return props.getProperty("api.base.url", "http://localhost:8080/umu/pds");
+        } catch (IOException e) {
+            return "http://localhost:8080/umu/pds";
+        }
+    }
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;

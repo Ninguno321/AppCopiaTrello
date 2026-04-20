@@ -49,6 +49,18 @@ public class Tablero {
         this.historial = new ArrayList<>();
     }
 
+    /** Restaura un Tablero desde persistencia sin disparar efectos de dominio (historial). */
+    public static Tablero reconstitute(TableroId id, String nombre, Usuario propietario,
+            boolean bloqueado, List<Lista> listas, List<Tarjeta> tarjetasCompletadas,
+            List<Traza> historial) {
+        Tablero t = new Tablero(id, nombre, propietario);
+        t.bloqueado = bloqueado;
+        t.listas.addAll(listas);
+        t.tarjetasCompletadas.addAll(tarjetasCompletadas);
+        t.historial.addAll(historial);
+        return t;
+    }
+
     // --- Operaciones sobre Listas ---
 
     /**

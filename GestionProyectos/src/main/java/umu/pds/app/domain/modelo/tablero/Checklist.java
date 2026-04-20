@@ -31,6 +31,14 @@ public class Checklist {
         return new Checklist(ChecklistId.nuevo(), nombre);
     }
 
+    /** Restaura un Checklist desde persistencia con los ítems en su estado real. */
+    public static Checklist reconstitute(ChecklistId id, String nombre, List<ItemChecklist> items)
+            throws CheckListException {
+        Checklist c = new Checklist(id, nombre);
+        c.items.addAll(items);
+        return c;
+    }
+
     // --- Mutaciones ---
 
     public void renombrar(String nuevoNombre) throws CheckListException {

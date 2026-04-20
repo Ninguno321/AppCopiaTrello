@@ -26,7 +26,7 @@ import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TrazaDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
-import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
+import umu.pds.gestion_proyectos_ui.services.ServiceFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class VentanaTableroController {
     private String tableroId;
     private boolean tableroBlockeado = false;
     private TableroDto tableroDto;
-    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
+    private final GestionTableroFrontendService service = ServiceFactory.getGestionTablero();
 
     public void setTableroId(String tableroId) {
         this.tableroId = tableroId;

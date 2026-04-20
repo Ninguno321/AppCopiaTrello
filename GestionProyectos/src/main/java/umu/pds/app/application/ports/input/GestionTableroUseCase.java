@@ -1,5 +1,6 @@
 package umu.pds.app.application.ports.input;
 
+import umu.pds.app.application.commands.PlantillaTableroCommand;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
@@ -74,5 +75,5 @@ public interface GestionTableroUseCase {
 
     // --- Importación desde plantilla ---
 
-    Tablero crearDesdePlantilla(String yamlContent, String email);
+    Tablero crearDesdePlantilla(PlantillaTableroCommand plantilla, String email);
 }

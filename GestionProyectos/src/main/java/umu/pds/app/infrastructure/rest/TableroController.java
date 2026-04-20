@@ -13,9 +13,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import umu.pds.app.application.commands.PlantillaEtiquetaCommand;
+import umu.pds.app.application.commands.PlantillaItemChecklistCommand;
+import umu.pds.app.application.commands.PlantillaListaCommand;
+import umu.pds.app.application.commands.PlantillaTableroCommand;
+import umu.pds.app.application.commands.PlantillaTarjetaCommand;
 import umu.pds.app.application.ports.input.GestionTableroUseCase;
 import umu.pds.app.domain.exceptions.PlantillaInvalidaException;
 import umu.pds.app.domain.exceptions.TableroException;
+import umu.pds.app.infrastructure.rest.dto.PlantillaEtiquetaDto;
+import umu.pds.app.infrastructure.rest.dto.PlantillaItemChecklistDto;
+import umu.pds.app.infrastructure.rest.dto.PlantillaListaDto;
+import umu.pds.app.infrastructure.rest.dto.PlantillaTableroDto;
+import umu.pds.app.infrastructure.rest.dto.PlantillaTarjetaDto;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
@@ -251,8 +265,37 @@ public class TableroController {
     public ResponseEntity<TableroResponse> crearDesdePlantilla(
             @RequestBody String yamlContent,
             @RequestParam String email) {
-        Tablero tablero = gestionTablero.crearDesdePlantilla(yamlContent, email);
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        PlantillaTableroDto dto;
+        try {
+            dto = mapper.readValue(yamlContent, PlantillaTableroDto.class);
+        } catch (JsonProcessingException e) {
+            throw new PlantillaInvalidaException("El YAML de la plantilla no es válido: " + e.getOriginalMessage(), e);
+        }
+        PlantillaTableroCommand command = toCommand(dto);
+        Tablero tablero = gestionTablero.crearDesdePlantilla(command, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(TableroResponse.from(tablero));
+    }
+
+    private PlantillaTableroCommand toCommand(PlantillaTableroDto dto) {
+        List<PlantillaListaCommand> listas = dto.listas() == null ? null :
+            dto.listas().stream().map(this::toCommand).toList();
+        return new PlantillaTableroCommand(dto.nombre(), listas);
+    }
+
+    private PlantillaListaCommand toCommand(PlantillaListaDto dto) {
+        List<PlantillaTarjetaCommand> tarjetas = dto.tarjetas() == null ? null :
+            dto.tarjetas().stream().map(this::toCommand).toList();
+        return new PlantillaListaCommand(dto.nombre(), tarjetas);
+    }
+
+    private PlantillaTarjetaCommand toCommand(PlantillaTarjetaDto dto) {
+        List<PlantillaEtiquetaCommand> etiquetas = dto.etiquetas() == null ? null :
+            dto.etiquetas().stream().map(e -> new PlantillaEtiquetaCommand(e.nombre(), e.color())).toList();
+        List<PlantillaItemChecklistCommand> items = dto.checklist() == null ? null :
+            dto.checklist().stream().map(i -> new PlantillaItemChecklistCommand(i.texto(), i.completado())).toList();
+        return new PlantillaTarjetaCommand(dto.titulo(), dto.fechaVencimiento(), etiquetas, items);
     }
 
     // --- Manejo de errores ---

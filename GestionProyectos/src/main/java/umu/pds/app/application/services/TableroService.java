@@ -1,13 +1,13 @@
 package umu.pds.app.application.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import umu.pds.app.application.commands.PlantillaEtiquetaCommand;
+import umu.pds.app.application.commands.PlantillaItemChecklistCommand;
+import umu.pds.app.application.commands.PlantillaListaCommand;
+import umu.pds.app.application.commands.PlantillaTableroCommand;
+import umu.pds.app.application.commands.PlantillaTarjetaCommand;
 import umu.pds.app.application.ports.input.GestionTableroUseCase;
 import umu.pds.app.domain.exceptions.CheckListException;
 import umu.pds.app.domain.exceptions.CheckListIndiceException;
-import umu.pds.app.domain.exceptions.PlantillaInvalidaException;
 import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
@@ -20,11 +20,6 @@ import umu.pds.app.domain.modelo.tablero.Tarjeta;
 import umu.pds.app.domain.modelo.usuario.Usuario;
 import umu.pds.app.domain.ports.output.TableroRepository;
 import umu.pds.app.domain.ports.output.UsuarioRepository;
-import umu.pds.app.infrastructure.rest.dto.PlantillaEtiquetaDto;
-import umu.pds.app.infrastructure.rest.dto.PlantillaItemChecklistDto;
-import umu.pds.app.infrastructure.rest.dto.PlantillaListaDto;
-import umu.pds.app.infrastructure.rest.dto.PlantillaTableroDto;
-import umu.pds.app.infrastructure.rest.dto.PlantillaTarjetaDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -217,47 +212,38 @@ public class TableroService implements GestionTableroUseCase {
     // --- Importación desde plantilla ---
 
     @Override
-    public Tablero crearDesdePlantilla(String yamlContent, String email) {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PlantillaTableroDto plantilla;
-        try {
-            plantilla = mapper.readValue(yamlContent, PlantillaTableroDto.class);
-        } catch (JsonProcessingException e) {
-            throw new PlantillaInvalidaException("El YAML de la plantilla no es válido: " + e.getOriginalMessage(), e);
-        }
-
+    public Tablero crearDesdePlantilla(PlantillaTableroCommand plantilla, String email) {
         Tablero tablero = crearTablero(plantilla.nombre(), email);
 
         if (plantilla.listas() != null) {
-            for (PlantillaListaDto listaDto : plantilla.listas()) {
-                Lista lista = tablero.agregarLista(Lista.nueva(listaDto.nombre()));
-                if (listaDto.tarjetas() != null) {
-                    for (PlantillaTarjetaDto tarjetaDto : listaDto.tarjetas()) {
+            for (PlantillaListaCommand listaCmd : plantilla.listas()) {
+                Lista lista = tablero.agregarLista(Lista.nueva(listaCmd.nombre()));
+                if (listaCmd.tarjetas() != null) {
+                    for (PlantillaTarjetaCommand tarjetaCmd : listaCmd.tarjetas()) {
                         try {
-                            Tarjeta tarjeta = Tarjeta.nueva(tarjetaDto.titulo());
+                            Tarjeta tarjeta = Tarjeta.nueva(tarjetaCmd.titulo());
 
-                            if (tarjetaDto.checklist() != null && !tarjetaDto.checklist().isEmpty()) {
-                                Checklist checklist = Checklist.nuevo(tarjetaDto.titulo());
-                                List<PlantillaItemChecklistDto> items = tarjetaDto.checklist();
+                            if (tarjetaCmd.checklist() != null && !tarjetaCmd.checklist().isEmpty()) {
+                                Checklist checklist = Checklist.nuevo(tarjetaCmd.titulo());
+                                List<PlantillaItemChecklistCommand> items = tarjetaCmd.checklist();
                                 for (int i = 0; i < items.size(); i++) {
-                                    PlantillaItemChecklistDto itemDto = items.get(i);
-                                    checklist.agregarItem(itemDto.texto());
-                                    if (itemDto.completado()) {
+                                    PlantillaItemChecklistCommand itemCmd = items.get(i);
+                                    checklist.agregarItem(itemCmd.texto());
+                                    if (itemCmd.completado()) {
                                         checklist.marcarItem(i);
                                     }
                                 }
                                 tarjeta.asignarChecklist(checklist);
                             }
 
-                            if (tarjetaDto.fechaVencimiento() != null) {
-                                LocalDate fecha = LocalDate.parse(tarjetaDto.fechaVencimiento());
+                            if (tarjetaCmd.fechaVencimiento() != null) {
+                                LocalDate fecha = LocalDate.parse(tarjetaCmd.fechaVencimiento());
                                 tarjeta.asignarFechaVencimiento(fecha.atStartOfDay());
                             }
 
-                            if (tarjetaDto.etiquetas() != null) {
-                                for (PlantillaEtiquetaDto etiquetaDto : tarjetaDto.etiquetas()) {
-                                    tarjeta.agregarEtiqueta(Etiqueta.de(etiquetaDto.nombre(), etiquetaDto.color()));
+                            if (tarjetaCmd.etiquetas() != null) {
+                                for (PlantillaEtiquetaCommand etiquetaCmd : tarjetaCmd.etiquetas()) {
+                                    tarjeta.agregarEtiqueta(Etiqueta.de(etiquetaCmd.nombre(), etiquetaCmd.color()));
                                 }
                             }
 

@@ -9,7 +9,6 @@ import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 import umu.pds.app.domain.modelo.tablero.*;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -105,46 +104,27 @@ public class TableroMapper {
     // -------------------------------------------------------------------------
 
     public Tablero toDomain(TableroJpaEntity entity) {
-        Tablero tablero = new Tablero(
+        List<Lista> listas = entity.getListas().stream()
+                .map(this::toListaDomain)
+                .collect(Collectors.toList());
+
+        List<Tarjeta> completadas = entity.getTarjetasCompletadas().stream()
+                .map(this::toTarjetaDomain)
+                .collect(Collectors.toList());
+
+        List<Traza> historial = entity.getHistorial().stream()
+                .map(te -> new Traza(te.getDescripcion(), te.getTimestamp()))
+                .collect(Collectors.toList());
+
+        return Tablero.reconstitute(
                 TableroId.de(entity.getId()),
                 entity.getNombre(),
-                usuarioMapper.toDomain(entity.getPropietario())
+                usuarioMapper.toDomain(entity.getPropietario()),
+                entity.isBloqueado(),
+                listas,
+                completadas,
+                historial
         );
-
-        try {
-            // Restaurar listas (sin pasar por agregarLista() que escribiría historial)
-            Field listasField = Tablero.class.getDeclaredField("listas");
-            listasField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<Lista> listas = (List<Lista>) listasField.get(tablero);
-            entity.getListas().forEach(le -> listas.add(toListaDomain(le)));
-
-            // Restaurar tarjetas completadas
-            Field completadasField = Tablero.class.getDeclaredField("tarjetasCompletadas");
-            completadasField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<Tarjeta> completadas = (List<Tarjeta>) completadasField.get(tablero);
-            entity.getTarjetasCompletadas().forEach(te -> completadas.add(toTarjetaDomain(te)));
-
-            // Restaurar historial real
-            Field historialField = Tablero.class.getDeclaredField("historial");
-            historialField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<Traza> historial = (List<Traza>) historialField.get(tablero);
-            entity.getHistorial().forEach(te ->
-                    historial.add(new Traza(te.getDescripcion(), te.getTimestamp()))
-            );
-
-            // Restaurar estado de bloqueo
-            Field bloqueadoField = Tablero.class.getDeclaredField("bloqueado");
-            bloqueadoField.setAccessible(true);
-            bloqueadoField.setBoolean(tablero, entity.isBloqueado());
-
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException("Error al reconstruir Tablero desde la base de datos", e);
-        }
-
-        return tablero;
     }
 
     private Lista toListaDomain(ListaJpaEntity entity) {
@@ -189,22 +169,15 @@ public class TableroMapper {
 
     private Checklist toChecklistDomain(ChecklistJpaEntity entity) {
         try {
-            Checklist checklist = new Checklist(ChecklistId.de(entity.getId()), entity.getNombre());
+            List<ItemChecklist> items = entity.getItems().stream()
+                    .map(i -> {
+                        ItemChecklist item = ItemChecklist.nuevo(i.getDescripcion());
+                        return i.isCompletado() ? item.marcarCompletado() : item;
+                    })
+                    .collect(Collectors.toList());
 
-            // Accedemos al ArrayList interno para poblar ítems con su estado real
-            // (agregarItem() siempre crea ítems como no-completados)
-            Field itemsField = Checklist.class.getDeclaredField("items");
-            itemsField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<ItemChecklist> items = (List<ItemChecklist>) itemsField.get(checklist);
-
-            entity.getItems().forEach(i -> {
-                ItemChecklist item = ItemChecklist.nuevo(i.getDescripcion());
-                items.add(i.isCompletado() ? item.marcarCompletado() : item);
-            });
-
-            return checklist;
-        } catch (CheckListException | NoSuchFieldException | IllegalAccessException e) {
+            return Checklist.reconstitute(ChecklistId.de(entity.getId()), entity.getNombre(), items);
+        } catch (CheckListException e) {
             throw new IllegalStateException("Error al reconstruir Checklist desde la base de datos", e);
         }
     }

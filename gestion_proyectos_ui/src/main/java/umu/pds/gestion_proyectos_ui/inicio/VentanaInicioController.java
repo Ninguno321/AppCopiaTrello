@@ -11,7 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
-import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
+import umu.pds.gestion_proyectos_ui.services.ServiceFactory;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class VentanaInicioController {
     @FXML private Button tableroCompartido;
     @FXML private TextField textoTableroCompartido;
 
-    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
+    private final GestionTableroFrontendService service = ServiceFactory.getGestionTablero();
 
     @FXML
     void onEntrar() {

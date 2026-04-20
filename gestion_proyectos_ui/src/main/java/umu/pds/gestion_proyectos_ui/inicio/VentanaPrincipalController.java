@@ -22,7 +22,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
-import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
+import umu.pds.gestion_proyectos_ui.services.ServiceFactory;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -69,7 +69,7 @@ public class VentanaPrincipalController {
     private final List<TableroDto> listaTableros = new ArrayList<>();
     private TableroDto tableroActual;
     private String emailActual;
-    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
+    private final GestionTableroFrontendService service = ServiceFactory.getGestionTablero();
 
     @FXML
     public void initialize() {

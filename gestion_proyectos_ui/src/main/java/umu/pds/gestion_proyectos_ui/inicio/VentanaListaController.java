@@ -22,7 +22,7 @@ import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
 import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
-import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
+import umu.pds.gestion_proyectos_ui.services.ServiceFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class VentanaListaController {
     private String listaId;
     private TableroDto tablero;
     private VentanaTableroController tableroController;
-    private final GestionTableroFrontendService service = new GestionTableroFrontendServiceImpl();
+    private final GestionTableroFrontendService service = ServiceFactory.getGestionTablero();
 
     public void setDatos(String tableroId, String listaId, String nombre, TableroDto tablero) {
         this.tableroId = tableroId;
