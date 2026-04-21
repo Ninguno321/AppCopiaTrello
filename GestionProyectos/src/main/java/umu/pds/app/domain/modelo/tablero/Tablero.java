@@ -1,7 +1,7 @@
 package umu.pds.app.domain.modelo.tablero;
 
-import umu.pds.app.domain.exceptions.CheckListException;
-import umu.pds.app.domain.exceptions.CheckListIndiceException;
+import umu.pds.app.domain.exceptions.ChecklistException;
+import umu.pds.app.domain.exceptions.ChecklistIndiceException;
 import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
@@ -193,7 +193,7 @@ public class Tablero {
             tarjeta.asignarChecklist(checklist);
             historial.add(Traza.nueva("Checklist '" + nombre + "' asignado a tarjeta '" + tarjeta.getTitulo() + "'"));
             return checklist;
-        } catch (CheckListException e) {
+        } catch (ChecklistException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
@@ -211,7 +211,7 @@ public class Tablero {
                 .orElseThrow(() -> new IllegalStateException("La tarjeta no tiene checklist"));
         try {
             checklist.marcarItem(indice);
-        } catch (CheckListIndiceException e) {
+        } catch (ChecklistIndiceException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
@@ -222,18 +222,18 @@ public class Tablero {
                 .orElseThrow(() -> new IllegalStateException("La tarjeta no tiene checklist"));
         try {
             checklist.desmarcarItem(indice);
-        } catch (CheckListIndiceException e) {
+        } catch (ChecklistIndiceException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
 
-    // --- Fecha de Vencimiento ---
+    // --- Fecha Límite ---
 
-    public void asignarFechaVencimientoTarjeta(TarjetaId tarjetaId, ListaId listaId, LocalDateTime fecha) {
+    public void asignarFechaLimiteTarjeta(TarjetaId tarjetaId, ListaId listaId, LocalDateTime fecha) {
         Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
-        tarjeta.asignarFechaVencimiento(fecha);
+        tarjeta.asignarFechaLimite(fecha);
         historial.add(Traza.nueva(
-            "Fecha de vencimiento '" + fecha + "' asignada a la tarjeta '" + tarjeta.getTitulo() + "'"
+            "Fecha límite '" + fecha + "' asignada a la tarjeta '" + tarjeta.getTitulo() + "'"
         ));
     }
 

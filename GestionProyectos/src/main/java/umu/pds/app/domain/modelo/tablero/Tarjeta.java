@@ -22,7 +22,7 @@ public class Tarjeta {
     private Checklist checklist;
     private final List<Etiqueta> etiquetas;
     private boolean completada;
-    private LocalDateTime fechaVencimiento;
+    private LocalDateTime fechaLimite;
 
     public Tarjeta(TarjetaId id, String titulo) {
         if (id == null) throw new IllegalArgumentException("TarjetaId no puede ser nulo");
@@ -84,8 +84,8 @@ public class Tarjeta {
         this.completada = true;
     }
 
-    public void asignarFechaVencimiento(LocalDateTime fecha) {
-        this.fechaVencimiento = fecha;
+    public void asignarFechaLimite(LocalDateTime fecha) {
+        this.fechaLimite = fecha;
     }
 
     // --- Consultas ---
@@ -102,7 +102,7 @@ public class Tarjeta {
     public Optional<Tarea> getTarea() { return Optional.ofNullable(tarea); }
     public Optional<Checklist> getChecklist() { return Optional.ofNullable(checklist); }
     public List<Etiqueta> getEtiquetas() { return Collections.unmodifiableList(etiquetas); }
-    public LocalDateTime getFechaVencimiento() { return fechaVencimiento; }
+    public LocalDateTime getFechaLimite() { return fechaLimite; }
 
     // --- Identidad por ID ---
 

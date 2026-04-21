@@ -2,7 +2,7 @@ package umu.pds.app.adapters.mappers;
 
 import org.springframework.stereotype.Component;
 import umu.pds.app.adapters.jpa.entity.*;
-import umu.pds.app.domain.exceptions.CheckListException;
+import umu.pds.app.domain.exceptions.ChecklistException;
 import umu.pds.app.domain.modelo.shared.ChecklistId;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
@@ -83,7 +83,7 @@ public class TableroMapper {
                 .map(e -> new EtiquetaJpaEmbeddable(e.nombre(), e.color()))
                 .collect(Collectors.toList()));
 
-        entity.setFechaVencimiento(tarjeta.getFechaVencimiento());
+        entity.setFechaLimite(tarjeta.getFechaLimite());
 
         return entity;
     }
@@ -156,8 +156,8 @@ public class TableroMapper {
                 tarjeta.asignarEtiqueta(new Etiqueta(e.getNombre(), e.getColor()))
         );
 
-        if (entity.getFechaVencimiento() != null) {
-            tarjeta.asignarFechaVencimiento(entity.getFechaVencimiento());
+        if (entity.getFechaLimite() != null) {
+            tarjeta.asignarFechaLimite(entity.getFechaLimite());
         }
 
         if (entity.isCompletada()) {
@@ -177,7 +177,7 @@ public class TableroMapper {
                     .collect(Collectors.toList());
 
             return Checklist.reconstitute(ChecklistId.de(entity.getId()), entity.getNombre(), items);
-        } catch (CheckListException e) {
+        } catch (ChecklistException e) {
             throw new IllegalStateException("Error al reconstruir Checklist desde la base de datos", e);
         }
     }

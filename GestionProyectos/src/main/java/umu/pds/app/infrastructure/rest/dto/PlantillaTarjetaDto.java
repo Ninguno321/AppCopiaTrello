@@ -6,7 +6,7 @@ import java.util.List;
 
 public record PlantillaTarjetaDto(
         @JsonProperty("titulo") String titulo,
-        @JsonProperty("fechaVencimiento") String fechaVencimiento,
+        @JsonProperty("fechaLimite") String fechaLimite,
         @JsonProperty("etiquetas") List<PlantillaEtiquetaDto> etiquetas,
         @JsonProperty("checklist") List<PlantillaItemChecklistDto> checklist
 ) {}

@@ -205,12 +205,12 @@ public class TableroController {
 
     // --- Checklist ---
 
-    @PutMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/vencimiento")
-    public ResponseEntity<Void> asignarFechaVencimiento(@PathVariable String id,
-                                                         @PathVariable String listaId,
-                                                         @PathVariable String tarjetaId,
-                                                         @RequestBody AsignarFechaVencimientoRequest request) {
-        gestionTablero.asignarFechaVencimiento(
+    @PutMapping("/{id}/listas/{listaId}/tarjetas/{tarjetaId}/fechaLimite")
+    public ResponseEntity<Void> asignarFechaLimite(@PathVariable String id,
+                                                     @PathVariable String listaId,
+                                                     @PathVariable String tarjetaId,
+                                                     @RequestBody AsignarFechaVencimientoRequest request) {
+        gestionTablero.asignarFechaLimite(
                 TableroId.de(id),
                 ListaId.de(listaId),
                 TarjetaId.de(tarjetaId),
@@ -294,8 +294,8 @@ public class TableroController {
         List<PlantillaEtiquetaCommand> etiquetas = dto.etiquetas() == null ? null :
             dto.etiquetas().stream().map(e -> new PlantillaEtiquetaCommand(e.nombre(), e.color())).toList();
         List<PlantillaItemChecklistCommand> items = dto.checklist() == null ? null :
-            dto.checklist().stream().map(i -> new PlantillaItemChecklistCommand(i.texto(), i.completado())).toList();
-        return new PlantillaTarjetaCommand(dto.titulo(), dto.fechaVencimiento(), etiquetas, items);
+            dto.checklist().stream().map(i -> new PlantillaItemChecklistCommand(i.descripcion(), i.completado())).toList();
+        return new PlantillaTarjetaCommand(dto.titulo(), dto.fechaLimite(), etiquetas, items);
     }
 
     // --- Manejo de errores ---

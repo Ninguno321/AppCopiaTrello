@@ -1,10 +1,10 @@
 package umu.pds.app.domain.exceptions;
 
-public class CheckListIndiceException extends Exception{
+public class ChecklistIndiceException extends Exception{
 
 	private static final long serialVersionUID = 1L;
 
-	public CheckListIndiceException( String msg ) {
+	public ChecklistIndiceException( String msg ) {
 		super( msg );
 	}
 }

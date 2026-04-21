@@ -4,7 +4,7 @@ import java.util.List;
 
 public record PlantillaTarjetaCommand(
         String titulo,
-        String fechaVencimiento,
+        String fechaLimite,
         List<PlantillaEtiquetaCommand> etiquetas,
         List<PlantillaItemChecklistCommand> checklist
 ) {}

@@ -6,8 +6,8 @@ import umu.pds.app.application.commands.PlantillaListaCommand;
 import umu.pds.app.application.commands.PlantillaTableroCommand;
 import umu.pds.app.application.commands.PlantillaTarjetaCommand;
 import umu.pds.app.application.ports.input.GestionTableroUseCase;
-import umu.pds.app.domain.exceptions.CheckListException;
-import umu.pds.app.domain.exceptions.CheckListIndiceException;
+import umu.pds.app.domain.exceptions.ChecklistException;
+import umu.pds.app.domain.exceptions.ChecklistIndiceException;
 import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
@@ -200,12 +200,12 @@ public class TableroService implements GestionTableroUseCase {
         tableroRepository.guardar(tablero);
     }
 
-    // --- Fecha de Vencimiento ---
+    // --- Fecha Límite ---
 
     @Override
-    public void asignarFechaVencimiento(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha) {
+    public void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha) {
         Tablero tablero = obtenerTablero(tableroId);
-        tablero.asignarFechaVencimientoTarjeta(tarjetaId, listaId, fecha);
+        tablero.asignarFechaLimiteTarjeta(tarjetaId, listaId, fecha);
         tableroRepository.guardar(tablero);
     }
 
@@ -228,7 +228,7 @@ public class TableroService implements GestionTableroUseCase {
                                 List<PlantillaItemChecklistCommand> items = tarjetaCmd.checklist();
                                 for (int i = 0; i < items.size(); i++) {
                                     PlantillaItemChecklistCommand itemCmd = items.get(i);
-                                    checklist.agregarItem(itemCmd.texto());
+                                    checklist.agregarItem(itemCmd.descripcion());
                                     if (itemCmd.completado()) {
                                         checklist.marcarItem(i);
                                     }
@@ -236,8 +236,8 @@ public class TableroService implements GestionTableroUseCase {
                                 tarjeta.asignarChecklist(checklist);
                             }
 
-                            if (tarjetaCmd.fechaVencimiento() != null) {
-                                LocalDate fecha = LocalDate.parse(tarjetaCmd.fechaVencimiento());
+                            if (tarjetaCmd.fechaLimite() != null) {
+                                LocalDate fecha = LocalDate.parse(tarjetaCmd.fechaLimite());
                                 tarjeta.asignarFechaVencimiento(fecha.atStartOfDay());
                             }
 
@@ -248,7 +248,7 @@ public class TableroService implements GestionTableroUseCase {
                             }
 
                             tablero.agregarTarjeta(lista.getId(), tarjeta);
-                        } catch (TableroException | CheckListException | CheckListIndiceException e) {
+                        } catch (TableroException | ChecklistException | ChecklistIndiceException e) {
                             throw new IllegalStateException(e.getMessage());
                         }
                     }

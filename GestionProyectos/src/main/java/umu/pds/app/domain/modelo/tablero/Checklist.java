@@ -1,7 +1,7 @@
 package umu.pds.app.domain.modelo.tablero;
 
-import umu.pds.app.domain.exceptions.CheckListException;
-import umu.pds.app.domain.exceptions.CheckListIndiceException;
+import umu.pds.app.domain.exceptions.ChecklistException;
+import umu.pds.app.domain.exceptions.ChecklistIndiceException;
 import umu.pds.app.domain.modelo.shared.ChecklistId;
 
 import java.util.ArrayList;
@@ -19,21 +19,21 @@ public class Checklist {
     private String nombre;
     private final List<ItemChecklist> items;
 
-    public Checklist(ChecklistId id, String nombre) throws CheckListException {
-        if (id == null) throw new CheckListException("ChecklistId no puede ser nulo");
-        if (nombre == null || nombre.isBlank()) throw new CheckListException("El checklist debe tener un nombre");
+    public Checklist(ChecklistId id, String nombre) throws ChecklistException {
+        if (id == null) throw new ChecklistException("ChecklistId no puede ser nulo");
+        if (nombre == null || nombre.isBlank()) throw new ChecklistException("El checklist debe tener un nombre");
         this.id = id;
         this.nombre = nombre;
         this.items = new ArrayList<>();
     }
 
-    public static Checklist nuevo(String nombre) throws CheckListException {
+    public static Checklist nuevo(String nombre) throws ChecklistException {
         return new Checklist(ChecklistId.nuevo(), nombre);
     }
 
     /** Restaura un Checklist desde persistencia con los ítems en su estado real. */
     public static Checklist reconstitute(ChecklistId id, String nombre, List<ItemChecklist> items)
-            throws CheckListException {
+            throws ChecklistException {
         Checklist c = new Checklist(id, nombre);
         c.items.addAll(items);
         return c;
@@ -41,9 +41,9 @@ public class Checklist {
 
     // --- Mutaciones ---
 
-    public void renombrar(String nuevoNombre) throws CheckListException {
+    public void renombrar(String nuevoNombre) throws ChecklistException {
         if (nuevoNombre == null || nuevoNombre.isBlank())
-            throw new CheckListException("El nombre no puede estar vacío");
+            throw new ChecklistException("El nombre no puede estar vacío");
         this.nombre = nuevoNombre;
     }
 
@@ -51,17 +51,17 @@ public class Checklist {
         items.add(ItemChecklist.nuevo(descripcion));
     }
 
-    public void marcarItem(int indice) throws CheckListIndiceException {
+    public void marcarItem(int indice) throws ChecklistIndiceException {
         validarIndice(indice);
         items.set(indice, items.get(indice).marcarCompletado());
     }
 
-    public void desmarcarItem(int indice) throws CheckListIndiceException {
+    public void desmarcarItem(int indice) throws ChecklistIndiceException {
         validarIndice(indice);
         items.set(indice, items.get(indice).desmarcarCompletado());
     }
 
-    public void eliminarItem(int indice) throws CheckListIndiceException {
+    public void eliminarItem(int indice) throws ChecklistIndiceException {
         validarIndice(indice);
         items.remove(indice);
     }
@@ -107,8 +107,8 @@ public class Checklist {
 
     // --- Privado ---
 
-    private void validarIndice(int indice) throws CheckListIndiceException {
+    private void validarIndice(int indice) throws ChecklistIndiceException {
         if (indice < 0 || indice >= items.size())
-            throw new CheckListIndiceException("Índice de ítem inválido: " + indice);
+            throw new ChecklistIndiceException("Índice de ítem inválido: " + indice);
     }
 }

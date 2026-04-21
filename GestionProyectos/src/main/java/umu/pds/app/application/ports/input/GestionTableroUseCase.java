@@ -69,9 +69,9 @@ public interface GestionTableroUseCase {
 
     void desmarcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice);
 
-    // --- Fecha de Vencimiento ---
+    // --- Fecha Límite ---
 
-    void asignarFechaVencimiento(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha);
+    void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha);
 
     // --- Importación desde plantilla ---
 
