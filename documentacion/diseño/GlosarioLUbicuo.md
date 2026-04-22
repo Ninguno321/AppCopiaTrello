@@ -1,6 +1,6 @@
 # Glosario de Lenguaje Ubicuo
 
-Este documento define los conceptos centrales del dominio de nuestra aplicación de gestión de proyectos, asegurando un vocabulario común entre el equipo de desarrollo.
+Este documento define los conceptos centrales del dominio de nuestra aplicación, asegurando un vocabulario común entre el equipo de desarrollo.
 
 | CONCEPTO | DESCRIPCIÓN | TIPO EN DDD | JUSTIFICACIÓN |
 | **Tablero** | Espacio principal de trabajo colaborativo. | Entidad (Raíz de Agregado) | Tiene una identidad única a través de su URL. Es la entidad central que coordina el bloqueo y mantiene la historia de las acciones. |
@@ -14,3 +14,6 @@ Este documento define los conceptos centrales del dominio de nuestra aplicación
 | **Traza** | Registro histórico de una acción. | Objeto de Valor | El sistema debe registrar la historia de todas las acciones de los usuarios, como el movimiento de las tarjetas. Es un hecho inmutable que ocurrió en el pasado. |
 | **Fecha Límite** | Momento hasta el cual debe completarse una tarjeta. | Objeto de Valor | Encapsula una fecha concreta asociada a una Tarjeta. Es inmutable: cambiar la fecha límite significa asignar un nuevo valor, no mutar el existente. Se usa el término `fechaLimite` en todo el código. |
 | **Plantilla** | Definición reutilizable de la estructura de un tablero (listas, tarjetas, etc.) expresada en formato YAML. | Objeto de Valor | Una plantilla no tiene identidad propia ni ciclo de vida; su contenido YAML es lo que la define completamente. Se usa para crear tableros con una estructura predefinida y es intercambiable si su contenido es idéntico. |
+| **Historial** | Secuencia ordenada de trazas que refleja todo lo ocurrido en un tablero. | Parte del Agregado Tablero | No existe como clase independiente; es la colección de `Traza` que custodia el Tablero. Toda operación que muta el agregado añade una nueva traza al historial. Es de sólo lectura para el exterior. |
+| **Propietario** | Rol que desempeña un Usuario respecto a un Tablero concreto: quien lo creó y tiene control total sobre él. | Rol dentro del Agregado | No es una clase separada; es una referencia a `Usuario` con semántica especial. El propietario es el único que puede compartir el tablero o bloquearlo. Se accede mediante `tablero.getPropietario()`. |
+| **Bloqueo** | Estado del Tablero que impide añadir tarjetas nuevas pero permite mover y completar las existentes. | Estado del Agregado Tablero | Representa una restricción de negocio explícita. No es una clase independiente sino un invariante del Tablero (`bloqueado: boolean`). Se activa con `bloquear()` y se desactiva con `desbloquear()`; ambas acciones quedan registradas en el Historial. |
