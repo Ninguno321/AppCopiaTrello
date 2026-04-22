@@ -53,7 +53,7 @@ import umu.pds.app.infrastructure.rest.dto.TableroResponse;
 import umu.pds.app.infrastructure.rest.dto.TarjetaResponse;
 import umu.pds.app.infrastructure.rest.dto.TrazaResponse;
 
-import java.time.LocalDateTime;
+import umu.pds.app.domain.modelo.tablero.FechaLimite;
 import java.util.List;
 import java.util.Map;
 
@@ -214,7 +214,7 @@ public class TableroController {
                 TableroId.de(id),
                 ListaId.de(listaId),
                 TarjetaId.de(tarjetaId),
-                LocalDateTime.parse(request.fecha())
+                FechaLimite.de(request.fecha())
         );
         return ResponseEntity.ok().build();
     }

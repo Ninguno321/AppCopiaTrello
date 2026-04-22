@@ -8,6 +8,7 @@ import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 import umu.pds.app.domain.modelo.tablero.*;
+import java.time.LocalDate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -83,7 +84,7 @@ public class TableroMapper {
                 .map(e -> new EtiquetaJpaEmbeddable(e.nombre(), e.color()))
                 .collect(Collectors.toList()));
 
-        entity.setFechaLimite(tarjeta.getFechaLimite());
+        entity.setFechaLimite(tarjeta.getFechaLimite() != null ? tarjeta.getFechaLimite().date() : null);
 
         return entity;
     }
@@ -157,7 +158,7 @@ public class TableroMapper {
         );
 
         if (entity.getFechaLimite() != null) {
-            tarjeta.asignarFechaLimite(entity.getFechaLimite());
+            tarjeta.asignarFechaLimite(FechaLimite.reconstitute(entity.getFechaLimite()));
         }
 
         if (entity.isCompletada()) {

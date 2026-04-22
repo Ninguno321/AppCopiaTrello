@@ -2,7 +2,7 @@ package umu.pds.app.adapters.jpa.entity;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class TarjetaJpaEntity {
     private ChecklistJpaEntity checklist;
 
     @Column
-    private LocalDateTime fechaLimite;
+    private LocalDate fechaLimite;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "tarjeta_etiquetas", joinColumns = @JoinColumn(name = "tarjeta_id"))
@@ -53,8 +53,8 @@ public class TarjetaJpaEntity {
     public void setTarea(TareaJpaEmbeddable tarea) { this.tarea = tarea; }
     public ChecklistJpaEntity getChecklist() { return checklist; }
     public void setChecklist(ChecklistJpaEntity checklist) { this.checklist = checklist; }
-    public LocalDateTime getFechaLimite() { return fechaLimite; }
-    public void setFechaLimite(LocalDateTime fechaLimite) { this.fechaLimite = fechaLimite; }
+    public LocalDate getFechaLimite() { return fechaLimite; }
+    public void setFechaLimite(LocalDate fechaLimite) { this.fechaLimite = fechaLimite; }
     public List<EtiquetaJpaEmbeddable> getEtiquetas() { return etiquetas; }
     public void setEtiquetas(List<EtiquetaJpaEmbeddable> etiquetas) { this.etiquetas = etiquetas; }
 }

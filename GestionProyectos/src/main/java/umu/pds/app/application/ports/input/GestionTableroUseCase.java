@@ -10,7 +10,7 @@ import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
 
-import java.time.LocalDateTime;
+import umu.pds.app.domain.modelo.tablero.FechaLimite;
 import java.util.List;
 
 /**
@@ -51,10 +51,6 @@ public interface GestionTableroUseCase {
 
     void marcarTarjetaCompletada(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId);
 
-    void asignarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta);
-
-    void quitarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta);
-
     void etiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta);
 
     void desetiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta);
@@ -71,7 +67,7 @@ public interface GestionTableroUseCase {
 
     // --- Fecha Límite ---
 
-    void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha);
+    void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, FechaLimite fecha);
 
     // --- Importación desde plantilla ---
 

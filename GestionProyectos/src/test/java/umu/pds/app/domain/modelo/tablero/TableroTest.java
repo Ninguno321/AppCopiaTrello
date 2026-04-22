@@ -216,7 +216,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Agregar tarjeta en tablero desbloqueado tiene exito y registra traza")
-        void agregarTarjetaExito() throws TableroException {
+        void agregarTarjetaExito() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Tarea 1");
@@ -267,7 +267,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Eliminar tarjeta existente devuelve true y registra traza")
-        void eliminarTarjetaExistente() throws TableroException {
+        void eliminarTarjetaExistente() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Borrar esto");
@@ -306,7 +306,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Mover tarjeta entre listas registra traza")
-        void moverTarjetaExito() throws TableroException {
+        void moverTarjetaExito() {
             Lista origen = Lista.nueva("Todo");
             Lista destino = Lista.nueva("En Proceso");
             tablero.agregarLista(origen);
@@ -324,7 +324,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Mover tarjeta permitido aunque tablero este bloqueado")
-        void moverTarjetaConTableroBloqueado() throws TableroException {
+        void moverTarjetaConTableroBloqueado() {
             Lista origen = Lista.nueva("Todo");
             Lista destino = Lista.nueva("En Proceso");
             tablero.agregarLista(origen);
@@ -348,7 +348,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Mover tarjeta con lista destino inexistente lanza excepcion")
-        void moverTarjetaListaDestinoInexistente() throws TableroException {
+        void moverTarjetaListaDestinoInexistente() {
             Lista origen = Lista.nueva("Todo");
             tablero.agregarLista(origen);
             Tarjeta tarjeta = Tarjeta.nueva("T");
@@ -381,7 +381,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Completar tarjeta la mueve a tarjetasCompletadas y registra traza")
-        void completarTarjetaExito() throws TableroException {
+        void completarTarjetaExito() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Completa");
@@ -415,7 +415,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Completar tarjeta permitido aunque tablero este bloqueado")
-        void completarTarjetaConTableroBloqueado() throws TableroException {
+        void completarTarjetaConTableroBloqueado() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Hecha");
@@ -436,7 +436,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Etiquetar tarjeta agrega etiqueta y registra traza")
-        void etiquetarTarjetaExito() throws TableroException {
+        void etiquetarTarjetaExito() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Con etiqueta");
@@ -452,7 +452,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Etiquetar tarjeta con etiqueta nula lanza excepcion")
-        void etiquetarTarjetaEtiquetaNula() throws TableroException {
+        void etiquetarTarjetaEtiquetaNula() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("T");
@@ -471,7 +471,7 @@ class TableroTest {
 
         @Test
         @DisplayName("Desetiquetar tarjeta quita etiqueta y registra traza")
-        void desetiquetarTarjetaExito() throws TableroException {
+        void desetiquetarTarjetaExito() {
             Lista lista = Lista.nueva("Todo");
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Con etiqueta");
@@ -506,7 +506,7 @@ class TableroTest {
         private Tarjeta tarjeta;
 
         @BeforeEach
-        void setUpChecklist() throws TableroException {
+        void setUpChecklist() {
             lista = Lista.nueva("Sprint");
             tablero.agregarLista(lista);
             tarjeta = Tarjeta.nueva("Con checklist");

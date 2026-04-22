@@ -8,7 +8,7 @@ import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 import umu.pds.app.domain.modelo.usuario.Usuario;
 
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,7 +97,7 @@ public class Tablero {
      * Agrega una Tarjeta ya construida a la lista indicada.
      * INVARIANTE: lanza TableroException si el tablero esta bloqueado.
      */
-    public Tarjeta agregarTarjeta(ListaId listaId, Tarjeta tarjeta) throws TableroException {
+    public Tarjeta agregarTarjeta(ListaId listaId, Tarjeta tarjeta) {
         if (bloqueado)
             throw new TableroException("El tablero esta bloqueado: no se pueden agregar tarjetas nuevas");
         if (tarjeta == null)
@@ -229,7 +229,7 @@ public class Tablero {
 
     // --- Fecha Límite ---
 
-    public void asignarFechaLimiteTarjeta(TarjetaId tarjetaId, ListaId listaId, LocalDateTime fecha) {
+    public void asignarFechaLimiteTarjeta(TarjetaId tarjetaId, ListaId listaId, FechaLimite fecha) {
         Tarjeta tarjeta = buscarTarjetaEnLista(listaId, tarjetaId);
         tarjeta.asignarFechaLimite(fecha);
         historial.add(Traza.nueva(

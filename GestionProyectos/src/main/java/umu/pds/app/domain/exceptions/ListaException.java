@@ -1,6 +1,6 @@
 package umu.pds.app.domain.exceptions;
 
-public class ListaException extends Exception{
+public class ListaException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 

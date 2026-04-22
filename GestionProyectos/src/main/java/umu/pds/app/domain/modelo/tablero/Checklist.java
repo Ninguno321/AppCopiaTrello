@@ -19,7 +19,7 @@ public class Checklist {
     private String nombre;
     private final List<ItemChecklist> items;
 
-    public Checklist(ChecklistId id, String nombre) throws ChecklistException {
+    public Checklist(ChecklistId id, String nombre) {
         if (id == null) throw new ChecklistException("ChecklistId no puede ser nulo");
         if (nombre == null || nombre.isBlank()) throw new ChecklistException("El checklist debe tener un nombre");
         this.id = id;
@@ -27,13 +27,12 @@ public class Checklist {
         this.items = new ArrayList<>();
     }
 
-    public static Checklist nuevo(String nombre) throws ChecklistException {
+    public static Checklist nuevo(String nombre) {
         return new Checklist(ChecklistId.nuevo(), nombre);
     }
 
     /** Restaura un Checklist desde persistencia con los ítems en su estado real. */
-    public static Checklist reconstitute(ChecklistId id, String nombre, List<ItemChecklist> items)
-            throws ChecklistException {
+    public static Checklist reconstitute(ChecklistId id, String nombre, List<ItemChecklist> items) {
         Checklist c = new Checklist(id, nombre);
         c.items.addAll(items);
         return c;
@@ -41,7 +40,7 @@ public class Checklist {
 
     // --- Mutaciones ---
 
-    public void renombrar(String nuevoNombre) throws ChecklistException {
+    public void renombrar(String nuevoNombre) {
         if (nuevoNombre == null || nuevoNombre.isBlank())
             throw new ChecklistException("El nombre no puede estar vacío");
         this.nombre = nuevoNombre;
@@ -51,17 +50,17 @@ public class Checklist {
         items.add(ItemChecklist.nuevo(descripcion));
     }
 
-    public void marcarItem(int indice) throws ChecklistIndiceException {
+    public void marcarItem(int indice) {
         validarIndice(indice);
         items.set(indice, items.get(indice).marcarCompletado());
     }
 
-    public void desmarcarItem(int indice) throws ChecklistIndiceException {
+    public void desmarcarItem(int indice) {
         validarIndice(indice);
         items.set(indice, items.get(indice).desmarcarCompletado());
     }
 
-    public void eliminarItem(int indice) throws ChecklistIndiceException {
+    public void eliminarItem(int indice) {
         validarIndice(indice);
         items.remove(indice);
     }
@@ -107,7 +106,7 @@ public class Checklist {
 
     // --- Privado ---
 
-    private void validarIndice(int indice) throws ChecklistIndiceException {
+    private void validarIndice(int indice) {
         if (indice < 0 || indice >= items.size())
             throw new ChecklistIndiceException("Índice de ítem inválido: " + indice);
     }

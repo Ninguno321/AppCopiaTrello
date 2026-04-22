@@ -14,6 +14,7 @@ import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 import umu.pds.app.domain.modelo.tablero.Checklist;
 import umu.pds.app.domain.modelo.tablero.Etiqueta;
+import umu.pds.app.domain.modelo.tablero.FechaLimite;
 import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
@@ -21,8 +22,6 @@ import umu.pds.app.domain.modelo.usuario.Usuario;
 import umu.pds.app.domain.ports.output.TableroRepository;
 import umu.pds.app.domain.ports.output.UsuarioRepository;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -50,8 +49,6 @@ public class TableroService implements GestionTableroUseCase {
                     return nuevo;
                 });
         Tablero tablero = new Tablero(nombre, propietario);
-        System.out.println("TABLEROOO ID");
-        System.out.println(tablero.getId());
         tableroRepository.guardar(tablero);
         return tablero;
     }
@@ -146,16 +143,6 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
-    public void asignarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
-        etiquetarTarjeta(tableroId, listaId, tarjetaId, etiqueta);
-    }
-
-    @Override
-    public void quitarEtiqueta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
-        desetiquetarTarjeta(tableroId, listaId, tarjetaId, etiqueta);
-    }
-
-    @Override
     public void etiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.etiquetarTarjeta(tarjetaId, listaId, etiqueta);
@@ -203,7 +190,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Fecha Límite ---
 
     @Override
-    public void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, LocalDateTime fecha) {
+    public void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, FechaLimite fecha) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.asignarFechaLimiteTarjeta(tarjetaId, listaId, fecha);
         tableroRepository.guardar(tablero);
@@ -237,8 +224,7 @@ public class TableroService implements GestionTableroUseCase {
                             }
 
                             if (tarjetaCmd.fechaLimite() != null) {
-                                LocalDate fecha = LocalDate.parse(tarjetaCmd.fechaLimite());
-                                tarjeta.asignarFechaVencimiento(fecha.atStartOfDay());
+                                tarjeta.asignarFechaLimite(FechaLimite.de(tarjetaCmd.fechaLimite()));
                             }
 
                             if (tarjetaCmd.etiquetas() != null) {

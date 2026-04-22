@@ -2,7 +2,7 @@ package umu.pds.app.domain.modelo.tablero;
 
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +22,7 @@ public class Tarjeta {
     private Checklist checklist;
     private final List<Etiqueta> etiquetas;
     private boolean completada;
-    private LocalDateTime fechaLimite;
+    private FechaLimite fechaLimite;
 
     public Tarjeta(TarjetaId id, String titulo) {
         if (id == null) throw new IllegalArgumentException("TarjetaId no puede ser nulo");
@@ -84,7 +84,7 @@ public class Tarjeta {
         this.completada = true;
     }
 
-    public void asignarFechaLimite(LocalDateTime fecha) {
+    public void asignarFechaLimite(FechaLimite fecha) {
         this.fechaLimite = fecha;
     }
 
@@ -102,7 +102,7 @@ public class Tarjeta {
     public Optional<Tarea> getTarea() { return Optional.ofNullable(tarea); }
     public Optional<Checklist> getChecklist() { return Optional.ofNullable(checklist); }
     public List<Etiqueta> getEtiquetas() { return Collections.unmodifiableList(etiquetas); }
-    public LocalDateTime getFechaLimite() { return fechaLimite; }
+    public FechaLimite getFechaLimite() { return fechaLimite; }
 
     // --- Identidad por ID ---
 
