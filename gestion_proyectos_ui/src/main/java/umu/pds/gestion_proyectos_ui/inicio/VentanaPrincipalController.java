@@ -43,12 +43,10 @@ public class VentanaPrincipalController {
     @FXML private VBox sidebarTableros;
     @FXML private Button btnCrearTablero;
     @FXML private Button btnImportarPlantilla;
-    @FXML private Button btnConfiguracion;
+    @FXML private Button btnCerrarSesion;
 
     // Cabecera del contenido central
     @FXML private Label  lblTableroActual;
-    @FXML private Button btnAutomatizaciones;
-
     // Pestañas de navegación
     @FXML private Button btnTabTablero;
     @FXML private Button btnTabCalendario;
@@ -378,15 +376,20 @@ public class VentanaPrincipalController {
     }
 
     @FXML
-    void onConfiguracion(ActionEvent event) {
-        // TODO: navegar a la pantalla de configuración
-    }
-
-    // --- Cabecera ---
-
-    @FXML
-    void onAutomatizaciones(ActionEvent event) {
-        // TODO: abrir sección de automatizaciones del tablero actual
+    void onCerrarSesionClick(ActionEvent event) {
+        emailActual = null;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/umu/pds/gestion_proyectos_ui/inicio/VentanaInicio.fxml"
+            ));
+            Parent root = loader.load();
+            Stage stage = (Stage) btnCerrarSesion.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setFullScreen(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // --- Pestañas de navegación ---

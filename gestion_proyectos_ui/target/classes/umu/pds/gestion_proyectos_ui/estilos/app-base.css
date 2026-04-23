@@ -159,7 +159,7 @@
     -fx-text-fill:   color-text-primary;
 }
 
-.btn-automatizaciones {
+.btn-cabecera {
     -fx-background-color:  #27b1bf;
     -fx-text-fill:         #FFFFFF;
     -fx-border-color:      transparent;
@@ -170,7 +170,7 @@
     -fx-cursor:            hand;
 }
 
-.btn-automatizaciones:hover {
+.btn-cabecera:hover {
     -fx-background-color: #176585;
 }
 
