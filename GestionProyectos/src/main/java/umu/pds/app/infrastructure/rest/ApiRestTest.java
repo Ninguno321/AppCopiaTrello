@@ -1,4 +1,4 @@
-package umu.pds.app;
+package umu.pds.app.infrastructure.rest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;

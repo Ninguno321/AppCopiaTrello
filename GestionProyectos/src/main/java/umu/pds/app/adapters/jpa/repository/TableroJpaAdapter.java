@@ -1,9 +1,7 @@
-package umu.pds.app.infrastructure.persistence;
+package umu.pds.app.adapters.jpa.repository;
 
 import org.springframework.stereotype.Repository;
 import umu.pds.app.adapters.jpa.entity.UsuarioJpaEntity;
-import umu.pds.app.adapters.jpa.repository.TableroRepositoryJPA;
-import umu.pds.app.adapters.jpa.repository.UsuarioRepositoryJPA;
 import umu.pds.app.adapters.mappers.TableroMapper;
 import umu.pds.app.domain.modelo.shared.TableroId;
 import umu.pds.app.domain.modelo.tablero.Tablero;

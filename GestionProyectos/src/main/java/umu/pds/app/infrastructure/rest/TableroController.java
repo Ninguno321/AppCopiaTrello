@@ -14,17 +14,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import umu.pds.app.application.commands.PlantillaEtiquetaCommand;
 import umu.pds.app.application.commands.PlantillaItemChecklistCommand;
 import umu.pds.app.application.commands.PlantillaListaCommand;
 import umu.pds.app.application.commands.PlantillaTableroCommand;
 import umu.pds.app.application.commands.PlantillaTarjetaCommand;
 import umu.pds.app.application.ports.input.GestionTableroUseCase;
+import umu.pds.app.domain.exceptions.ListaException;
 import umu.pds.app.domain.exceptions.PlantillaInvalidaException;
 import umu.pds.app.domain.exceptions.TableroException;
+import umu.pds.app.domain.exceptions.TarjetaException;
 import umu.pds.app.infrastructure.rest.dto.PlantillaEtiquetaDto;
 import umu.pds.app.infrastructure.rest.dto.PlantillaItemChecklistDto;
 import umu.pds.app.infrastructure.rest.dto.PlantillaListaDto;
@@ -62,9 +63,12 @@ import java.util.Map;
 public class TableroController {
 
     private final GestionTableroUseCase gestionTablero;
+    private final ObjectMapper yamlMapper;
 
-    public TableroController(GestionTableroUseCase gestionTablero) {
+    public TableroController(GestionTableroUseCase gestionTablero,
+                             @Qualifier("yamlObjectMapper") ObjectMapper yamlMapper) {
         this.gestionTablero = gestionTablero;
+        this.yamlMapper = yamlMapper;
     }
 
     // --- Tablero ---
@@ -265,11 +269,9 @@ public class TableroController {
     public ResponseEntity<TableroResponse> crearDesdePlantilla(
             @RequestBody String yamlContent,
             @RequestParam String email) {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PlantillaTableroDto dto;
         try {
-            dto = mapper.readValue(yamlContent, PlantillaTableroDto.class);
+            dto = yamlMapper.readValue(yamlContent, PlantillaTableroDto.class);
         } catch (JsonProcessingException e) {
             throw new PlantillaInvalidaException("El YAML de la plantilla no es válido: " + e.getOriginalMessage(), e);
         }
@@ -315,6 +317,20 @@ public class TableroController {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleConflict(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    /** Datos de entrada inválidos para una tarjeta (título vacío, etc.). */
+    @ExceptionHandler(TarjetaException.class)
+    public ResponseEntity<Map<String, String>> handleTarjetaException(TarjetaException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    /** Datos de entrada inválidos para una lista (nombre vacío, etc.). */
+    @ExceptionHandler(ListaException.class)
+    public ResponseEntity<Map<String, String>> handleListaException(ListaException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
 

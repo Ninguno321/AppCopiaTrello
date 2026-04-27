@@ -1,5 +1,6 @@
 package umu.pds.app.application.services;
 
+import org.springframework.transaction.annotation.Transactional;
 import umu.pds.app.application.commands.PlantillaEtiquetaCommand;
 import umu.pds.app.application.commands.PlantillaItemChecklistCommand;
 import umu.pds.app.application.commands.PlantillaListaCommand;
@@ -41,6 +42,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Tablero ---
 
     @Override
+    @Transactional
     public Tablero crearTablero(String nombre, String email) {
         Usuario propietario = usuarioRepository.buscarPorEmail(email)
                 .orElseGet(() -> {
@@ -54,17 +56,20 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Tablero obtenerTablero(TableroId id) {
         return tableroRepository.buscarPorId(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tablero no encontrado: " + id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Tablero> obtenerTablerosPorEmail(String email) {
         return tableroRepository.buscarPorEmail(email);
     }
 
     @Override
+    @Transactional
     public void renombrarTablero(TableroId id, String nuevoNombre) {
         Tablero tablero = obtenerTablero(id);
         tablero.renombrar(nuevoNombre);
@@ -72,6 +77,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void bloquearTablero(TableroId id) {
         Tablero tablero = obtenerTablero(id);
         tablero.bloquear();
@@ -79,6 +85,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void desbloquearTablero(TableroId id) {
         Tablero tablero = obtenerTablero(id);
         tablero.desbloquear();
@@ -86,6 +93,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void eliminarTablero(TableroId id) {
         tableroRepository.eliminar(id);
     }
@@ -93,6 +101,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Listas ---
 
     @Override
+    @Transactional
     public Lista agregarLista(TableroId tableroId, String nombre) {
         Tablero tablero = obtenerTablero(tableroId);
         Lista lista = tablero.agregarLista(Lista.nueva(nombre));
@@ -101,6 +110,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void eliminarLista(TableroId tableroId, ListaId listaId) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.eliminarLista(listaId);
@@ -110,6 +120,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Tarjetas ---
 
     @Override
+    @Transactional
     public Tarjeta agregarTarjeta(TableroId tableroId, ListaId listaId, String titulo) {
         Tablero tablero = obtenerTablero(tableroId);
         try {
@@ -122,6 +133,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void eliminarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.eliminarTarjeta(listaId, tarjetaId);
@@ -129,6 +141,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void moverTarjeta(TableroId tableroId, TarjetaId tarjetaId, ListaId listaOrigenId, ListaId listaDestinoId) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.moverTarjeta(tarjetaId, listaOrigenId, listaDestinoId);
@@ -136,6 +149,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void marcarTarjetaCompletada(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.completarTarjeta(tarjetaId, listaId);
@@ -143,6 +157,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void etiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.etiquetarTarjeta(tarjetaId, listaId, etiqueta);
@@ -150,6 +165,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void desetiquetarTarjeta(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, Etiqueta etiqueta) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.desetiquetarTarjeta(tarjetaId, listaId, etiqueta);
@@ -159,6 +175,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Checklist ---
 
     @Override
+    @Transactional
     public Checklist asignarChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, String nombre) {
         Tablero tablero = obtenerTablero(tableroId);
         Checklist checklist = tablero.asignarChecklist(listaId, tarjetaId, nombre);
@@ -167,6 +184,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void agregarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, String descripcion) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.agregarItemChecklist(listaId, tarjetaId, descripcion);
@@ -174,6 +192,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void marcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.marcarItemChecklist(listaId, tarjetaId, indice);
@@ -181,6 +200,7 @@ public class TableroService implements GestionTableroUseCase {
     }
 
     @Override
+    @Transactional
     public void desmarcarItemChecklist(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, int indice) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.desmarcarItemChecklist(listaId, tarjetaId, indice);
@@ -190,6 +210,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Fecha Límite ---
 
     @Override
+    @Transactional
     public void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, FechaLimite fecha) {
         Tablero tablero = obtenerTablero(tableroId);
         tablero.asignarFechaLimiteTarjeta(tarjetaId, listaId, fecha);
@@ -199,6 +220,7 @@ public class TableroService implements GestionTableroUseCase {
     // --- Importación desde plantilla ---
 
     @Override
+    @Transactional
     public Tablero crearDesdePlantilla(PlantillaTableroCommand plantilla, String email) {
         Tablero tablero = crearTablero(plantilla.nombre(), email);
 

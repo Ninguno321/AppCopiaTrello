@@ -1,5 +1,6 @@
 package umu.pds.app.domain.modelo.tablero;
 
+import umu.pds.app.domain.exceptions.ListaException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 
@@ -23,8 +24,8 @@ public class Lista {
     private final List<Tarjeta> tarjetas;
 
     public Lista(ListaId id, String nombre) {
-        if (id == null) throw new IllegalArgumentException("ListaId no puede ser nulo");
-        if (nombre == null || nombre.isBlank()) throw new IllegalArgumentException("La lista debe tener un nombre");
+        if (id == null) throw new ListaException("ListaId no puede ser nulo");
+        if (nombre == null || nombre.isBlank()) throw new ListaException("La lista debe tener un nombre");
         this.id = id;
         this.nombre = nombre;
         this.tarjetas = new ArrayList<>();
@@ -54,7 +55,7 @@ public class Lista {
 
     public void renombrar(String nuevoNombre) {
         if (nuevoNombre == null || nuevoNombre.isBlank())
-            throw new IllegalArgumentException("El nombre no puede estar vacío");
+            throw new ListaException("El nombre no puede estar vacío");
         this.nombre = nuevoNombre;
     }
 

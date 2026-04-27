@@ -1,7 +1,7 @@
-package umu.pds.app.infrastructure.persistence;
+package umu.pds.app.adapters.jpa.repository;
 
 import org.springframework.stereotype.Repository;
-import umu.pds.app.adapters.jpa.repository.UsuarioRepositoryJPA;
+
 import umu.pds.app.adapters.mappers.UsuarioMapper;
 import umu.pds.app.domain.modelo.usuario.Usuario;
 import umu.pds.app.domain.ports.output.UsuarioRepository;

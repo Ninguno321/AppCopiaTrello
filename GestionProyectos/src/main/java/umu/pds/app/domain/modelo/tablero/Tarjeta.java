@@ -1,7 +1,7 @@
 package umu.pds.app.domain.modelo.tablero;
 
+import umu.pds.app.domain.exceptions.TarjetaException;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,8 +25,8 @@ public class Tarjeta {
     private FechaLimite fechaLimite;
 
     public Tarjeta(TarjetaId id, String titulo) {
-        if (id == null) throw new IllegalArgumentException("TarjetaId no puede ser nulo");
-        if (titulo == null || titulo.isBlank()) throw new IllegalArgumentException("La tarjeta debe tener un título");
+        if (id == null) throw new TarjetaException("TarjetaId no puede ser nulo");
+        if (titulo == null || titulo.isBlank()) throw new TarjetaException("La tarjeta debe tener un título");
         this.id = id;
         this.titulo = titulo;
         this.etiquetas = new ArrayList<>();
@@ -40,7 +40,7 @@ public class Tarjeta {
     // --- Mutaciones públicas ---
 
     public void cambiarTitulo(String titulo) {
-        if (titulo == null || titulo.isBlank()) throw new IllegalArgumentException("El título no puede estar vacío");
+        if (titulo == null || titulo.isBlank()) throw new TarjetaException("El título no puede estar vacío");
         this.titulo = titulo;
     }
 
@@ -49,7 +49,7 @@ public class Tarjeta {
     }
 
     public void asignarTarea(Tarea tarea) {
-        if (tarea == null) throw new IllegalArgumentException("La tarea no puede ser nula");
+        if (tarea == null) throw new TarjetaException("La tarea no puede ser nula");
         this.tarea = tarea;
     }
 
@@ -58,7 +58,7 @@ public class Tarjeta {
     }
 
     public void asignarChecklist(Checklist checklist) {
-        if (checklist == null) throw new IllegalArgumentException("El checklist no puede ser nulo");
+        if (checklist == null) throw new TarjetaException("El checklist no puede ser nulo");
         this.checklist = checklist;
     }
 
@@ -67,7 +67,7 @@ public class Tarjeta {
     }
 
     public void asignarEtiqueta(Etiqueta etiqueta) {
-        if (etiqueta == null) throw new IllegalArgumentException("La etiqueta no puede ser nula");
+        if (etiqueta == null) throw new TarjetaException("La etiqueta no puede ser nula");
         if (!etiquetas.contains(etiqueta)) etiquetas.add(etiqueta);
     }
 

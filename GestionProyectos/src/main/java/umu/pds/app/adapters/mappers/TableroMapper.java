@@ -17,11 +17,10 @@ import java.util.stream.Collectors;
  * Convierte entre el modelo de dominio puro y las entidades JPA.
  * El dominio NUNCA importa Jakarta; toda la traducción vive aquí.
  *
- * La reconstrucción de Tablero usa reflexión para inyectar datos en los
- * campos privados sin disparar los métodos de negocio (que generarían
- * entradas de historial falsas). Es la técnica estándar cuando el Aggregate
- * Root no expone un constructor de reconstrucción y el dominio no puede
- * modificarse.
+ * La reconstrucción de Tablero utiliza el método estático
+ * {@link umu.pds.app.domain.modelo.tablero.Tablero#reconstitute} del Aggregate Root,
+ * que reinyecta el estado persistido sin disparar los métodos de negocio
+ * (evitando así entradas de historial falsas).
  */
 @Component
 public class TableroMapper {
