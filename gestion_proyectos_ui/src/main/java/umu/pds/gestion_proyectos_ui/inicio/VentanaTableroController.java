@@ -8,14 +8,24 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.DragEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.application.Platform;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
@@ -244,17 +254,89 @@ public class VentanaTableroController {
 
     @FXML
     void crearLista(MouseEvent event) {
-        TextInputDialog dialog = new TextInputDialog();
+        Dialog<ListaDto> dialog = new Dialog<>();
         dialog.initOwner(contenedorListas.getScene().getWindow());
         dialog.setTitle("Nueva lista");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Nombre de la lista:");
+        dialog.setHeaderText("Introduce los datos de la nueva lista:");
 
-        Optional<String> resultado = dialog.showAndWait();
-        resultado.ifPresent(nombre -> {
-            if (nombre.isBlank()) return;
+        ButtonType crearButtonType = new ButtonType("Crear", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(crearButtonType, ButtonType.CANCEL);
 
-            Task<ListaDto> task = service.agregarLista(tableroId, nombre);
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField nombreF = new TextField();
+        nombreF.setPromptText("Nombre");
+        
+        TextField maxTarjetasF = new TextField();
+        maxTarjetasF.setPromptText("5");
+        maxTarjetasF.setText("5");
+
+        Label errorLabel = new Label();
+        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 10px;");
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+
+        grid.add(new Label("Nombre:"), 0, 0);
+        grid.add(nombreF, 1, 0);
+        grid.add(new Label("Máx. Tarjetas:"), 0, 1);
+        
+        VBox vboxMax = new VBox(2);
+        vboxMax.getChildren().addAll(maxTarjetasF, errorLabel);
+        grid.add(vboxMax, 1, 1);
+
+        javafx.scene.Node crearButton = dialog.getDialogPane().lookupButton(crearButtonType);
+        crearButton.setDisable(true);
+
+        Runnable validate = () -> {
+            boolean nombreValido = !nombreF.getText().trim().isEmpty();
+            boolean maxValido = true;
+            try {
+                int val = Integer.parseInt(maxTarjetasF.getText().trim());
+                if (val <= 0) {
+                    maxValido = false;
+                    errorLabel.setText("Debe ser mayor que 0");
+                }
+            } catch (NumberFormatException e) {
+                maxValido = false;
+                errorLabel.setText("Debe ser un número válido");
+            }
+
+            errorLabel.setVisible(!maxValido);
+            errorLabel.setManaged(!maxValido);
+
+            crearButton.setDisable(!nombreValido || !maxValido);
+        };
+
+        nombreF.textProperty().addListener((obs, oldV, newV) -> validate.run());
+        maxTarjetasF.textProperty().addListener((obs, oldV, newV) -> validate.run());
+
+        dialog.getDialogPane().setContent(grid);
+
+        Platform.runLater(() -> nombreF.requestFocus());
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == crearButtonType) {
+                int max = 5;
+                try {
+                    max = Integer.parseInt(maxTarjetasF.getText().trim());
+                    if (max <= 0) max = 5;
+                } catch (NumberFormatException e) {
+                    // Ignore, keep default
+                }
+                ListaDto dto = new ListaDto();
+                dto.nombre = nombreF.getText().trim();
+                dto.maxTarjetas = max;
+                return dto;
+            }
+            return null;
+        });
+
+        Optional<ListaDto> resultado = dialog.showAndWait();
+        resultado.ifPresent(dto -> {
+            Task<ListaDto> task = service.agregarLista(tableroId, dto.nombre, dto.maxTarjetas);
             task.setOnSucceeded(e -> {
                 if (tableroDto.listas == null) tableroDto.listas = new ArrayList<>();
                 tableroDto.listas.add(task.getValue());

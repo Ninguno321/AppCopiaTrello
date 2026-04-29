@@ -20,10 +20,4 @@ public class BeanConfiguration {
         return new TableroService(tableroRepository, usuarioRepository);
     }
 
-    @Bean
-    public ObjectMapper yamlObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper;
-    }
 }

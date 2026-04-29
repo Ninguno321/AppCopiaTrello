@@ -65,10 +65,10 @@ public class TableroController {
     private final GestionTableroUseCase gestionTablero;
     private final ObjectMapper yamlMapper;
 
-    public TableroController(GestionTableroUseCase gestionTablero,
-                             @Qualifier("yamlObjectMapper") ObjectMapper yamlMapper) {
+    public TableroController(GestionTableroUseCase gestionTablero) {
         this.gestionTablero = gestionTablero;
-        this.yamlMapper = yamlMapper;
+        this.yamlMapper = new ObjectMapper(new com.fasterxml.jackson.dataformat.yaml.YAMLFactory());
+        this.yamlMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     // --- Tablero ---
@@ -130,7 +130,8 @@ public class TableroController {
     @PostMapping("/{id}/listas")
     public ResponseEntity<ListaResponse> agregarLista(@PathVariable String id,
                                                        @RequestBody AgregarListaRequest request) {
-        Lista lista = gestionTablero.agregarLista(TableroId.de(id), request.nombre());
+        int maxTarjetas = request.maxTarjetas() != null ? request.maxTarjetas() : 5;
+        Lista lista = gestionTablero.agregarLista(TableroId.de(id), request.nombre(), maxTarjetas);
         return ResponseEntity.status(HttpStatus.CREATED).body(ListaResponse.from(lista));
     }
 
@@ -289,7 +290,7 @@ public class TableroController {
     private PlantillaListaCommand toCommand(PlantillaListaDto dto) {
         List<PlantillaTarjetaCommand> tarjetas = dto.tarjetas() == null ? null :
             dto.tarjetas().stream().map(this::toCommand).toList();
-        return new PlantillaListaCommand(dto.nombre(), tarjetas);
+        return new PlantillaListaCommand(dto.nombre(), dto.maxTarjetas(), tarjetas);
     }
 
     private PlantillaTarjetaCommand toCommand(PlantillaTarjetaDto dto) {

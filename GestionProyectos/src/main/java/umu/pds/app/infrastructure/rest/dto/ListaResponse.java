@@ -7,12 +7,14 @@ import java.util.List;
 public record ListaResponse(
         String id,
         String nombre,
+        int maxTarjetas,
         List<TarjetaResponse> tarjetas
 ) {
     public static ListaResponse from(Lista lista) {
         return new ListaResponse(
                 lista.getId().toString(),
                 lista.getNombre(),
+                lista.getMaxTarjetas(),
                 lista.getTarjetas().stream().map(TarjetaResponse::from).toList()
         );
     }

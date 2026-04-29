@@ -27,7 +27,7 @@ public interface GestionTableroFrontendService {
     Task<Void>             eliminarTablero(String tableroId);
 
     // --- Listas ---
-    Task<ListaDto> agregarLista(String tableroId, String nombre);
+    Task<ListaDto> agregarLista(String tableroId, String nombre, int maxTarjetas);
     Task<Void>     eliminarLista(String tableroId, String listaId);
 
     // --- Tarjetas ---

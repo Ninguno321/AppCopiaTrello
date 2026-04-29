@@ -7,5 +7,6 @@ import java.util.List;
 public class ListaDto {
     public String id;
     public String nombre;
+    public int maxTarjetas;
     public List<TarjetaDto> tarjetas;
 }

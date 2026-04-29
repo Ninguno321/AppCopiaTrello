@@ -22,7 +22,7 @@ public class App extends Application
 	@Override
     public void start(Stage stage) throws Exception {
     	
-        // Inicializar Configuració
+        // Inicializar Configuración
         //Configuracion.setInstancia(new ConfiguracionImpl());
     	//ControladorApp appController = Configuracion.getInstancia().getControladorApp();
 

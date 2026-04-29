@@ -12,10 +12,12 @@
    <children>
 
       <!-- HEADER -->
-      <HBox fx:id="headerLista" styleClass="lista-header">
+      <HBox fx:id="headerLista" styleClass="lista-header" alignment="CENTER_LEFT" spacing="5">
          <children>
 
-            <TextField fx:id="titulo" prefHeight="35.0" prefWidth="263.0" promptText="Introduce el nombre de la lista..." styleClass="lista-titulo" />
+            <TextField fx:id="titulo" prefHeight="35.0" prefWidth="200.0" promptText="Introduce el nombre de la lista..." styleClass="lista-titulo" />
+
+            <javafx.scene.control.Label fx:id="lblMaxTarjetas" text="(max ?)" style="-fx-text-fill: #6b778c; -fx-opacity: 0.8; -fx-font-size: 12px;" />
 
             <Button fx:id="btnMenuLista" styleClass="menu-boton" text="⋯" />
 

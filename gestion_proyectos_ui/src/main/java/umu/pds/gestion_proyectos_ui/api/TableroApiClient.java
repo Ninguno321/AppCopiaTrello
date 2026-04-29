@@ -119,8 +119,8 @@ public class TableroApiClient {
         }
     }
 
-    public ListaDto agregarLista(String tableroId, String nombre) throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("nombre", nombre));
+    public ListaDto agregarLista(String tableroId, String nombre, int maxTarjetas) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("nombre", nombre, "maxTarjetas", maxTarjetas));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas"))

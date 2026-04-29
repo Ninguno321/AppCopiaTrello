@@ -102,9 +102,9 @@ public class TableroService implements GestionTableroUseCase {
 
     @Override
     @Transactional
-    public Lista agregarLista(TableroId tableroId, String nombre) {
+    public Lista agregarLista(TableroId tableroId, String nombre, int maxTarjetas) {
         Tablero tablero = obtenerTablero(tableroId);
-        Lista lista = tablero.agregarLista(Lista.nueva(nombre));
+        Lista lista = tablero.agregarLista(Lista.nueva(nombre, maxTarjetas));
         tableroRepository.guardar(tablero);
         return lista;
     }
@@ -226,7 +226,11 @@ public class TableroService implements GestionTableroUseCase {
 
         if (plantilla.listas() != null) {
             for (PlantillaListaCommand listaCmd : plantilla.listas()) {
-                Lista lista = tablero.agregarLista(Lista.nueva(listaCmd.nombre()));
+                int maxTarjetas = listaCmd.maxTarjetas() != null ? listaCmd.maxTarjetas() : 5;
+                if (listaCmd.tarjetas() != null && listaCmd.tarjetas().size() > maxTarjetas) {
+                    maxTarjetas = listaCmd.tarjetas().size();
+                }
+                Lista lista = tablero.agregarLista(Lista.nueva(listaCmd.nombre(), maxTarjetas));
                 if (listaCmd.tarjetas() != null) {
                     for (PlantillaTarjetaCommand tarjetaCmd : listaCmd.tarjetas()) {
                         try {
