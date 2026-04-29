@@ -42,19 +42,23 @@ public class ApiGroqTest {
 
         List<Map<String, String>> messages = new ArrayList<>();
 
-        // 🧠 SYSTEM → reglas + contexto dinámico
+        //SYSTEM → reglas + contexto dinámico
         Map<String, String> systemMessage = new HashMap<>();
         systemMessage.put("role", "system");
         systemMessage.put("content",
-            "Responde en español de forma clara y directa. " +
+            "Responde en español de forma clara y directa, eres un asistente de una aplicación idéntica a Trello. " +
             "No incluyas razonamientos internos ni etiquetas como <think>. " +
-            "Usa únicamente el siguiente contexto si es relevante:\n" +
+            "Si te preguntan cosas raras responde diciendo que no puedes ayudar con eso" +
+            "Usa únicamente el siguiente contexto si es relevante, se trata del contexto actual del tablero, el último y válido:\n" +
             contexto
         );
 
         Map<String, String> userMessage = new HashMap<>();
         userMessage.put("role", "user");
-        userMessage.put("content", pregunta);
+        userMessage.put("content",
+        		"A continuación se concatena todo el contexto de la conversación actual (solo es contexto anterior), responde con naturalidad siguiendo el contexto de la conversación,"
+        		+ "la pregunta que tienes que responder es la última pregunta, la del final: \n" +
+        		pregunta);
 
         messages.add(systemMessage);
         messages.add(userMessage);

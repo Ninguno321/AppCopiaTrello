@@ -9,14 +9,17 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import umu.pds.gestion_proyectos_ui.api.TableroApiClient;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
+import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendServiceImpl;
 
 public class VentanaChatController {
 	@FXML private VBox chatContainer;
 	@FXML private TextField inputField;
 	@FXML private ScrollPane scrollPane;
 	
-	private final TableroApiClient apiClient = new TableroApiClient();
+	private final GestionTableroFrontendService apiClient = new GestionTableroFrontendServiceImpl();
 	private TableroDto tablero;
+	private String contextoGlobal;
 
 	    @FXML
 	    void onEnviarMensaje() {
@@ -30,27 +33,31 @@ public class VentanaChatController {
 	        // Mostrar "escribiendo..."
 	        Label escribiendo = agregarMensaje("Escribiendo...", false);
 
-	        // Llamada a la API en segundo plano
+	       /* // Llamada a la API en segundo plano
 	        Task<String> task = new Task<>() {
 	            @Override
 	            protected String call() throws Exception {
-	            	System.out.println("ESTE ES EL TABLERO/ CONTEXTO : " + tablero);
-	                String res =  apiClient.preguntarIA(mensaje, tablero);
-	                System.out.println("ESTA ES LA RESPUESTA"  + res);
+	            	String value = contextoGlobal + "Nuevo: Ultima pregunta: " + mensaje;
+	                String res =  apiClient.preguntarAI(tablero, value);
+	                contextoGlobal = value;
 	                return res;
 	            }
 	        };
+*/	            	
+	        contextoGlobal = contextoGlobal + "Nuevo: Ultima pregunta: " + mensaje;
+
+		    Task<String> task = apiClient.preguntarAI(tablero, contextoGlobal);
 
 	        task.setOnSucceeded(e -> {
 	            String respuesta = task.getValue();
-
+	            contextoGlobal = contextoGlobal + "Ultima respuesta: " + respuesta;
 	            // Reemplazar "Escribiendo..."
 	            escribiendo.setText(respuesta);
 	        });
 
 	        task.setOnFailed(e -> {
 	            Throwable ex = task.getException();
-	            escribiendo.setText("Error: " + (ex != null ? ex.getMessage() : "desconocido"));
+	            escribiendo.setText("Error:desconocido, prueba en unos segunos...");
 	            ex.printStackTrace(); 
 	        });
 
@@ -59,7 +66,6 @@ public class VentanaChatController {
 	    
 
 		public void setNombreTablero(TableroDto nombreTablero) {
-		    System.out.println("ACTUALIZADO:  " + nombreTablero);
 			this.tablero = nombreTablero;
 		}
 	    

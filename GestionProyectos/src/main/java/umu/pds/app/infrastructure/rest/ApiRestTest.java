@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping( "${app.server.path}" + "/public" )
 public class ApiRestTest {
 
-	
+	// http://localhost:8080/umu/pds/public/holaMundo
 	@GetMapping(path = "/holaMundo")
 	public String holamundo() {
 		return "Hola mundo";

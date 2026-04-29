@@ -393,10 +393,7 @@ public class TableroApiClient {
     
     public String preguntarIA(String pregunta, TableroDto contexto) throws Exception {
 
-    	System.out.println("ANTES DEL MAPPER: " + contexto);
         String contextoTexto = objectMapper.writeValueAsString(contexto);
-
-    	System.out.println("DESPUES DEL MAPPER: " + contextoTexto);
         
         String body = objectMapper.writeValueAsString(Map.of(
             "pregunta", pregunta,
