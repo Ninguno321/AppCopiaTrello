@@ -38,6 +38,7 @@ public class VentanaListaController {
     @FXML private VBox contenedorTarjetas;
     @FXML private ScrollPane scroll;
     @FXML private TextField titulo;
+    @FXML private javafx.scene.control.Label lblMaxTarjetas;
 
     // Placeholder visual: línea azul que se mueve entre tarjetas.
     private HBox placeholder;
@@ -54,7 +55,19 @@ public class VentanaListaController {
         this.tablero = tablero;
         titulo.setText(nombre);
 
+        if (tablero != null && tablero.listas != null) {
+            for (ListaDto l : tablero.listas) {
+                if (l.id != null && l.id.equals(listaId)) {
+                    if (lblMaxTarjetas != null) {
+                        lblMaxTarjetas.setText("(máx " + l.maxTarjetas + ")");
+                    }
+                    break;
+                }
+            }
+        }
+
         if ("ESPECIAL_COMPLETADAS".equals(listaId)) {
+            if (lblMaxTarjetas != null) lblMaxTarjetas.setVisible(false);
             btnAnadirTarjeta.setVisible(false);
             btnAnadirTarjeta.setManaged(false);
             btnMenuLista.setVisible(false);
@@ -168,6 +181,34 @@ public class VentanaListaController {
                             new Thread(completar).start();
                         }
                     } else {
+                        // Ver limite 
+                        if (!Objects.equals(listaOrigen, listaId)) {
+                            ListaDto listaDestinoDto = null;
+                            if (tablero != null && tablero.listas != null) {
+                                for (ListaDto l : tablero.listas) {
+                                    if (l.id != null && l.id.equals(listaId)) {
+                                        listaDestinoDto = l;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (listaDestinoDto != null && listaDestinoDto.tarjetas != null && listaDestinoDto.tarjetas.size() >= listaDestinoDto.maxTarjetas) {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.initOwner(contenedorTarjetas.getScene().getWindow());
+                                alert.setTitle("Límite alcanzado");
+                                alert.setHeaderText(null);
+                                alert.setContentText("No se puede mover la tarjeta porque la lista de destino está llena (Máximo: " + listaDestinoDto.maxTarjetas + ").");
+                                alert.showAndWait();
+                                event.setDropCompleted(false);
+                                event.consume();
+                                
+                                if (tableroController != null) {
+                                    tableroController.aplicarFiltrosCombinados();
+                                }
+                                return;
+                            }
+                        }
+
                         // actualizamos en memoria ( dto ) 
                         if (tablero != null && tablero.listas != null) {
                             TarjetaDto tarjetaMovida = null;
@@ -296,6 +337,25 @@ public class VentanaListaController {
 
     @FXML
     void crearTarjeta() {
+        ListaDto listaActualDto = null;
+        if (tablero != null && tablero.listas != null) {
+            for (ListaDto l : tablero.listas) {
+                if (l.id != null && l.id.equals(listaId)) {
+                    listaActualDto = l;
+                    break;
+                }
+            }
+        }
+        if (listaActualDto != null && listaActualDto.tarjetas != null && listaActualDto.tarjetas.size() >= listaActualDto.maxTarjetas) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(scroll.getScene().getWindow());
+            alert.setTitle("Límite alcanzado");
+            alert.setHeaderText(null);
+            alert.setContentText("No se pueden añadir más tarjetas a esta lista. Límite máximo: " + listaActualDto.maxTarjetas);
+            alert.showAndWait();
+            return;
+        }
+
         // 1. Elegir tipo
         ChoiceDialog<String> tipoDialog = new ChoiceDialog<>("Tarea simple", "Tarea simple", "Con checklist");
         tipoDialog.initOwner(scroll.getScene().getWindow());

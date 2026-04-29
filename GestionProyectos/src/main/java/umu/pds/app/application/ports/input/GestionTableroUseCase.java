@@ -37,7 +37,7 @@ public interface GestionTableroUseCase {
 
     // --- Listas ---
 
-    Lista agregarLista(TableroId tableroId, String nombre);
+    Lista agregarLista(TableroId tableroId, String nombre, int maxTarjetas);
 
     void eliminarLista(TableroId tableroId, ListaId listaId);
 

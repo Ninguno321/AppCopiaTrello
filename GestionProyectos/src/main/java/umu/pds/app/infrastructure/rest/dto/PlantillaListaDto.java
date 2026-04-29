@@ -6,5 +6,6 @@ import java.util.List;
 
 public record PlantillaListaDto(
         @JsonProperty("nombre") String nombre,
+        @JsonProperty("maxTarjetas") Integer maxTarjetas,
         @JsonProperty("tarjetas") List<PlantillaTarjetaDto> tarjetas
 ) {}

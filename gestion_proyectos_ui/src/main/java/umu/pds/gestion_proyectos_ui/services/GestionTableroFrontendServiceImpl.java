@@ -129,11 +129,11 @@ public class GestionTableroFrontendServiceImpl implements GestionTableroFrontend
     // --- Listas ---
 
     @Override
-    public Task<ListaDto> agregarLista(String tableroId, String nombre) {
+    public Task<ListaDto> agregarLista(String tableroId, String nombre, int maxTarjetas) {
         return new Task<>() {
             @Override
             protected ListaDto call() throws Exception {
-                return apiClient.agregarLista(tableroId, nombre);
+                return apiClient.agregarLista(tableroId, nombre, maxTarjetas);
             }
         };
     }

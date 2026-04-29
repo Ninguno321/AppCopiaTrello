@@ -2,4 +2,7 @@ package umu.pds.app.infrastructure.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record AgregarListaRequest(@JsonProperty("nombre") String nombre) {}
+public record AgregarListaRequest(
+        @JsonProperty("nombre") String nombre,
+        @JsonProperty("maxTarjetas") Integer maxTarjetas
+) {}

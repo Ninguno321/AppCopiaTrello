@@ -58,7 +58,7 @@ public class TableroMapper {
     }
 
     private ListaJpaEntity toListaJpaEntity(Lista lista) {
-        ListaJpaEntity entity = new ListaJpaEntity(lista.getId().toString(), lista.getNombre());
+        ListaJpaEntity entity = new ListaJpaEntity(lista.getId().toString(), lista.getNombre(), lista.getMaxTarjetas());
         entity.setTarjetas(lista.getTarjetas().stream()
                 .map(this::toTarjetaJpaEntity)
                 .collect(Collectors.toList()));
@@ -128,7 +128,7 @@ public class TableroMapper {
     }
 
     private Lista toListaDomain(ListaJpaEntity entity) {
-        Lista lista = new Lista(ListaId.de(entity.getId()), entity.getNombre());
+        Lista lista = new Lista(ListaId.de(entity.getId()), entity.getNombre(), entity.getMaxTarjetas());
         // agregarTarjeta() es público en Lista, no dispara efectos secundarios
         entity.getTarjetas().forEach(te -> lista.agregarTarjeta(toTarjetaDomain(te)));
         return lista;

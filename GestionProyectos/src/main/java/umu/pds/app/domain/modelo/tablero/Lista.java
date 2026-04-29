@@ -21,23 +21,28 @@ public class Lista {
 
     private final ListaId id;
     private String nombre;
+    private final int maxTarjetas;
     private final List<Tarjeta> tarjetas;
 
-    public Lista(ListaId id, String nombre) {
+    public Lista(ListaId id, String nombre, int maxTarjetas) {
         if (id == null) throw new ListaException("ListaId no puede ser nulo");
         if (nombre == null || nombre.isBlank()) throw new ListaException("La lista debe tener un nombre");
         this.id = id;
         this.nombre = nombre;
+        this.maxTarjetas = maxTarjetas;
         this.tarjetas = new ArrayList<>();
     }
 
-    public static Lista nueva(String nombre) {
-        return new Lista(ListaId.nuevo(), nombre);
+    public static Lista nueva(String nombre, int maxTarjetas) {
+        return new Lista(ListaId.nuevo(), nombre, maxTarjetas);
     }
 
     // --- Mutaciones package-private (solo el Tablero las invoca) ---
 
     public void agregarTarjeta(Tarjeta tarjeta) {
+        if (tarjetas.size() >= maxTarjetas) {
+            throw new ListaException("La lista ha alcanzado su máximo de tarjetas (" + maxTarjetas + ")");
+        }
         tarjetas.add(tarjeta);
     }
 
@@ -66,6 +71,9 @@ public class Lista {
     }
     public String getNombre() { 
     	return nombre; 
+    }
+    public int getMaxTarjetas() {
+        return maxTarjetas;
     }
     public List<Tarjeta> getTarjetas() { 
     	return Collections.unmodifiableList(tarjetas); 
