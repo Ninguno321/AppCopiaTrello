@@ -79,7 +79,7 @@ public class VentanaPrincipalController {
     }
 
     @FXML
-    void onChatAi(ActionEvent event) {
+    public void onChatAi(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/umu/pds/gestion_proyectos_ui/inicio/chat.fxml")
@@ -124,7 +124,7 @@ public class VentanaPrincipalController {
     }    
     //Para copiarlo al portapapeles al hacer click
     @FXML
-    void onCopiarTableroId(MouseEvent event) {
+    public void onCopiarTableroId(MouseEvent event) {
         String textoACopiar = TableroID.getText();
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
@@ -289,7 +289,7 @@ public class VentanaPrincipalController {
     }
 
     @FXML
-    void onCrearTablero(ActionEvent event) {
+    public void onCrearTablero(ActionEvent event) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.initOwner(btnCrearTablero.getScene().getWindow());
         dialog.setTitle("Nuevo tablero");
@@ -326,7 +326,7 @@ public class VentanaPrincipalController {
     }
 
     @FXML
-    void onImportarPlantillaClick(ActionEvent event) {
+    public void onImportarPlantillaClick(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Seleccionar plantilla YAML");
         fileChooser.getExtensionFilters().add(
@@ -376,7 +376,7 @@ public class VentanaPrincipalController {
     }
 
     @FXML
-    void onCerrarSesionClick(ActionEvent event) {
+    public void onCerrarSesionClick(ActionEvent event) {
         emailActual = null;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(
@@ -395,19 +395,19 @@ public class VentanaPrincipalController {
     // --- Pestañas de navegación ---
 
     @FXML
-    void onTabTablero(ActionEvent event) {
+    public void onTabTablero(ActionEvent event) {
         activarTab(btnTabTablero);
         cargarVistaTablero();
     }
 
     @FXML
-    void onTabCalendario(ActionEvent event) {
+    public void onTabCalendario(ActionEvent event) {
         activarTab(btnTabCalendario);
         cargarVistaCalendario();
     }
 
     @FXML
-    void onTabTabla(ActionEvent event) {
+    public void onTabTabla(ActionEvent event) {
         activarTab(btnTabTabla);
         cargarVistaTabla();
     }
