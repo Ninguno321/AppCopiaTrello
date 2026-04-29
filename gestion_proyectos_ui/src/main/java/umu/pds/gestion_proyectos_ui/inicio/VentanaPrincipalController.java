@@ -21,6 +21,10 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import umu.pds.gestion_proyectos_ui.api.dto.TableroDto;
+import umu.pds.gestion_proyectos_ui.api.dto.ListaDto;
+import umu.pds.gestion_proyectos_ui.api.dto.TarjetaDto;
+import umu.pds.gestion_proyectos_ui.api.dto.EtiquetaDto;
+import umu.pds.gestion_proyectos_ui.api.dto.ItemChecklistDto;
 import umu.pds.gestion_proyectos_ui.services.GestionTableroFrontendService;
 import umu.pds.gestion_proyectos_ui.services.ServiceFactory;
 import javafx.scene.Node;
@@ -169,8 +173,9 @@ public class VentanaPrincipalController {
         menuBtn.getStyleClass().add("sidebar-menu-btn");
 
         MenuItem itemRenombrar = new MenuItem("Editar nombre");
+        MenuItem itemExportar  = new MenuItem("Exportar tablero");
         MenuItem itemEliminar  = new MenuItem("Eliminar tablero");
-        menuBtn.getItems().addAll(itemRenombrar, itemEliminar);
+        menuBtn.getItems().addAll(itemRenombrar, itemExportar, itemEliminar);
 
         HBox hbox = new HBox(btnNombre, menuBtn);
         hbox.getStyleClass().add("sidebar-item");
@@ -218,6 +223,36 @@ public class VentanaPrincipalController {
 
                 new Thread(task).start();
             });
+        });
+
+        // Exportar tablero
+        itemExportar.setOnAction(e -> {
+            String yamlContent = generarYaml(tablero);
+            
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Exportar tablero a YAML");
+            fileChooser.setInitialFileName(tablero.nombre.replaceAll("[^a-zA-Z0-9.-]", "_") + ".yaml");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos YAML (*.yaml, *.yml)", "*.yaml", "*.yml"));
+            
+            File archivo = fileChooser.showSaveDialog(hbox.getScene().getWindow());
+            if (archivo != null) {
+                try {
+                    Files.writeString(archivo.toPath(), yamlContent);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.initOwner(hbox.getScene().getWindow());
+                    alert.setTitle("Éxito");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Tablero exportado correctamente.");
+                    alert.showAndWait();
+                } catch (Exception ex) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initOwner(hbox.getScene().getWindow());
+                    alert.setTitle("Error");
+                    alert.setHeaderText(null);
+                    alert.setContentText("No se pudo guardar el archivo: " + ex.getMessage());
+                    alert.showAndWait();
+                }
+            }
         });
 
         // Eliminar tablero
@@ -506,5 +541,48 @@ public class VentanaPrincipalController {
         if (!tabActivo.getStyleClass().contains("active")) {
             tabActivo.getStyleClass().add("active");
         }
+    }
+
+    private String generarYaml(TableroDto tableroParam) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("nombre: \"").append(escaparYaml(tableroParam.nombre)).append("\"\n");
+        sb.append("listas:\n");
+        if (tableroParam.listas != null) {
+            for (ListaDto lista : tableroParam.listas) {
+                if ("ESPECIAL_COMPLETADAS".equals(lista.id)) continue;
+                sb.append("  - nombre: \"").append(escaparYaml(lista.nombre)).append("\"\n");
+                if (lista.tarjetas != null && !lista.tarjetas.isEmpty()) {
+                    sb.append("    tarjetas:\n");
+                    for (TarjetaDto tarjeta : lista.tarjetas) {
+                        sb.append("      - titulo: \"").append(escaparYaml(tarjeta.titulo)).append("\"\n");
+                        if (tarjeta.fechaVencimiento != null) {
+                            String fecha = tarjeta.fechaVencimiento;
+                            if (fecha.contains("T")) fecha = fecha.substring(0, fecha.indexOf("T"));
+                            sb.append("        fechaVencimiento: \"").append(escaparYaml(fecha)).append("\"\n");
+                        }
+                        if (tarjeta.etiquetas != null && !tarjeta.etiquetas.isEmpty()) {
+                            sb.append("        etiquetas:\n");
+                            for (EtiquetaDto etiqueta : tarjeta.etiquetas) {
+                                sb.append("          - nombre: \"").append(escaparYaml(etiqueta.nombre)).append("\"\n");
+                                sb.append("            color: \"").append(escaparYaml(etiqueta.color)).append("\"\n");
+                            }
+                        }
+                        if (tarjeta.tieneChecklist && tarjeta.checklist != null && tarjeta.checklist.items != null && !tarjeta.checklist.items.isEmpty()) {
+                            sb.append("        checklist:\n");
+                            for (ItemChecklistDto item : tarjeta.checklist.items) {
+                                sb.append("          - texto: \"").append(escaparYaml(item.descripcion)).append("\"\n");
+                                sb.append("            completado: ").append(item.completado).append("\n");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private String escaparYaml(String texto) {
+        if (texto == null) return "";
+        return texto.replace("\"", "\\\"");
     }
 }
