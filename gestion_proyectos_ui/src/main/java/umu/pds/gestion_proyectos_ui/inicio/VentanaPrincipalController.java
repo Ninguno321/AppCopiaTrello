@@ -227,32 +227,45 @@ public class VentanaPrincipalController {
 
         // Exportar tablero
         itemExportar.setOnAction(e -> {
-            String yamlContent = generarYaml(tablero);
-            
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Exportar tablero a YAML");
-            fileChooser.setInitialFileName(tablero.nombre.replaceAll("[^a-zA-Z0-9.-]", "_") + ".yaml");
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos YAML (*.yaml, *.yml)", "*.yaml", "*.yml"));
-            
-            File archivo = fileChooser.showSaveDialog(hbox.getScene().getWindow());
-            if (archivo != null) {
-                try {
-                    Files.writeString(archivo.toPath(), yamlContent);
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.initOwner(hbox.getScene().getWindow());
-                    alert.setTitle("Éxito");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Tablero exportado correctamente.");
-                    alert.showAndWait();
-                } catch (Exception ex) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.initOwner(hbox.getScene().getWindow());
-                    alert.setTitle("Error");
-                    alert.setHeaderText(null);
-                    alert.setContentText("No se pudo guardar el archivo: " + ex.getMessage());
-                    alert.showAndWait();
+            Task<TableroDto> taskExport = service.obtenerTablero(tablero.id);
+            taskExport.setOnSucceeded(ev -> {
+                TableroDto tableroActualizado = taskExport.getValue();
+                String yamlContent = generarYaml(tableroActualizado);
+                
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Exportar tablero a YAML");
+                fileChooser.setInitialFileName(tableroActualizado.nombre.replaceAll("[^a-zA-Z0-9.-]", "_") + ".yaml");
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos YAML (*.yaml, *.yml)", "*.yaml", "*.yml"));
+                
+                File archivo = fileChooser.showSaveDialog(hbox.getScene().getWindow());
+                if (archivo != null) {
+                    try {
+                        Files.writeString(archivo.toPath(), yamlContent);
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.initOwner(hbox.getScene().getWindow());
+                        alert.setTitle("Éxito");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Tablero exportado correctamente.");
+                        alert.showAndWait();
+                    } catch (Exception ex) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.initOwner(hbox.getScene().getWindow());
+                        alert.setTitle("Error");
+                        alert.setHeaderText(null);
+                        alert.setContentText("No se pudo guardar el archivo: " + ex.getMessage());
+                        alert.showAndWait();
+                    }
                 }
-            }
+            });
+            taskExport.setOnFailed(ev -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(hbox.getScene().getWindow());
+                alert.setTitle("Error");
+                alert.setHeaderText(null);
+                alert.setContentText("No se pudo obtener el tablero actualizado: " + taskExport.getException().getMessage());
+                alert.showAndWait();
+            });
+            new Thread(taskExport).start();
         });
 
         // Eliminar tablero

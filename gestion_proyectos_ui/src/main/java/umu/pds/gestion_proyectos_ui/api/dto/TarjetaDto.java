@@ -13,5 +13,6 @@ public class TarjetaDto {
     public boolean tieneTarea;
     public boolean tieneChecklist;
     public ChecklistDto checklist;
+    @com.fasterxml.jackson.annotation.JsonProperty("fechaLimite")
     public String fechaVencimiento;
 }
