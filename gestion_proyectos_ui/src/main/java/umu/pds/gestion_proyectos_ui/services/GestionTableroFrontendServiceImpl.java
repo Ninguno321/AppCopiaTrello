@@ -149,6 +149,17 @@ public class GestionTableroFrontendServiceImpl implements GestionTableroFrontend
         };
     }
 
+    @Override
+    public Task<Void> configurarPrerequisitos(String tableroId, String listaId, List<String> listasRequeridas) {
+        return new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                apiClient.configurarPrerequisitos(tableroId, listaId, listasRequeridas);
+                return null;
+            }
+        };
+    }
+
     // --- Tarjetas ---
 
     @Override

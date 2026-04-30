@@ -181,7 +181,7 @@ public class VentanaListaController {
                             new Thread(completar).start();
                         }
                     } else {
-                        // Ver limite 
+                        // Ver limite y prerequisitos
                         if (!Objects.equals(listaOrigen, listaId)) {
                             ListaDto listaDestinoDto = null;
                             if (tablero != null && tablero.listas != null) {
@@ -190,6 +190,39 @@ public class VentanaListaController {
                                         listaDestinoDto = l;
                                         break;
                                     }
+                                }
+                            }
+                            
+                            // Prerequisitos
+                            if (listaDestinoDto != null && listaDestinoDto.listasRequeridas != null && !listaDestinoDto.listasRequeridas.isEmpty()) {
+                                TarjetaDto tarjetaReal = tc.getTarjetaDto();
+                                List<String> faltantes = new ArrayList<>();
+                                for (String req : listaDestinoDto.listasRequeridas) {
+                                    if (tarjetaReal.historialListas == null || !tarjetaReal.historialListas.contains(req)) {
+                                        // Buscar nombre de la lista para el mensaje
+                                        String nombreReq = req;
+                                        if (tablero.listas != null) {
+                                            for (ListaDto l : tablero.listas) {
+                                                if (req.equals(l.id)) {
+                                                    nombreReq = l.nombre;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        faltantes.add(nombreReq);
+                                    }
+                                }
+                                
+                                if (!faltantes.isEmpty()) {
+                                    mostrarError("Prerequisitos no cumplidos", 
+                                        "La tarjeta no puede entrar en esta lista porque no ha pasado por las siguientes listas requeridas:\n" + String.join("\n", faltantes));
+                                    event.setDropCompleted(false);
+                                    event.consume();
+                                    
+                                    if (tableroController != null) {
+                                        tableroController.aplicarFiltrosCombinados();
+                                    }
+                                    return;
                                 }
                             }
                             if (listaDestinoDto != null && listaDestinoDto.tarjetas != null && listaDestinoDto.tarjetas.size() >= listaDestinoDto.maxTarjetas) {
@@ -283,6 +316,9 @@ public class VentanaListaController {
         MenuItem itemAnadirTarjeta = new MenuItem("Añadir tarjeta");
         itemAnadirTarjeta.setOnAction(e -> crearTarjeta());
 
+        MenuItem itemPrerequisitos = new MenuItem("Configurar prerequisitos");
+        itemPrerequisitos.setOnAction(e -> configurarPrerequisitos());
+
         MenuItem itemEliminarLista = new MenuItem("Eliminar lista");
         itemEliminarLista.setOnAction(e -> {
             Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
@@ -307,8 +343,80 @@ public class VentanaListaController {
             });
         });
 
-        ContextMenu contextMenu = new ContextMenu(itemAnadirTarjeta, itemEliminarLista);
+        ContextMenu contextMenu = new ContextMenu(itemAnadirTarjeta, itemPrerequisitos, itemEliminarLista);
         btnMenuLista.setOnAction(e -> contextMenu.show(btnMenuLista, Side.BOTTOM, 0, 0));
+    }
+
+    private void configurarPrerequisitos() {
+        if (tablero == null || tablero.listas == null) return;
+        
+        ListaDto listaActualDto = null;
+        for (ListaDto l : tablero.listas) {
+            if (l.id != null && l.id.equals(listaId)) {
+                listaActualDto = l;
+                break;
+            }
+        }
+        if (listaActualDto == null) return;
+
+        javafx.scene.control.Dialog<List<String>> dialog = new javafx.scene.control.Dialog<>();
+        dialog.initOwner(scroll.getScene().getWindow());
+        dialog.setTitle("Prerequisitos de la lista");
+        dialog.setHeaderText("Selecciona las listas por las que debe pasar una tarjeta antes de entrar aquí:");
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new javafx.geometry.Insets(20));
+
+        List<javafx.scene.control.CheckBox> checkBoxes = new ArrayList<>();
+        List<String> requeridasActuales = listaActualDto.listasRequeridas != null ? listaActualDto.listasRequeridas : new ArrayList<>();
+
+        for (ListaDto l : tablero.listas) {
+            if (l.id != null && !l.id.equals(listaId)) {
+                javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox(l.nombre);
+                cb.setUserData(l.id);
+                if (requeridasActuales.contains(l.id)) {
+                    cb.setSelected(true);
+                }
+                checkBoxes.add(cb);
+                vbox.getChildren().add(cb);
+            }
+        }
+
+        if (checkBoxes.isEmpty()) {
+            vbox.getChildren().add(new javafx.scene.control.Label("No hay otras listas en el tablero."));
+        }
+
+        dialog.getDialogPane().setContent(vbox);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                List<String> seleccionadas = new ArrayList<>();
+                for (javafx.scene.control.CheckBox cb : checkBoxes) {
+                    if (cb.isSelected()) {
+                        seleccionadas.add((String) cb.getUserData());
+                    }
+                }
+                return seleccionadas;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(seleccionadas -> {
+            Task<Void> task = service.configurarPrerequisitos(tableroId, listaId, seleccionadas);
+            task.setOnSucceeded(e -> {
+                // Actualizar el DTO local
+                for (ListaDto l : tablero.listas) {
+                    if (l.id != null && l.id.equals(listaId)) {
+                        l.listasRequeridas = seleccionadas;
+                        break;
+                    }
+                }
+            });
+            task.setOnFailed(e -> mostrarError("Error", "No se pudieron configurar los prerequisitos: " + task.getException().getMessage()));
+            new Thread(task).start();
+        });
     }
 
     /**
@@ -436,5 +544,14 @@ public class VentanaListaController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void mostrarError(String titulo, String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.initOwner(scroll.getScene().getWindow());
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
     }
 }

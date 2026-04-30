@@ -589,6 +589,19 @@ public class VentanaPrincipalController {
                         }
                     }
                 }
+                if (lista.listasRequeridas != null && !lista.listasRequeridas.isEmpty()) {
+                    sb.append("    listasRequeridas:\n");
+                    for (String reqId : lista.listasRequeridas) {
+                        String nombreReq = reqId; // Fallback
+                        for (ListaDto l : tableroParam.listas) {
+                            if (reqId.equals(l.id)) {
+                                nombreReq = l.nombre;
+                                break;
+                            }
+                        }
+                        sb.append("      - \"").append(escaparYaml(nombreReq)).append("\"\n");
+                    }
+                }
             }
         }
         return sb.toString();

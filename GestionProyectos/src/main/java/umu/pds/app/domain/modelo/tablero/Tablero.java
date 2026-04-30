@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Aggregate Root del bounded context Tablero.
@@ -105,6 +106,7 @@ public class Tablero {
         Lista lista = buscarLista(listaId)
                 .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId));
         lista.agregarTarjeta(tarjeta);
+        tarjeta.registrarEnLista(listaId);
         historial.add(Traza.nueva("Tarjeta '" + tarjeta.getTitulo() + "' agregada a la lista '" + lista.getNombre() + "'"));
         return tarjeta;
     }
@@ -133,8 +135,14 @@ public class Tablero {
         Tarjeta tarjeta = origen.buscarTarjeta(tarjetaId)
                 .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada en la lista origen: " + tarjetaId));
 
+        // Validar prerequisitos de la lista destino
+        if (destino.tienePrerequisitos()) {
+            validarPrerequisitos(tarjeta, destino);
+        }
+
         origen.eliminarTarjeta(tarjetaId);
         destino.agregarTarjeta(tarjeta);
+        tarjeta.registrarEnLista(listaDestinoId);
         historial.add(Traza.nueva(
             "Tarjeta '" + tarjeta.getTitulo() + "' movida de '" + origen.getNombre() + "' a '" + destino.getNombre() + "'"
         ));
@@ -257,6 +265,19 @@ public class Tablero {
         this.nombre = nuevoNombre;
     }
 
+    // --- Prerequisitos ---
+
+    /**
+     * Configura las listas por las que una tarjeta debe haber pasado
+     * antes de poder entrar en la lista indicada.
+     */
+    public void configurarListasRequeridas(ListaId listaId, List<ListaId> listasRequeridas) {
+        Lista lista = buscarLista(listaId)
+                .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId));
+        lista.configurarListasRequeridas(listasRequeridas);
+        historial.add(Traza.nueva("Prerequisitos actualizados en lista '" + lista.getNombre() + "'"));
+    }
+
     // --- Getters ---
 
     public TableroId getId() {
@@ -295,6 +316,27 @@ public class Tablero {
                 .orElseThrow(() -> new IllegalArgumentException("Lista no encontrada: " + listaId))
                 .buscarTarjeta(tarjetaId)
                 .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada: " + tarjetaId));
+    }
+
+    /**
+     * Valida que la tarjeta ha pasado por todas las listas requeridas por la lista destino.
+     * Lanza TableroException si falta alguna.
+     */
+    private void validarPrerequisitos(Tarjeta tarjeta, Lista destino) {
+        List<ListaId> faltantes = destino.getListasRequeridas().stream()
+                .filter(reqId -> !tarjeta.haPasadoPorLista(reqId))
+                .collect(Collectors.toList());
+
+        if (!faltantes.isEmpty()) {
+            // Resolver nombres de las listas faltantes para el mensaje de error
+            String nombresFaltantes = faltantes.stream()
+                    .map(id -> buscarLista(id).map(Lista::getNombre).orElse(id.toString()))
+                    .collect(Collectors.joining(", "));
+            throw new TableroException(
+                "La tarjeta '" + tarjeta.getTitulo() + "' no puede moverse a '" + destino.getNombre()
+                + "' porque no ha pasado por las listas requeridas: " + nombresFaltantes
+            );
+        }
     }
 
     // --- Identidad por ID (regla de Entidad / Aggregate Root en DDD) ---

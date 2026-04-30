@@ -54,9 +54,12 @@ import umu.pds.app.infrastructure.rest.dto.TableroResponse;
 import umu.pds.app.infrastructure.rest.dto.TarjetaResponse;
 import umu.pds.app.infrastructure.rest.dto.TrazaResponse;
 
+import umu.pds.app.infrastructure.rest.dto.ConfigurarPrerequisitosRequest;
+
 import umu.pds.app.domain.modelo.tablero.FechaLimite;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${app.server.path}/tableros")
@@ -140,6 +143,17 @@ public class TableroController {
                                                @PathVariable String listaId) {
         gestionTablero.eliminarLista(TableroId.de(id), ListaId.de(listaId));
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/listas/{listaId}/prerequisitos")
+    public ResponseEntity<Void> configurarPrerequisitos(@PathVariable String id,
+                                                         @PathVariable String listaId,
+                                                         @RequestBody ConfigurarPrerequisitosRequest request) {
+        List<ListaId> requeridas = request.listasRequeridas().stream()
+                .map(ListaId::de)
+                .collect(Collectors.toList());
+        gestionTablero.configurarListasRequeridas(TableroId.de(id), ListaId.de(listaId), requeridas);
+        return ResponseEntity.ok().build();
     }
 
     // --- Tarjetas ---
@@ -290,7 +304,7 @@ public class TableroController {
     private PlantillaListaCommand toCommand(PlantillaListaDto dto) {
         List<PlantillaTarjetaCommand> tarjetas = dto.tarjetas() == null ? null :
             dto.tarjetas().stream().map(this::toCommand).toList();
-        return new PlantillaListaCommand(dto.nombre(), dto.maxTarjetas(), tarjetas);
+        return new PlantillaListaCommand(dto.nombre(), dto.maxTarjetas(), tarjetas, dto.listasRequeridas());
     }
 
     private PlantillaTarjetaCommand toCommand(PlantillaTarjetaDto dto) {

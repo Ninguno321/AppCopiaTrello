@@ -13,6 +13,7 @@ public class TarjetaDto {
     public boolean tieneTarea;
     public boolean tieneChecklist;
     public ChecklistDto checklist;
+    public List<String> historialListas = new java.util.ArrayList<>();
     @com.fasterxml.jackson.annotation.JsonProperty("fechaLimite")
     public String fechaVencimiento;
 }

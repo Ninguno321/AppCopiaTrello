@@ -120,6 +120,7 @@ public class VentanaTarjetaController {
     public String getListaId()   { return listaId; }
     public String getTableroId() { return tableroId; }
     public void   setListaId(String listaId) { this.listaId = listaId; }
+    public TarjetaDto getTarjetaDto() { return tarjeta; }
 
     // --- Lógica de marcar/desmarcar tarjeta ---
 

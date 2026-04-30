@@ -1,6 +1,7 @@
 package umu.pds.app.domain.modelo.tablero;
 
 import umu.pds.app.domain.exceptions.TarjetaException;
+import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TarjetaId;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class Tarjeta {
     private final List<Etiqueta> etiquetas;
     private boolean completada;
     private FechaLimite fechaLimite;
+    private final List<ListaId> historialListas;
 
     public Tarjeta(TarjetaId id, String titulo) {
         if (id == null) throw new TarjetaException("TarjetaId no puede ser nulo");
@@ -31,6 +33,7 @@ public class Tarjeta {
         this.titulo = titulo;
         this.etiquetas = new ArrayList<>();
         this.completada = false;
+        this.historialListas = new ArrayList<>();
     }
 
     public static Tarjeta nueva(String titulo) {
@@ -103,6 +106,22 @@ public class Tarjeta {
     public Optional<Checklist> getChecklist() { return Optional.ofNullable(checklist); }
     public List<Etiqueta> getEtiquetas() { return Collections.unmodifiableList(etiquetas); }
     public FechaLimite getFechaLimite() { return fechaLimite; }
+    public List<ListaId> getHistorialListas() { return Collections.unmodifiableList(historialListas); }
+
+    /**
+     * Registra que la tarjeta ha pasado por la lista indicada.
+     * Solo agrega si no estaba ya registrada.
+     */
+    public void registrarEnLista(ListaId listaId) {
+        if (listaId != null && !historialListas.contains(listaId)) {
+            historialListas.add(listaId);
+        }
+    }
+
+    /** Comprueba si la tarjeta ha pasado por la lista indicada. */
+    public boolean haPasadoPorLista(ListaId listaId) {
+        return historialListas.contains(listaId);
+    }
 
     // --- Identidad por ID ---
 
