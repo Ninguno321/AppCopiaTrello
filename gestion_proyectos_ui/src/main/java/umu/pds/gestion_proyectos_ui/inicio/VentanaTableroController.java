@@ -287,6 +287,28 @@ public class VentanaTableroController {
         vboxMax.getChildren().addAll(maxTarjetasF, errorLabel);
         grid.add(vboxMax, 1, 1);
 
+        // --- Prerequisitos ---
+        Label lblPrereq = new Label("Prerequisitos:");
+        VBox vboxPrereq = new VBox(5);
+        List<javafx.scene.control.CheckBox> checkBoxesPrereq = new ArrayList<>();
+        
+        if (tableroDto != null && tableroDto.listas != null && !tableroDto.listas.isEmpty()) {
+            for (ListaDto l : tableroDto.listas) {
+                javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox(l.nombre);
+                cb.setUserData(l.id);
+                checkBoxesPrereq.add(cb);
+                vboxPrereq.getChildren().add(cb);
+            }
+        } else {
+            vboxPrereq.getChildren().add(new Label("No hay otras listas."));
+        }
+        
+        ScrollPane scrollPrereq = new ScrollPane(vboxPrereq);
+        scrollPrereq.setPrefHeight(100);
+        scrollPrereq.setFitToWidth(true);
+        grid.add(lblPrereq, 0, 2);
+        grid.add(scrollPrereq, 1, 2);
+
         javafx.scene.Node crearButton = dialog.getDialogPane().lookupButton(crearButtonType);
         crearButton.setDisable(true);
 
@@ -329,6 +351,14 @@ public class VentanaTableroController {
                 ListaDto dto = new ListaDto();
                 dto.nombre = nombreF.getText().trim();
                 dto.maxTarjetas = max;
+                
+                List<String> seleccionadas = new ArrayList<>();
+                for (javafx.scene.control.CheckBox cb : checkBoxesPrereq) {
+                    if (cb.isSelected()) {
+                        seleccionadas.add((String) cb.getUserData());
+                    }
+                }
+                dto.listasRequeridas = seleccionadas;
                 return dto;
             }
             return null;
@@ -338,9 +368,21 @@ public class VentanaTableroController {
         resultado.ifPresent(dto -> {
             Task<ListaDto> task = service.agregarLista(tableroId, dto.nombre, dto.maxTarjetas);
             task.setOnSucceeded(e -> {
+                ListaDto nuevaLista = task.getValue();
                 if (tableroDto.listas == null) tableroDto.listas = new ArrayList<>();
-                tableroDto.listas.add(task.getValue());
-                aplicarFiltrosCombinados();
+                tableroDto.listas.add(nuevaLista);
+                
+                if (dto.listasRequeridas != null && !dto.listasRequeridas.isEmpty()) {
+                    Task<Void> taskPre = service.configurarPrerequisitos(tableroId, nuevaLista.id, dto.listasRequeridas);
+                    taskPre.setOnSucceeded(ev -> {
+                        nuevaLista.listasRequeridas = dto.listasRequeridas;
+                        aplicarFiltrosCombinados();
+                    });
+                    taskPre.setOnFailed(ev -> System.err.println("Error al configurar prerequisitos"));
+                    new Thread(taskPre).start();
+                } else {
+                    aplicarFiltrosCombinados();
+                }
             });
             task.setOnFailed(e -> System.err.println("Error al crear lista: " + task.getException().getMessage()));
             new Thread(task).start();

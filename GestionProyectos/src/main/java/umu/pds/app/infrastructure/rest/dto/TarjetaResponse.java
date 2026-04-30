@@ -13,7 +13,8 @@ public record TarjetaResponse(
         boolean tieneTarea,
         boolean tieneChecklist,
         ChecklistResponse checklist,
-        String fechaLimite
+        String fechaLimite,
+        List<String> historialListas
 ) {
     public static TarjetaResponse from(Tarjeta tarjeta) {
         return new TarjetaResponse(
@@ -25,7 +26,8 @@ public record TarjetaResponse(
                 tarjeta.tieneTarea(),
                 tarjeta.tieneChecklist(),
                 tarjeta.getChecklist().map(ChecklistResponse::from).orElse(null),
-                tarjeta.getFechaLimite() != null ? tarjeta.getFechaLimite().toString() : null
+                tarjeta.getFechaLimite() != null ? tarjeta.getFechaLimite().toString() : null,
+                tarjeta.getHistorialListas().stream().map(Object::toString).toList()
         );
     }
 }

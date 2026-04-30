@@ -69,6 +69,10 @@ public interface GestionTableroUseCase {
 
     void asignarFechaLimite(TableroId tableroId, ListaId listaId, TarjetaId tarjetaId, FechaLimite fecha);
 
+    // --- Prerequisitos ---
+
+    void configurarListasRequeridas(TableroId tableroId, ListaId listaId, List<ListaId> listasRequeridas);
+
     // --- Importación desde plantilla ---
 
     Tablero crearDesdePlantilla(PlantillaTableroCommand plantilla, String email);

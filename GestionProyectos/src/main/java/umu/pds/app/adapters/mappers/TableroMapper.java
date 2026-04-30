@@ -62,6 +62,9 @@ public class TableroMapper {
         entity.setTarjetas(lista.getTarjetas().stream()
                 .map(this::toTarjetaJpaEntity)
                 .collect(Collectors.toList()));
+        entity.setListasRequeridas(lista.getListasRequeridas().stream()
+                .map(ListaId::toString)
+                .collect(Collectors.toList()));
         return entity;
     }
 
@@ -84,6 +87,10 @@ public class TableroMapper {
                 .collect(Collectors.toList()));
 
         entity.setFechaLimite(tarjeta.getFechaLimite() != null ? tarjeta.getFechaLimite().date() : null);
+
+        entity.setHistorialListas(tarjeta.getHistorialListas().stream()
+                .map(ListaId::toString)
+                .collect(Collectors.toList()));
 
         return entity;
     }
@@ -128,7 +135,9 @@ public class TableroMapper {
     }
 
     private Lista toListaDomain(ListaJpaEntity entity) {
-        Lista lista = new Lista(ListaId.de(entity.getId()), entity.getNombre(), entity.getMaxTarjetas());
+        List<ListaId> requeridas = entity.getListasRequeridas() == null ? List.of()
+                : entity.getListasRequeridas().stream().map(ListaId::de).toList();
+        Lista lista = new Lista(ListaId.de(entity.getId()), entity.getNombre(), entity.getMaxTarjetas(), requeridas);
         // agregarTarjeta() es público en Lista, no dispara efectos secundarios
         entity.getTarjetas().forEach(te -> lista.agregarTarjeta(toTarjetaDomain(te)));
         return lista;
@@ -162,6 +171,11 @@ public class TableroMapper {
 
         if (entity.isCompletada()) {
             tarjeta.marcarCompletada();
+        }
+
+        // Restaurar historial de listas visitadas
+        if (entity.getHistorialListas() != null) {
+            entity.getHistorialListas().forEach(lid -> tarjeta.registrarEnLista(ListaId.de(lid)));
         }
 
         return tarjeta;

@@ -9,4 +9,5 @@ public class ListaDto {
     public String nombre;
     public int maxTarjetas;
     public List<TarjetaDto> tarjetas;
+    public List<String> listasRequeridas;
 }

@@ -217,6 +217,16 @@ public class TableroService implements GestionTableroUseCase {
         tableroRepository.guardar(tablero);
     }
 
+    // --- Prerequisitos ---
+
+    @Override
+    @Transactional
+    public void configurarListasRequeridas(TableroId tableroId, ListaId listaId, List<ListaId> listasRequeridas) {
+        Tablero tablero = obtenerTablero(tableroId);
+        tablero.configurarListasRequeridas(listaId, listasRequeridas);
+        tableroRepository.guardar(tablero);
+    }
+
     // --- Importación desde plantilla ---
 
     @Override
@@ -261,6 +271,38 @@ public class TableroService implements GestionTableroUseCase {
 
                             tablero.agregarTarjeta(lista.getId(), tarjeta);
                         } catch (TableroException | ChecklistException | ChecklistIndiceException e) {
+                            throw new IllegalStateException(e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
+        // Segunda pasada: Configurar listas requeridas por nombre
+        if (plantilla.listas() != null) {
+            for (PlantillaListaCommand listaCmd : plantilla.listas()) {
+                if (listaCmd.listasRequeridas() != null && !listaCmd.listasRequeridas().isEmpty()) {
+                    // Encontrar el ID de la lista actual
+                    Lista listaActual = null;
+                    for (Lista l : tablero.getListas()) {
+                        if (l.getNombre().equals(listaCmd.nombre())) {
+                            listaActual = l;
+                            break;
+                        }
+                    }
+                    if (listaActual != null) {
+                        List<ListaId> requeridasIds = new java.util.ArrayList<>();
+                        for (String reqNombre : listaCmd.listasRequeridas()) {
+                            for (Lista l : tablero.getListas()) {
+                                if (l.getNombre().equals(reqNombre)) {
+                                    requeridasIds.add(l.getId());
+                                    break;
+                                }
+                            }
+                        }
+                        try {
+                            tablero.configurarListasRequeridas(listaActual.getId(), requeridasIds);
+                        } catch (TableroException e) {
                             throw new IllegalStateException(e.getMessage());
                         }
                     }

@@ -8,14 +8,16 @@ public record ListaResponse(
         String id,
         String nombre,
         int maxTarjetas,
-        List<TarjetaResponse> tarjetas
+        List<TarjetaResponse> tarjetas,
+        List<String> listasRequeridas
 ) {
     public static ListaResponse from(Lista lista) {
         return new ListaResponse(
                 lista.getId().toString(),
                 lista.getNombre(),
                 lista.getMaxTarjetas(),
-                lista.getTarjetas().stream().map(TarjetaResponse::from).toList()
+                lista.getTarjetas().stream().map(TarjetaResponse::from).toList(),
+                lista.getListasRequeridas().stream().map(Object::toString).toList()
         );
     }
 }

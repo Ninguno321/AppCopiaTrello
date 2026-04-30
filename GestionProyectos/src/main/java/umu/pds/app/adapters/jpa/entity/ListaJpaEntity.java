@@ -23,6 +23,11 @@ public class ListaJpaEntity {
     @OrderColumn(name = "tarjeta_orden")
     private List<TarjetaJpaEntity> tarjetas = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "lista_prerequisitos", joinColumns = @JoinColumn(name = "lista_id"))
+    @Column(name = "lista_requerida_id")
+    private List<String> listasRequeridas = new ArrayList<>();
+
     public ListaJpaEntity() {}
 
     public ListaJpaEntity(String id, String nombre, int maxTarjetas) {
@@ -37,4 +42,6 @@ public class ListaJpaEntity {
     public void setMaxTarjetas(int maxTarjetas) { this.maxTarjetas = maxTarjetas; }
     public List<TarjetaJpaEntity> getTarjetas() { return tarjetas; }
     public void setTarjetas(List<TarjetaJpaEntity> tarjetas) { this.tarjetas = tarjetas; }
+    public List<String> getListasRequeridas() { return listasRequeridas; }
+    public void setListasRequeridas(List<String> listasRequeridas) { this.listasRequeridas = listasRequeridas; }
 }

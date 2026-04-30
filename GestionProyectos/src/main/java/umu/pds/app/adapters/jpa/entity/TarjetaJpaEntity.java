@@ -36,6 +36,11 @@ public class TarjetaJpaEntity {
     @CollectionTable(name = "tarjeta_etiquetas", joinColumns = @JoinColumn(name = "tarjeta_id"))
     private List<EtiquetaJpaEmbeddable> etiquetas = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tarjeta_historial_listas", joinColumns = @JoinColumn(name = "tarjeta_id"))
+    @Column(name = "lista_id")
+    private List<String> historialListas = new ArrayList<>();
+
     public TarjetaJpaEntity() {}
 
     public TarjetaJpaEntity(String id, String titulo, String descripcion, boolean completada) {
@@ -57,4 +62,6 @@ public class TarjetaJpaEntity {
     public void setFechaLimite(LocalDate fechaLimite) { this.fechaLimite = fechaLimite; }
     public List<EtiquetaJpaEmbeddable> getEtiquetas() { return etiquetas; }
     public void setEtiquetas(List<EtiquetaJpaEmbeddable> etiquetas) { this.etiquetas = etiquetas; }
+    public List<String> getHistorialListas() { return historialListas; }
+    public void setHistorialListas(List<String> historialListas) { this.historialListas = historialListas; }
 }

@@ -136,6 +136,22 @@ public class TableroApiClient {
         throw new RuntimeException("Error al crear lista (" + response.statusCode() + "): " + response.body());
     }
 
+    public void configurarPrerequisitos(String tableroId, String listaId, List<String> listasRequeridas) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of("listasRequeridas", listasRequeridas));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tableros/" + tableroId + "/listas/" + listaId + "/prerequisitos"))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Error al configurar prerequisitos (" + response.statusCode() + "): " + response.body());
+        }
+    }
+
     public TarjetaDto agregarTarjeta(String tableroId, String listaId, String titulo) throws Exception {
         String body = objectMapper.writeValueAsString(Map.of("titulo", titulo));
 

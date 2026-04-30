@@ -23,14 +23,20 @@ public class Lista {
     private String nombre;
     private final int maxTarjetas;
     private final List<Tarjeta> tarjetas;
+    private final List<ListaId> listasRequeridas;
 
     public Lista(ListaId id, String nombre, int maxTarjetas) {
+        this(id, nombre, maxTarjetas, new ArrayList<>());
+    }
+
+    public Lista(ListaId id, String nombre, int maxTarjetas, List<ListaId> listasRequeridas) {
         if (id == null) throw new ListaException("ListaId no puede ser nulo");
         if (nombre == null || nombre.isBlank()) throw new ListaException("La lista debe tener un nombre");
         this.id = id;
         this.nombre = nombre;
         this.maxTarjetas = maxTarjetas;
         this.tarjetas = new ArrayList<>();
+        this.listasRequeridas = listasRequeridas != null ? new ArrayList<>(listasRequeridas) : new ArrayList<>();
     }
 
     public static Lista nueva(String nombre, int maxTarjetas) {
@@ -80,6 +86,23 @@ public class Lista {
     }
     public int totalTarjetas() { 
     	return tarjetas.size(); 
+    }
+
+    // --- Prerequisitos ---
+
+    public List<ListaId> getListasRequeridas() {
+        return Collections.unmodifiableList(listasRequeridas);
+    }
+
+    public boolean tienePrerequisitos() {
+        return !listasRequeridas.isEmpty();
+    }
+
+    public void configurarListasRequeridas(List<ListaId> nuevas) {
+        this.listasRequeridas.clear();
+        if (nuevas != null) {
+            this.listasRequeridas.addAll(nuevas);
+        }
     }
 
     // --- Identidad por ID ---
