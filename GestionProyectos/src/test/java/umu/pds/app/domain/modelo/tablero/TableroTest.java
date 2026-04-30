@@ -1,4 +1,4 @@
-package umu.pds.app.domain.modelo.tablero;
+﻿package umu.pds.app.domain.modelo.tablero;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,14 +37,16 @@ class TableroTest {
         @Test
         @DisplayName("Crea tablero con id, nombre y propietario correctos")
         void crearTableroValido() {
-            assertNotNull(tablero.getId());
-            assertEquals("Sprint 1", tablero.getNombre());
-            assertEquals(propietario, tablero.getPropietario());
-            assertEquals("owner@test.com", tablero.getEmailPropietario());
-            assertFalse(tablero.isBloqueado());
-            assertTrue(tablero.getListas().isEmpty());
-            assertTrue(tablero.getTarjetasCompletadas().isEmpty());
-            assertTrue(tablero.getHistorial().isEmpty());
+            assertAll("estado inicial del tablero",
+                    () -> assertNotNull(tablero.getId()),
+                    () -> assertEquals("Sprint 1", tablero.getNombre()),
+                    () -> assertEquals(propietario, tablero.getPropietario()),
+                    () -> assertEquals("owner@test.com", tablero.getEmailPropietario()),
+                    () -> assertFalse(tablero.isBloqueado()),
+                    () -> assertTrue(tablero.getListas().isEmpty()),
+                    () -> assertTrue(tablero.getTarjetasCompletadas().isEmpty()),
+                    () -> assertTrue(tablero.getHistorial().isEmpty())
+            );
         }
 
         @Test
@@ -153,7 +155,7 @@ class TableroTest {
         @Test
         @DisplayName("Agregar lista incrementa el total y registra traza")
         void agregarListaRegistraTraza() {
-            Lista lista = Lista.nueva("Por Hacer");
+            Lista lista = Lista.nueva("Por Hacer", 10);
             Lista resultado = tablero.agregarLista(lista);
 
             assertSame(lista, resultado);
@@ -172,7 +174,7 @@ class TableroTest {
         @Test
         @DisplayName("Eliminar lista existente devuelve true y registra traza")
         void eliminarListaExistente() {
-            Lista lista = Lista.nueva("Backlog");
+            Lista lista = Lista.nueva("Backlog", 10);
             tablero.agregarLista(lista);
 
             boolean eliminada = tablero.eliminarLista(lista.getId());
@@ -194,7 +196,7 @@ class TableroTest {
         @Test
         @DisplayName("buscarLista devuelve Optional con la lista si existe")
         void buscarListaEncontrada() {
-            Lista lista = Lista.nueva("En Proceso");
+            Lista lista = Lista.nueva("En Proceso", 10);
             tablero.agregarLista(lista);
             assertTrue(tablero.buscarLista(lista.getId()).isPresent());
         }
@@ -217,7 +219,7 @@ class TableroTest {
         @Test
         @DisplayName("Agregar tarjeta en tablero desbloqueado tiene exito y registra traza")
         void agregarTarjetaExito() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Tarea 1");
 
@@ -231,7 +233,7 @@ class TableroTest {
         @Test
         @DisplayName("Agregar tarjeta en tablero bloqueado lanza TableroException")
         void agregarTarjetaBloqueadoLanzaExcepcion() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             tablero.bloquear();
 
@@ -242,7 +244,7 @@ class TableroTest {
         @Test
         @DisplayName("Agregar tarjeta nula lanza excepcion")
         void agregarTarjetaNulaLanzaExcepcion() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
 
             assertThrows(IllegalArgumentException.class,
@@ -268,7 +270,7 @@ class TableroTest {
         @Test
         @DisplayName("Eliminar tarjeta existente devuelve true y registra traza")
         void eliminarTarjetaExistente() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Borrar esto");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -289,7 +291,7 @@ class TableroTest {
         @Test
         @DisplayName("Eliminar tarjeta inexistente en lista existente devuelve false")
         void eliminarTarjetaInexistente() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             boolean eliminada = tablero.eliminarTarjeta(lista.getId(), TarjetaId.nuevo());
             assertFalse(eliminada);
@@ -307,8 +309,8 @@ class TableroTest {
         @Test
         @DisplayName("Mover tarjeta entre listas registra traza")
         void moverTarjetaExito() {
-            Lista origen = Lista.nueva("Todo");
-            Lista destino = Lista.nueva("En Proceso");
+            Lista origen = Lista.nueva("Todo", 10);
+            Lista destino = Lista.nueva("En Proceso", 10);
             tablero.agregarLista(origen);
             tablero.agregarLista(destino);
             Tarjeta tarjeta = Tarjeta.nueva("Movible");
@@ -325,8 +327,8 @@ class TableroTest {
         @Test
         @DisplayName("Mover tarjeta permitido aunque tablero este bloqueado")
         void moverTarjetaConTableroBloqueado() {
-            Lista origen = Lista.nueva("Todo");
-            Lista destino = Lista.nueva("En Proceso");
+            Lista origen = Lista.nueva("Todo", 10);
+            Lista destino = Lista.nueva("En Proceso", 10);
             tablero.agregarLista(origen);
             tablero.agregarLista(destino);
             Tarjeta tarjeta = Tarjeta.nueva("Movible");
@@ -339,7 +341,7 @@ class TableroTest {
         @Test
         @DisplayName("Mover tarjeta con lista origen inexistente lanza excepcion")
         void moverTarjetaListaOrigenInexistente() {
-            Lista destino = Lista.nueva("En Proceso");
+            Lista destino = Lista.nueva("En Proceso", 10);
             tablero.agregarLista(destino);
 
             assertThrows(IllegalArgumentException.class,
@@ -349,7 +351,7 @@ class TableroTest {
         @Test
         @DisplayName("Mover tarjeta con lista destino inexistente lanza excepcion")
         void moverTarjetaListaDestinoInexistente() {
-            Lista origen = Lista.nueva("Todo");
+            Lista origen = Lista.nueva("Todo", 10);
             tablero.agregarLista(origen);
             Tarjeta tarjeta = Tarjeta.nueva("T");
             tablero.agregarTarjeta(origen.getId(), tarjeta);
@@ -361,13 +363,47 @@ class TableroTest {
         @Test
         @DisplayName("Mover tarjeta inexistente en lista origen lanza excepcion")
         void moverTarjetaInexistenteEnOrigen() {
-            Lista origen = Lista.nueva("Todo");
-            Lista destino = Lista.nueva("Hecho");
+            Lista origen = Lista.nueva("Todo", 10);
+            Lista destino = Lista.nueva("Hecho", 10);
             tablero.agregarLista(origen);
             tablero.agregarLista(destino);
 
             assertThrows(IllegalArgumentException.class,
                     () -> tablero.moverTarjeta(TarjetaId.nuevo(), origen.getId(), destino.getId()));
+        }
+
+        @Test
+        @DisplayName("Mover tarjeta con prerequisito cumplido tiene exito")
+        void moverTarjeta_ConPrerequisitoCumplido_Exito() {
+            Lista lista1 = Lista.nueva("Lista 1", 5);
+            Lista lista2 = Lista.nueva("Lista 2", 5);
+            tablero.agregarLista(lista1);
+            tablero.agregarLista(lista2);
+            tablero.configurarListasRequeridas(lista2.getId(), List.of(lista1.getId()));
+            Tarjeta tarjeta = Tarjeta.nueva("Con prerequisito");
+            tablero.agregarTarjeta(lista1.getId(), tarjeta);
+
+            tablero.moverTarjeta(tarjeta.getId(), lista1.getId(), lista2.getId());
+
+            assertEquals(0, lista1.getTarjetas().size());
+            assertEquals(1, lista2.getTarjetas().size());
+        }
+
+        @Test
+        @DisplayName("Mover tarjeta sin cumplir prerequisito lanza TableroException")
+        void moverTarjeta_ConPrerequisitoNoCumplido_LanzaExcepcion() {
+            Lista listaOrigen    = Lista.nueva("Backlog", 5);
+            Lista listaRequerida = Lista.nueva("En Revision", 5);
+            Lista listaDestino   = Lista.nueva("Hecho", 5);
+            tablero.agregarLista(listaOrigen);
+            tablero.agregarLista(listaRequerida);
+            tablero.agregarLista(listaDestino);
+            tablero.configurarListasRequeridas(listaDestino.getId(), List.of(listaRequerida.getId()));
+            Tarjeta tarjeta = Tarjeta.nueva("Sin prerequisito");
+            tablero.agregarTarjeta(listaOrigen.getId(), tarjeta);
+
+            assertThrows(TableroException.class,
+                    () -> tablero.moverTarjeta(tarjeta.getId(), listaOrigen.getId(), listaDestino.getId()));
         }
     }
 
@@ -382,7 +418,7 @@ class TableroTest {
         @Test
         @DisplayName("Completar tarjeta la mueve a tarjetasCompletadas y registra traza")
         void completarTarjetaExito() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Completa");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -406,7 +442,7 @@ class TableroTest {
         @Test
         @DisplayName("Completar tarjeta inexistente en lista lanza excepcion")
         void completarTarjetaInexistente() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
 
             assertThrows(IllegalArgumentException.class,
@@ -416,7 +452,7 @@ class TableroTest {
         @Test
         @DisplayName("Completar tarjeta permitido aunque tablero este bloqueado")
         void completarTarjetaConTableroBloqueado() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Hecha");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -437,7 +473,7 @@ class TableroTest {
         @Test
         @DisplayName("Etiquetar tarjeta agrega etiqueta y registra traza")
         void etiquetarTarjetaExito() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Con etiqueta");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -453,7 +489,7 @@ class TableroTest {
         @Test
         @DisplayName("Etiquetar tarjeta con etiqueta nula lanza excepcion")
         void etiquetarTarjetaEtiquetaNula() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("T");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -472,7 +508,7 @@ class TableroTest {
         @Test
         @DisplayName("Desetiquetar tarjeta quita etiqueta y registra traza")
         void desetiquetarTarjetaExito() {
-            Lista lista = Lista.nueva("Todo");
+            Lista lista = Lista.nueva("Todo", 10);
             tablero.agregarLista(lista);
             Tarjeta tarjeta = Tarjeta.nueva("Con etiqueta");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -507,7 +543,7 @@ class TableroTest {
 
         @BeforeEach
         void setUpChecklist() {
-            lista = Lista.nueva("Sprint");
+            lista = Lista.nueva("Sprint", 10);
             tablero.agregarLista(lista);
             tarjeta = Tarjeta.nueva("Con checklist");
             tablero.agregarTarjeta(lista.getId(), tarjeta);
@@ -616,7 +652,7 @@ class TableroTest {
         void getListasInmodificable() {
             List<Lista> listas = tablero.getListas();
             assertThrows(UnsupportedOperationException.class,
-                    () -> listas.add(Lista.nueva("Intrusa")));
+                    () -> listas.add(Lista.nueva("Intrusa", 10)));
         }
 
         @Test
@@ -644,8 +680,8 @@ class TableroTest {
     @DisplayName("totalListas refleja el numero real de listas")
     void totalListasReflejaNumeroListas() {
         assertEquals(0, tablero.totalListas());
-        tablero.agregarLista(Lista.nueva("A"));
-        tablero.agregarLista(Lista.nueva("B"));
+        tablero.agregarLista(Lista.nueva("A", 10));
+        tablero.agregarLista(Lista.nueva("B", 10));
         assertEquals(2, tablero.totalListas());
     }
 
