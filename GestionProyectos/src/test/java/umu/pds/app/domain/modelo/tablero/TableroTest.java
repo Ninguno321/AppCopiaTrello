@@ -1,4 +1,4 @@
-﻿package umu.pds.app.domain.modelo.tablero;
+package umu.pds.app.domain.modelo.tablero;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -713,14 +713,14 @@ class TableroTest {
         @Test
         @DisplayName("Un tablero es igual a si mismo")
         void tableroIgualASiMismo() {
-            assertEquals(tablero, tablero);
+            assertTrue(tablero.equals(tablero));
         }
 
         @Test
         @DisplayName("Un tablero no es igual a null ni a otro tipo")
         void tableroNoIgualANullNiOtroTipo() {
             assertNotEquals(null, tablero);
-            assertNotEquals("string", tablero);
+            assertFalse(tablero.equals("string"));
         }
 
         @Test

@@ -330,7 +330,7 @@ public class Tablero {
         if (!faltantes.isEmpty()) {
             // Resolver nombres de las listas faltantes para el mensaje de error
             String nombresFaltantes = faltantes.stream()
-                    .map(id -> buscarLista(id).map(Lista::getNombre).orElse(id.toString()))
+                    .map(reqId -> buscarLista(reqId).map(Lista::getNombre).orElse(reqId.toString()))
                     .collect(Collectors.joining(", "));
             throw new TableroException(
                 "La tarjeta '" + tarjeta.getTitulo() + "' no puede moverse a '" + destino.getNombre()

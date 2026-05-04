@@ -79,8 +79,13 @@ public class ApiGroqTest {
                     Map.class
             );
 
+            Map responseBody = response.getBody();
+            if (responseBody == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error: respuesta vacía de Groq");
+            }
             List<Map<String, Object>> choices =
-                    (List<Map<String, Object>>) response.getBody().get("choices");
+                    (List<Map<String, Object>>) responseBody.get("choices");
 
             Map<String, Object> firstChoice = choices.get(0);
             Map<String, String> message =
