@@ -1,0 +1,16 @@
+umu.pds.app
+umu.pds.app.adapters.jpa.entity
+umu.pds.app.adapters.jpa.repository
+umu.pds.app.adapters.mappers
+umu.pds.app.application.commands
+umu.pds.app.application.ports.input
+umu.pds.app.application.services
+umu.pds.app.domain.exceptions
+umu.pds.app.domain.modelo.shared
+umu.pds.app.domain.modelo.tablero
+umu.pds.app.domain.modelo.usuario
+umu.pds.app.domain.ports.output
+umu.pds.app.infrastructure.config
+umu.pds.app.infrastructure.rest
+umu.pds.app.infrastructure.rest.dto
+umu.pds.app.steps
