@@ -217,7 +217,8 @@ Esta regla se aplica siguiendo el patrón de **Arquitectura Hexagonal**:
 ```
 ┌─────────────────────────────────────────┐
 │              DOMINIO                    │
-│  (domain/modelo, domain/ports/output)   │
+│  (domain/modelo, domain/ports/input,    │
+│   domain/ports/output)                  │
 │  — sin Spring, sin JPA, sin HTTP —      │
 └──────────────┬──────────────────────────┘
                │  Interfaces (Puertos de salida)
@@ -229,6 +230,8 @@ Esta regla se aplica siguiendo el patrón de **Arquitectura Hexagonal**:
 │  TableroJpaAdapter, TableroMapper…      │
 └─────────────────────────────────────────┘
 ```
+
+**Puertos de entrada** (`domain/ports/input`): el dominio declara interfaces como `GestionTableroUseCase` que definen los casos de uso que la capa de aplicación debe implementar. Al vivir en el dominio, estas interfaces son independientes de cualquier framework.
 
 **Puertos de salida** (`domain/ports/output`): el dominio declara interfaces como `TableroRepository` y `UsuarioRepository`, que especifican el contrato de persistencia sin mencionar ninguna tecnología concreta. Son el único punto de contacto entre el dominio y el mundo exterior.
 

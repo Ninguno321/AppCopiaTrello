@@ -1,4 +1,4 @@
-package umu.pds.app.application.ports.input;
+package umu.pds.app.domain.ports.input;
 
 import umu.pds.app.application.commands.PlantillaTableroCommand;
 import umu.pds.app.domain.modelo.shared.ListaId;

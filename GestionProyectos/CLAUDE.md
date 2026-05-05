@@ -25,8 +25,8 @@ Para cumplir con los criterios de evaluación, el dominio debe permanecer agnós
 * **Value Objects para IDs:** Utiliza las clases de `umu.pds.app.domain.modelo.shared` (ej. `TableroId`) en lugar de tipos primitivos o Longs directamente en el dominio.
 
 ## 5. Estructura de Paquetes
-1. `umu.pds.app.domain`: Modelo puro, excepciones y puertos (interfaces).
-2. `umu.pds.app.application`: Servicios de aplicación y casos de uso.
+1. `umu.pds.app.domain`: Modelo puro, excepciones y puertos (interfaces de entrada en `domain.ports.input` y salida en `domain.ports.output`).
+2. `umu.pds.app.application`: Implementaciones de servicios de aplicación (los interfaces de casos de uso viven en `domain.ports.input`).
 3. `umu.pds.app.adapters.jpa`: 
     - `.entity`: Clases con anotaciones JPA.
     - `.repository`: Interfaces `JpaRepository`.

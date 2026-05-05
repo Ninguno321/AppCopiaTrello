@@ -6,7 +6,6 @@ import umu.pds.app.application.commands.PlantillaItemChecklistCommand;
 import umu.pds.app.application.commands.PlantillaListaCommand;
 import umu.pds.app.application.commands.PlantillaTableroCommand;
 import umu.pds.app.application.commands.PlantillaTarjetaCommand;
-import umu.pds.app.application.ports.input.GestionTableroUseCase;
 import umu.pds.app.domain.exceptions.TableroException;
 import umu.pds.app.domain.modelo.shared.ListaId;
 import umu.pds.app.domain.modelo.shared.TableroId;
@@ -18,6 +17,7 @@ import umu.pds.app.domain.modelo.tablero.Lista;
 import umu.pds.app.domain.modelo.tablero.Tablero;
 import umu.pds.app.domain.modelo.tablero.Tarjeta;
 import umu.pds.app.domain.modelo.usuario.Usuario;
+import umu.pds.app.domain.ports.input.GestionTableroUseCase;
 import umu.pds.app.domain.ports.output.TableroRepository;
 import umu.pds.app.domain.ports.output.UsuarioRepository;
 
