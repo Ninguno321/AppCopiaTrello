@@ -3,6 +3,7 @@
 Este documento define los conceptos centrales del dominio de nuestra aplicación, asegurando un vocabulario común entre el equipo de desarrollo.
 
 | CONCEPTO | DESCRIPCIÓN | TIPO EN DDD | JUSTIFICACIÓN |
+|----------|-------------|-------------|---------------|
 | **Tablero** | Espacio principal de trabajo colaborativo. | Entidad (Raíz de Agregado) | Tiene una identidad única a través de su URL. Es la entidad central que coordina el bloqueo y mantiene la historia de las acciones. |
 | **Lista** | Contenedor ordenado para varias tarjetas. | Entidad | Pertenece a un tablero en el que se pueden añadir listas. Contiene tarjetas y necesita una identidad para que el sistema sepa entre qué listas se mueven. |
 | **Tarjeta** | Anotación de información o trabajo. | Entidad | Sirven para asignar tareas o anotar información. Su estado cambia al marcarse como completadas o moverse. Requieren un ciclo de vida propio. Actúan como el contenedor principal. |
