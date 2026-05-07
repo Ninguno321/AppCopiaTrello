@@ -125,4 +125,23 @@ cd GestionProyectos
 mvn spring-boot:run
 ```
 
+### Configuración del modelo de IA
+
+Para utilizar el modelo de IA, es necesario configurar una API Key en el proyecto.
+
+* Abre el fichero y copia la clave proporcionada (o una propia, `https://groq.com/`):
+
+```bash
+./GestionProyectos/src/main/resources/application-secrets.properties
+```
+Actualmente se utiliza un modelo de ChatGPT (openai/gpt-oss-120b) con una temperatura (creatividad) de 0.7. Todo esto se puede modificar desde el fichero: 
+
+```bash
+./GestionProyectos/src/main/java/umu/pds/app/infrastructure/rest/ApiGroqTest.java
+```
+
+> ⚠️ **Importante**
+
+Es importante conectarnos desde España si queremos usarlo con los datos proporcionados. Tampoco podemos hacer uso de la misma con una VPN  ya que provoca errores de conexión.
+
 La API REST estará disponible en `http://localhost:8080` y la documentación Swagger en `http://localhost:8080/swagger-ui.html`.
