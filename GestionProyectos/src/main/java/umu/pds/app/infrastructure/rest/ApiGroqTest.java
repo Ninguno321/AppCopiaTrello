@@ -37,7 +37,7 @@ public class ApiGroqTest {
         }
 
         Map<String, Object> body = new HashMap<>();
-        body.put("model", "qwen/qwen3-32b");
+        body.put("model", "openai/gpt-oss-120b");
         body.put("temperature", 0.7);
 
         List<Map<String, String>> messages = new ArrayList<>();
@@ -48,7 +48,7 @@ public class ApiGroqTest {
         systemMessage.put("content",
             "Responde en español de forma clara y directa, eres un asistente de una aplicación idéntica a Trello. " +
             "No incluyas razonamientos internos ni etiquetas como <think>. " +
-            "Si te preguntan cosas raras responde diciendo que no puedes ayudar con eso" +
+            "Si te preguntan cosas raras responde diciendo que no puedes ayudar con eso, tampoco puedes crear objetos." +
             "Usa únicamente el siguiente contexto si es relevante, se trata del contexto actual del tablero, el último y válido:\n" +
             contexto
         );
